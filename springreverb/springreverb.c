@@ -235,24 +235,27 @@ void springs_process(springs_t *springs, float in[], float out[], int count)
         {
 
 #define tap(name, NAME)                                                      \
-    int idelay##name = delay##name;                                          \
+    int idelay##name   = delay##name;                                        \
+    float fdelay##name = delay##name - (float)idelay##name;                  \
     int idx##name =                                                          \
         (springs->lowdelay##name##id - idelay##name) & LOWDELAY##NAME##MASK; \
-    float tap##name = springs->lowdelay##name[idx##name][i]
+    float val0##name = springs->lowdelay##name[idx##name][i];                \
+    float val1##name =                                                       \
+        springs->lowdelay##name[(idx##name - 1) & LOWDELAY##NAME##MASK][i];  \
+    float tap##name = val0##name + (val1##name - val0##name) * fdelay##name
 
             float delay1 = springs->L1[i];
             tap(1, 1);
             springs->lowdelayecho[springs->lowdelayechoid][i] =
                 tap1 * (1.f - gecho);
 
-            float delayecho = delay1 - (float)idelay1 + springs->Lecho[i];
+            float delayecho = fdelay1 + springs->Lecho[i];
             tap(echo, ECHO);
             tapecho += tap1 * gecho;
             springs->lowdelayripple[springs->lowdelayrippleid][i] =
                 tapecho * (1.f - gripple);
 
-            float delayripple =
-                delayecho - (float)idelayecho + springs->Lripple[i];
+            float delayripple = fdelayecho + springs->Lripple[i];
             tap(ripple, RIPPLE);
             tapripple += tapecho * gripple;
 

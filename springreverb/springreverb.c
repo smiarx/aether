@@ -17,11 +17,15 @@
 #define gripple 0.01f
 #define glf     0.999f
 
+#define amod 0.997f
+#define gmod 8.3f
+
 #define LOWPASSN2ND    5 // number of lowpass 2nd order filter
 #define LOWPASSMEMSIZE 4
 #define LOWPASSMEMMASK (LOWPASSMEMSIZE - 1)
 
 #include <immintrin.h>
+#include <limits.h>
 #include <math.h>
 #include <omp.h>
 #include <stdio.h>
@@ -60,6 +64,11 @@ typedef struct {
     int lowdelayechoid;
     int lowdelayrippleid;
 
+    /* modulation */
+    springparam(int, __m128i, randseed);
+    springparam(int, __m128i, randstate);
+    springparam(float, __m128, Lmodmem);
+
     springparam(float, __m128, lowpassmem[LOWPASSN2ND + 1][LOWPASSMEMSIZE]);
     int lowpassmemid;
 
@@ -81,6 +90,10 @@ void springs_init(springs_t *springs, float samplerate)
     springs->lowdelay1id      = 0;
     springs->lowdelayechoid   = 0;
     springs->lowdelayrippleid = 0;
+
+    loopsprings(i) springs->randseed[i] = rand();
+    memset(springs->randstate, 0, sizeof(springs->randstate));
+    memset(springs->Lmodmem, 0, sizeof(springs->Lmodmem));
 
     memset(springs->lowpassmem, 0.f, sizeof(springs->lowpassmem));
     springs->lowpassmemid = 0;
@@ -241,6 +254,16 @@ void springs_process(springs_t *springs, float in[], float out[], int count)
         float y[NSPRINGS];
         loopsprings(i) y[i] = x;
 
+        /* delay modulation */
+        loopsprings(i)
+        {
+            springs->randstate[i] =
+                springs->randseed[i] + springs->randstate[i] * 1103515245;
+            float mod = springs->randstate[i] / ((float)INT_MAX);
+            // filter modulation
+            springs->Lmodmem[i] = mod =
+                (1 - amod) * mod + amod * springs->Lmodmem[i];
+        }
         /* tap low delayline */
         loopsprings(i)
         {
@@ -255,7 +278,7 @@ void springs_process(springs_t *springs, float in[], float out[], int count)
         springs->lowdelay##name[(idx##name - 1) & LOWDELAY##NAME##MASK][i];  \
     float tap##name = val0##name + (val1##name - val0##name) * fdelay##name
 
-            float delay1 = springs->L1[i];
+            float delay1 = springs->L1[i] + gmod * springs->Lmodmem[i];
             tap(1, 1);
             springs->lowdelayecho[springs->lowdelayechoid][i] =
                 tap1 * (1.f - gecho);

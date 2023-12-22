@@ -1,4 +1,16 @@
-#define NSPRINGS   8
+#define NSPRINGS 8
+
+#ifndef STEREO
+#ifndef MONO
+#define STEREO
+#endif
+#endif
+#ifdef STEREO
+#define NCHANNELS 2
+#else
+#define NCHANNELS 1
+#endif
+
 #define BUFFERSIZE (1 << 12)
 #define BUFFERMASK (BUFFERSIZE - 1)
 
@@ -121,10 +133,10 @@ void springs_set_a1_vec(springs_t *springs, float *a1)
     springs->va1 = _mm_load_ps(a1);
 }
 
-void springs_process_vec(springs_t *springs, float in[], float out[], int count)
+void springs_process_vec(springs_t *springs, float **in, float **out, int count)
 {
     for (int n = 0; n < count; ++n) {
-        float x   = in[n];
+        float x   = in[0][n];
         __m128 vx = _mm_set1_ps(x);
 
         __m128 vy = vx;
@@ -200,9 +212,9 @@ void springs_process_vec(springs_t *springs, float in[], float out[], int count)
         springs->vlowdelay1[springs->lowdelay1id] = vy;
 
         __m128 vres;
-        vres   = _mm_hadd_ps(vy, vy);
-        vres   = _mm_hadd_ps(vres, vres);
-        out[n] = _mm_cvtss_f32(vres);
+        vres      = _mm_hadd_ps(vy, vy);
+        vres      = _mm_hadd_ps(vres, vres);
+        out[0][n] = _mm_cvtss_f32(vres);
 
         /* advance buffer ids */
         springs->lowbufid    = (springs->lowbufid + 1) & MLOWBUFMASK;
@@ -247,12 +259,11 @@ void springs_set_Nripple(springs_t *springs, float Nripple)
     loopsprings(i) { springs->Lripple[i] = 2.f * springs->K[i] * Nripple; }
 }
 
-void springs_process(springs_t *springs, float in[], float out[], int count)
+void springs_process(springs_t *springs, float **in, float **out, int count)
 {
     for (int n = 0; n < count; ++n) {
-        float x = in[n];
         float y[NSPRINGS];
-        loopsprings(i) y[i] = x;
+        loopsprings(i) y[i] = in[i * NCHANNELS / NSPRINGS][n];
 
         /* delay modulation */
         loopsprings(i)
@@ -358,10 +369,13 @@ void springs_process(springs_t *springs, float in[], float out[], int count)
         springs->lowpassmemid = (springs->lowpassmemid + 1) & LOWPASSMEMMASK;
 
         /* sum springs */
-        for (int i = NSPRINGS / 2; i > 0; i /= 2) {
-            for (int j = 0; j < i; ++j) y[j] += y[j + i];
+        for (int c = 0; c < NCHANNELS; ++c) {
+            int offset = c * NSPRINGS / NCHANNELS;
+            for (int i = NSPRINGS / 2 / NCHANNELS; i > 0; i /= 2) {
+                for (int j = 0; j < i; ++j) y[offset + j] += y[offset + j + i];
+            }
+            out[c][n] = y[offset];
         }
-        out[n] = y[0];
 
         /* advance buffer ids */
         springs->lowbufid    = (springs->lowbufid + 1) & MLOWBUFMASK;
@@ -373,16 +387,22 @@ void springs_process(springs_t *springs, float in[], float out[], int count)
     }
 }
 
-float test(springs_t *springs, void (*fp)(springs_t *, float *, float *, int))
+float test(springs_t *springs, void (*fp)(springs_t *, float **, float **, int))
 {
-    float a[N];
-    float b[N];
+    float a[NCHANNELS][N];
+    float b[NCHANNELS][N];
     double dtime;
 
-    for (int i = 0; i < N; i++) a[i] = (i == 0);
-    fp(springs, a, b, N);
+    float *in[2], *out[2];
+    for (int c = 0; c < NCHANNELS; ++c) {
+        in[c]  = &a[c][0];
+        out[c] = &b[c][0];
+    }
+
+    for (int i = 0; i < N; i++) a[0][i] = (i == 0);
+    fp(springs, in, out, N);
     dtime = -omp_get_wtime();
-    for (int i = 0; i < R; i++) fp(springs, a, b, N);
+    for (int i = 0; i < R; i++) fp(springs, in, out, N);
     dtime += omp_get_wtime();
     return dtime;
 }
@@ -395,9 +415,16 @@ int main()
     float Td[]       = {0.0552, 0.04366, 0.04340, 0.04370,
                         .0552,  0.04423, 0.04367, 0.0432};
 
-    float in[N];
-    float out[N];
-    memset(in, 0, N * sizeof(float));
+    float ins[NCHANNELS][N];
+    float outs[NCHANNELS][N];
+    float *in[2], *out[2];
+
+    for (int c = 0; c < NCHANNELS; ++c) {
+        in[c]  = &ins[c][0];
+        out[c] = &outs[c][0];
+    }
+
+    memset(ins, 0, sizeof(ins));
 
     springs_t springs;
     springs_init(&springs, samplerate);
@@ -406,7 +433,7 @@ int main()
     springs_set_Nripple(&springs, 0.5);
     springs_set_Td(&springs, Td);
 
-    void (*fp[4])(springs_t *, float *, float *, int);
+    void (*fp[4])(springs_t *, float **, float **, int);
     fp[0]      = springs_process;
     fp[1]      = springs_process_vec;
     int ntests = 2;
@@ -420,14 +447,18 @@ int main()
         printf("\n");
     }
 
-    // springs_process(&springs, in, out, N);
-    // for(int i = 0; i < N; ++i)
+    // for(int r=0; r < R; ++r)
     //{
-    //     printf("%.7f, ", out[i]);
-    //     if((i+1)%8==0)
-    //         printf("\n");
+    //     ins[0][0] = r==0 ? 1.f : 0.f;
+    //     springs_process(&springs, in, out, N);
+    //     for(int i = 0; i < N; ++i)
+    //     {
+    //         printf("%.7f, ", out[0][i]);
+    //         if((i+1)%8==0)
+    //             printf("\n");
+    //     }
+    //     printf("\n");
     // }
-    // printf("\n");
     // printf("\n");
 
     // springs_init(&springs, samplerate);
@@ -438,4 +469,6 @@ int main()
     //     if((i+1)%8==0)
     //         printf("\n");
     // }
+    // printf("\n");
+    // printf("\n");
 }

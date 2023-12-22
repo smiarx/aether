@@ -1,4 +1,4 @@
-#define NSPRINGS   4
+#define NSPRINGS   8
 #define BUFFERSIZE (1 << 12)
 #define BUFFERMASK (BUFFERSIZE - 1)
 
@@ -204,7 +204,7 @@ void springs_set_ftr(springs_t *springs, float *ftr)
 
 void springs_set_a1(springs_t *springs, float *a1)
 {
-    memcpy(springs->a1, a1, NSPRINGS);
+    loopsprings(i) springs->a1[i] = a1[i];
 }
 
 void springs_set_Td(springs_t *springs, float *Td)
@@ -227,8 +227,9 @@ void springs_set_Nripple(springs_t *springs, float Nripple)
 void springs_process(springs_t *springs, float in[], float out[], int count)
 {
     for (int n = 0; n < count; ++n) {
-        float x           = in[n];
-        float y[NSPRINGS] = {x, x, x, x};
+        float x = in[n];
+        float y[NSPRINGS];
+        loopsprings(i) y[i] = x;
 
         /* tap low delayline */
         loopsprings(i)
@@ -319,25 +320,25 @@ float test(springs_t *springs, void (*fp)(springs_t *, float *, float *, int))
 int main()
 {
     float samplerate = 48000;
-    float ftr[]      = {4100, 4106, 4200, 4300};
-    float a1[]       = {0.2, 0.2, 0.2, 0.2};
-    float Td[]       = {0.0552, 0.04366, 0.04340, 0.04373};
+    float ftr[]      = {4210, 4106, 4200, 4300, 3930, 4118, 4190, 4310};
+    float a1[]       = {0.18, 0.21, 0.312, 0.32, 0.32, 0.23, 0.21, 0.2};
+    float Td[]       = {0.0552, 0.04366, 0.04340, 0.04370,
+                        .0552,  0.04423, 0.04367, 0.0432};
 
     float in[N];
     float out[N];
     memset(in, 0, N * sizeof(float));
-    in[0] = 1;
 
     springs_t springs;
     springs_init(&springs, samplerate);
-    springs_set_a1_vec(&springs, a1);
-    springs_set_ftr_vec(&springs, ftr);
+    springs_set_a1(&springs, a1);
+    springs_set_ftr(&springs, ftr);
     springs_set_Nripple(&springs, 0.5);
     springs_set_Td(&springs, Td);
 
     void (*fp[4])(springs_t *, float *, float *, int);
-    fp[0]      = springs_process_vec;
-    fp[1]      = springs_process;
+    fp[0]      = springs_process;
+    fp[1]      = springs_process_vec;
     int ntests = 2;
     double dtime;
 

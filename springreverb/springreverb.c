@@ -140,14 +140,14 @@ void springs_process_vec(springs_t *springs, float in[], float out[], int count)
 #undef tap
 
         /* low allpass filter chain */
+        // int idx = (lowBufId - iK[i]) & MLOWBUFMASK;
+        __m128i vidx = _mm_and_si128(
+            _mm_sub_epi32(_mm_set1_epi32(springs->lowbufid), springs->viK),
+            _mm_set1_epi32(MLOWBUFMASK));
+        // needed to get correct offset
+        vidx = _mm_slli_epi32(vidx, 2);
+        vidx = _mm_add_epi32(vidx, _mm_set_epi32(3, 2, 1, 0));
         for (int j = 0; j < MLOW; ++j) {
-            // int idx = (lowBufId - iK[i]) & MLOWBUFMASK;
-            __m128i vidx = _mm_and_si128(
-                _mm_sub_epi32(_mm_set1_epi32(springs->lowbufid), springs->viK),
-                _mm_set1_epi32(MLOWBUFMASK));
-            // needed to get correct offset
-            vidx = _mm_slli_epi32(vidx, 2);
-            vidx = _mm_add_epi32(vidx, _mm_set_epi32(3, 2, 1, 0));
 
             // float s1mem = lowmem1[j][idx][i];
             __m128 vs1mem = _mm_i32gather_ps((float *)&springs->vlowmem1[j][0],
@@ -261,12 +261,14 @@ void springs_process(springs_t *springs, float in[], float out[], int count)
         }
 
         /* low allpass filter chain */
+        int idx[NSPRINGS];
+        loopsprings(i) idx[i] =
+            (springs->lowbufid - springs->iK[i]) & MLOWBUFMASK;
         for (int j = 0; j < MLOW; ++j) {
             loopsprings(i)
             {
                 /* compute internal allpass1 */
-                int idx = (springs->lowbufid - springs->iK[i]) & MLOWBUFMASK;
-                float s1mem = springs->lowmem1[j][idx][i];
+                float s1mem = springs->lowmem1[j][idx[i]][i];
                 float s1    = y[i] - springs->a1[i] * s1mem;
 
                 /* compute allpass2 */

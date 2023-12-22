@@ -6,7 +6,19 @@
 #define MLOWBUFSIZE 256
 #define MLOWBUFMASK (MLOWBUFSIZE - 1)
 
+#define LOWDELAY1SIZE      2048
+#define LOWDELAY1MASK      (LOWDELAY1SIZE - 1)
+#define LOWDELAYECHOSIZE   512
+#define LOWDELAYECHOMASK   (LOWDELAYECHOSIZE - 1)
+#define LOWDELAYRIPPLESIZE 128
+#define LOWDELAYRIPPLEMASK (LOWDELAYRIPPLESIZE - 1)
+
+#define gecho   0.01f
+#define gripple 0.01f
+#define glf     0.999f
+
 #include <immintrin.h>
+#include <math.h>
 #include <omp.h>
 #include <stdio.h>
 #include <string.h>
@@ -34,6 +46,16 @@ typedef struct {
     springparam(float, __m128, lowmem1[MLOW][MLOWBUFSIZE]);
     int lowbufid;
 
+    springparam(float, __m128, lowdelay1[LOWDELAY1SIZE]);
+    springparam(float, __m128, lowdelayecho[LOWDELAYECHOSIZE]);
+    springparam(float, __m128, lowdelayripple[LOWDELAYRIPPLESIZE]);
+    springparam(float, __m128, L1);
+    springparam(float, __m128, Lecho);
+    springparam(float, __m128, Lripple);
+    int lowdelay1id;
+    int lowdelayechoid;
+    int lowdelayrippleid;
+
     float samplerate;
 } springs_t;
 
@@ -43,6 +65,15 @@ void springs_init(springs_t *springs, float samplerate)
            MLOW * MLOWBUFSIZE * NSPRINGS * sizeof(float));
     memset(springs->lowmem2, 0.f, MLOW * NSPRINGS * sizeof(float));
     springs->lowbufid = 0;
+
+    memset(springs->lowdelay1, 0.f, LOWDELAY1SIZE * NSPRINGS * sizeof(float));
+    memset(springs->lowdelayecho, 0.f,
+           LOWDELAYECHOSIZE * NSPRINGS * sizeof(float));
+    memset(springs->lowdelayripple, 0.f,
+           LOWDELAYRIPPLESIZE * NSPRINGS * sizeof(float));
+    springs->lowdelay1id      = 0;
+    springs->lowdelayechoid   = 0;
+    springs->lowdelayrippleid = 0;
 
     springs->samplerate = samplerate;
 }
@@ -74,6 +105,41 @@ void springs_process_vec(springs_t *springs, float in[], float out[], int count)
         __m128 vx = _mm_set1_ps(x);
 
         __m128 vy = vx;
+
+        ///* tap low delayline */
+#define tap(name, NAME)                                                       \
+    __m128i videlay##name = _mm_cvttps_epi32(vdelay##name);                   \
+    __m128i vidx##name    = _mm_and_si128(                                    \
+        _mm_sub_epi32(_mm_set1_epi32(springs->lowdelay##name##id),         \
+                         videlay##name),                                      \
+        _mm_set1_epi32(LOWDELAY##NAME##MASK));                             \
+    vidx##name        = _mm_slli_epi32(vidx##name, 2);                        \
+    vidx##name        = _mm_add_epi32(vidx##name, _mm_set_epi32(3, 2, 1, 0)); \
+    __m128 vtap##name = _mm_i32gather_ps((float *)&springs->vlowdelay##name,  \
+                                         vidx##name, sizeof(float));
+
+        __m128 vdelay1 = springs->vL1;
+        tap(1, 1);
+        springs->vlowdelayecho[springs->lowdelayechoid] =
+            _mm_mul_ps(vtap1, _mm_set1_ps(1.f - gecho));
+
+        __m128 vdelayecho = _mm_add_ps(
+            _mm_sub_ps(vdelay1, _mm_cvtepi32_ps(videlay1)), springs->vLecho);
+        tap(echo, ECHO);
+        vtapecho = _mm_fmadd_ps(vtap1, _mm_set1_ps(gecho), vtapecho);
+        springs->vlowdelayripple[springs->lowdelayrippleid] =
+            _mm_mul_ps(vtapecho, _mm_set1_ps(1.f - gripple));
+
+        __m128 vdelayripple =
+            _mm_add_ps(_mm_sub_ps(vdelayecho, _mm_cvtepi32_ps(videlayecho)),
+                       springs->vLripple);
+        tap(ripple, RIPPLE);
+        vtapripple = _mm_fmadd_ps(vtapecho, _mm_set1_ps(gripple), vtapripple);
+
+        vy = _mm_fmadd_ps(vtapripple, _mm_set1_ps(glf), vy);
+#undef tap
+
+        /* low allpass filter chain */
         for (int j = 0; j < MLOW; ++j) {
             // int idx = (lowBufId - iK[i]) & MLOWBUFMASK;
             __m128i vidx = _mm_and_si128(
@@ -106,12 +172,22 @@ void springs_process_vec(springs_t *springs, float in[], float out[], int count)
             // lowBuf[j][lowBufId][i] = y2;
             springs->vlowmem1[j][springs->lowbufid] = vy2;
         }
-        springs->lowbufid = (springs->lowbufid + 1) & MLOWBUFMASK;
+
+        /* input to lowdelay line */
+        springs->vlowdelay1[springs->lowdelay1id] = vy;
 
         __m128 vres;
         vres   = _mm_hadd_ps(vy, vy);
         vres   = _mm_hadd_ps(vres, vres);
         out[n] = _mm_cvtss_f32(vres);
+
+        /* advance buffer ids */
+        springs->lowbufid    = (springs->lowbufid + 1) & MLOWBUFMASK;
+        springs->lowdelay1id = (springs->lowdelay1id + 1) & LOWDELAY1MASK;
+        springs->lowdelayechoid =
+            (springs->lowdelayechoid + 1) & LOWDELAYECHOMASK;
+        springs->lowdelayrippleid =
+            (springs->lowdelayrippleid + 1) & LOWDELAYRIPPLEMASK;
     }
 }
 
@@ -131,11 +207,60 @@ void springs_set_a1(springs_t *springs, float *a1)
     memcpy(springs->a1, a1, NSPRINGS);
 }
 
+void springs_set_Td(springs_t *springs, float *Td)
+{
+    loopsprings(i)
+    {
+        float a1          = springs->a1[i];
+        float L           = fmaxf(0.f, Td[i] * springs->samplerate -
+                                           4 * MLOW * (1 - a1) / (1 + a1));
+        springs->Lecho[i] = L / 5;
+        springs->L1[i]    = L - springs->Lecho[1] - springs->Lripple[i];
+    }
+}
+
+void springs_set_Nripple(springs_t *springs, float Nripple)
+{
+    loopsprings(i) { springs->Lripple[i] = 2.f * springs->K[i] * Nripple; }
+}
+
 void springs_process(springs_t *springs, float in[], float out[], int count)
 {
     for (int n = 0; n < count; ++n) {
         float x           = in[n];
         float y[NSPRINGS] = {x, x, x, x};
+
+        /* tap low delayline */
+        loopsprings(i)
+        {
+
+#define tap(name, NAME)                                                      \
+    int idelay##name = delay##name;                                          \
+    int idx##name =                                                          \
+        (springs->lowdelay##name##id - idelay##name) & LOWDELAY##NAME##MASK; \
+    float tap##name = springs->lowdelay##name[idx##name][i]
+
+            float delay1 = springs->L1[i];
+            tap(1, 1);
+            springs->lowdelayecho[springs->lowdelayechoid][i] =
+                tap1 * (1.f - gecho);
+
+            float delayecho = delay1 - (float)idelay1 + springs->Lecho[i];
+            tap(echo, ECHO);
+            tapecho += tap1 * gecho;
+            springs->lowdelayripple[springs->lowdelayrippleid][i] =
+                tapecho * (1.f - gripple);
+
+            float delayripple =
+                delayecho - (float)idelayecho + springs->Lripple[i];
+            tap(ripple, RIPPLE);
+            tapripple += tapecho * gripple;
+
+            y[i] += tapripple * glf;
+#undef tap
+        }
+
+        /* low allpass filter chain */
         for (int j = 0; j < MLOW; ++j) {
             loopsprings(i)
             {
@@ -155,12 +280,20 @@ void springs_process(springs_t *springs, float in[], float out[], int count)
                 springs->lowmem1[j][springs->lowbufid][i] = y2;
             }
         }
-        springs->lowbufid = (springs->lowbufid + 1) & MLOWBUFMASK;
 
+        loopsprings(i) { springs->lowdelay1[springs->lowdelay1id][i] = y[i]; }
         for (int i = NSPRINGS / 2; i > 0; i /= 2) {
             for (int j = 0; j < i; ++j) y[j] += y[j + i];
         }
         out[n] = y[0];
+
+        /* advance buffer ids */
+        springs->lowbufid    = (springs->lowbufid + 1) & MLOWBUFMASK;
+        springs->lowdelay1id = (springs->lowdelay1id + 1) & LOWDELAY1MASK;
+        springs->lowdelayechoid =
+            (springs->lowdelayechoid + 1) & LOWDELAYECHOMASK;
+        springs->lowdelayrippleid =
+            (springs->lowdelayrippleid + 1) & LOWDELAYRIPPLEMASK;
     }
 }
 
@@ -183,6 +316,7 @@ int main()
     float samplerate = 48000;
     float ftr[]      = {4100, 4106, 4200, 4300};
     float a1[]       = {0.2, 0.2, 0.2, 0.2};
+    float Td[]       = {0.0552, 0.04366, 0.04340, 0.04373};
 
     float in[N];
     float out[N];
@@ -193,6 +327,8 @@ int main()
     springs_init(&springs, samplerate);
     springs_set_a1_vec(&springs, a1);
     springs_set_ftr_vec(&springs, ftr);
+    springs_set_Nripple(&springs, 0.5);
+    springs_set_Td(&springs, Td);
 
     void (*fp[4])(springs_t *, float *, float *, int);
     fp[0]      = springs_process_vec;

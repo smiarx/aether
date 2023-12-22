@@ -16,35 +16,22 @@
 
 #define loopsprings(i) for (int i = 0; i < NSPRINGS; ++i)
 
+#define springparam(typescal, typevec, name) \
+    union {                                  \
+        typescal name[NSPRINGS];             \
+        typevec v##name;                     \
+    }
+
 typedef struct {
     /* set with ftr */
-    union {
-        float K[NSPRINGS];
-        __m128 vK;
-    };
-    union {
-        int32_t iK[NSPRINGS];
-        __m128i viK;
-    };
-    union {
-        float a2[NSPRINGS];
-        __m128 va2;
-    };
+    springparam(float, __m128, K);
+    springparam(int32_t, __m128i, iK);
+    springparam(float, __m128, a2);
     /*--------*/
 
-    union {
-        float a1[NSPRINGS];
-        __m128 va1;
-    };
-
-    union {
-        float lowmem2[MLOW][NSPRINGS];
-        __m128 vlowmem2[MLOW];
-    };
-    union {
-        float lowmem1[MLOW][MLOWBUFSIZE][NSPRINGS];
-        __m128 vlowmem1[MLOW][MLOWBUFSIZE];
-    };
+    springparam(float, __m128, a1);
+    springparam(float, __m128, lowmem2[MLOW]);
+    springparam(float, __m128, lowmem1[MLOW][MLOWBUFSIZE]);
     int lowbufid;
 
     float samplerate;

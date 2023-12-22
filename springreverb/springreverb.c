@@ -64,7 +64,7 @@ void springs_set_ftr_vec(springs_t *springs, float *ftr)
 {
     __m128 vftr = _mm_load_ps(ftr);
     __m128 vK   = _mm_div_ps(_mm_set1_ps(springs->samplerate / 2.f), vftr);
-    __m128i viK = _mm_cvtps_epi32(_mm_sub_ps(vK, _mm_set1_ps(.5f)));
+    __m128i viK = _mm_sub_epi32(_mm_cvtps_epi32(vK), _mm_set1_epi32(1));
     __m128 vfd  = _mm_sub_ps(vK, _mm_cvtepi32_ps(viK));
     __m128 vone = _mm_set1_ps(1.f);
     // a2[i] = (1-fd)/(1+fd);

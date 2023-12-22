@@ -17,6 +17,10 @@
 #define gripple 0.01f
 #define glf     0.999f
 
+#define LOWPASSN2ND    5 // number of lowpass 2nd order filter
+#define LOWPASSMEMSIZE 4
+#define LOWPASSMEMMASK (LOWPASSMEMSIZE - 1)
+
 #include <immintrin.h>
 #include <math.h>
 #include <omp.h>
@@ -56,6 +60,9 @@ typedef struct {
     int lowdelayechoid;
     int lowdelayrippleid;
 
+    springparam(float, __m128, lowpassmem[LOWPASSN2ND + 1][LOWPASSMEMSIZE]);
+    int lowpassmemid;
+
     float samplerate;
 } springs_t;
 
@@ -74,6 +81,9 @@ void springs_init(springs_t *springs, float samplerate)
     springs->lowdelay1id      = 0;
     springs->lowdelayechoid   = 0;
     springs->lowdelayrippleid = 0;
+
+    memset(springs->lowpassmem, 0.f, sizeof(springs->lowpassmem));
+    springs->lowpassmemid = 0;
 
     springs->samplerate = samplerate;
 }
@@ -287,7 +297,44 @@ void springs_process(springs_t *springs, float in[], float out[], int count)
             }
         }
 
+        /* feed delayline */
         loopsprings(i) { springs->lowdelay1[springs->lowdelay1id][i] = y[i]; }
+
+        /* low pass filter */
+        const float filtersos[][2][3] = {
+            {{2.18740696e-03, 6.16778351e-04, 2.18740696e-03},
+             {1.00000000e+00, -1.70313982e+00, 7.48223150e-01}},
+            {{1.00000000e+00, -1.31079983e+00, 1.00000000e+00},
+             {1.00000000e+00, -1.68138176e+00, 8.53580218e-01}},
+            {{1.00000000e+00, -1.55984297e+00, 1.00000000e+00},
+             {1.00000000e+00, -1.66400724e+00, 9.39118831e-01}},
+            {{1.00000000e+00, -1.62171918e+00, 1.00000000e+00},
+             {1.00000000e+00, -1.65694459e+00, 9.78755965e-01}},
+            {{1.00000000e+00, -1.63865216e+00, 1.00000000e+00},
+             {1.00000000e+00, -1.65708087e+00, 9.94971669e-01}}};
+        loopsprings(i)
+        {
+            int id                        = springs->lowpassmemid;
+            springs->lowpassmem[0][id][i] = y[i];
+
+            for (int j = 0; j < LOWPASSN2ND; ++j) {
+                float a_acc = 0, b_acc = 0;
+                for (int k = 1; k < 3; ++k)
+                    a_acc +=
+                        filtersos[j][1][k] *
+                        springs
+                            ->lowpassmem[j + 1][(id - k) & LOWPASSMEMMASK][i];
+                for (int k = 0; k < 3; ++k)
+                    b_acc +=
+                        filtersos[j][0][k] *
+                        springs->lowpassmem[j][(id - k) & LOWPASSMEMMASK][i];
+                springs->lowpassmem[j + 1][id][i] = b_acc - a_acc;
+            }
+            y[i] = springs->lowpassmem[LOWPASSN2ND][id][i];
+        }
+        springs->lowpassmemid = (springs->lowpassmemid + 1) & LOWPASSMEMMASK;
+
+        /* sum springs */
         for (int i = NSPRINGS / 2; i > 0; i /= 2) {
             for (int j = 0; j < i; ++j) y[j] += y[j + i];
         }

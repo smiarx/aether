@@ -14,7 +14,7 @@
 #define BUFFERSIZE (1 << 12)
 #define BUFFERMASK (BUFFERSIZE - 1)
 
-#define MLOW        120
+#define MLOW        10
 #define MLOWBUFSIZE 256
 #define MLOWBUFMASK (MLOWBUFSIZE - 1)
 
@@ -44,40 +44,44 @@
 #include <string.h>
 
 #define N 512
-#define R 150
+#define R 1000
 
 #define loopsprings(i) for (int i = 0; i < NSPRINGS; ++i)
 
-#define springparam(typescal, name) typescal name[NSPRINGS];
+#define springparam(typescal, typevec, name) \
+    union {                                  \
+        typescal name[NSPRINGS];             \
+        typevec v##name;                     \
+    }
 
 typedef struct {
     /* set with ftr */
-    springparam(float, K);
-    springparam(int32_t, iK);
-    springparam(float, a2);
+    springparam(float, __m128, K);
+    springparam(int32_t, __m128i, iK);
+    springparam(float, __m128, a2);
     /*--------*/
 
-    springparam(float, a1);
-    springparam(float, lowmem2[MLOW]);
-    springparam(float, lowmem1[MLOW][MLOWBUFSIZE]);
+    springparam(float, __m128, a1);
+    springparam(float, __m128, lowmem2[MLOW]);
+    springparam(float, __m128, lowmem1[MLOW][MLOWBUFSIZE]);
     int lowbufid;
 
-    springparam(float, lowdelay1[LOWDELAY1SIZE]);
-    springparam(float, lowdelayecho[LOWDELAYECHOSIZE]);
-    springparam(float, lowdelayripple[LOWDELAYRIPPLESIZE]);
-    springparam(float, L1);
-    springparam(float, Lecho);
-    springparam(float, Lripple);
+    springparam(float, __m128, lowdelay1[LOWDELAY1SIZE]);
+    springparam(float, __m128, lowdelayecho[LOWDELAYECHOSIZE]);
+    springparam(float, __m128, lowdelayripple[LOWDELAYRIPPLESIZE]);
+    springparam(float, __m128, L1);
+    springparam(float, __m128, Lecho);
+    springparam(float, __m128, Lripple);
     int lowdelay1id;
     int lowdelayechoid;
     int lowdelayrippleid;
 
     /* modulation */
-    springparam(int, randseed);
-    springparam(int, randstate);
-    springparam(float, Lmodmem);
+    springparam(int, __m128i, randseed);
+    springparam(int, __m128i, randstate);
+    springparam(float, __m128, Lmodmem);
 
-    springparam(float, lowpassmem[LOWPASSN2ND + 1][LOWPASSMEMSIZE]);
+    springparam(float, __m128, lowpassmem[LOWPASSN2ND + 1][LOWPASSMEMSIZE]);
     int lowpassmemid;
 
     float samplerate;
@@ -85,13 +89,16 @@ typedef struct {
 
 void springs_init(springs_t *springs, float samplerate)
 {
-    memset(springs->lowmem1, 0, sizeof(springs->lowmem1));
-    memset(springs->lowmem2, 0, sizeof(springs->lowmem2));
+    memset(springs->lowmem1, 0.f,
+           MLOW * MLOWBUFSIZE * NSPRINGS * sizeof(float));
+    memset(springs->lowmem2, 0.f, MLOW * NSPRINGS * sizeof(float));
     springs->lowbufid = 0;
 
-    memset(springs->lowdelay1, 0, sizeof(springs->lowdelay1));
-    memset(springs->lowdelayecho, 0, sizeof(springs->lowdelayecho));
-    memset(springs->lowdelayripple, 0, sizeof(springs->lowdelayripple));
+    memset(springs->lowdelay1, 0.f, LOWDELAY1SIZE * NSPRINGS * sizeof(float));
+    memset(springs->lowdelayecho, 0.f,
+           LOWDELAYECHOSIZE * NSPRINGS * sizeof(float));
+    memset(springs->lowdelayripple, 0.f,
+           LOWDELAYRIPPLESIZE * NSPRINGS * sizeof(float));
     springs->lowdelay1id      = 0;
     springs->lowdelayechoid   = 0;
     springs->lowdelayrippleid = 0;
@@ -104,6 +111,130 @@ void springs_init(springs_t *springs, float samplerate)
     springs->lowpassmemid = 0;
 
     springs->samplerate = samplerate;
+}
+
+void springs_set_ftr_vec(springs_t *springs, float *ftr)
+{
+    __m128 vftr = _mm_load_ps(ftr);
+    __m128 vK   = _mm_div_ps(_mm_set1_ps(springs->samplerate / 2.f), vftr);
+    __m128i viK = _mm_sub_epi32(_mm_cvtps_epi32(vK), _mm_set1_epi32(1));
+    __m128 vfd  = _mm_sub_ps(vK, _mm_cvtepi32_ps(viK));
+    __m128 vone = _mm_set1_ps(1.f);
+    // a2[i] = (1-fd)/(1+fd);
+    __m128 va2 = _mm_div_ps(_mm_sub_ps(vone, vfd), _mm_add_ps(vone, vfd));
+
+    springs->vK  = vK;
+    springs->viK = viK;
+    springs->va2 = va2;
+}
+
+void springs_set_a1_vec(springs_t *springs, float *a1)
+{
+    springs->va1 = _mm_load_ps(a1);
+}
+
+void springs_process_vec(springs_t *springs, float **in, float **out, int count)
+{
+    for (int n = 0; n < count; ++n) {
+        float x   = in[0][n];
+        __m128 vx = _mm_set1_ps(x);
+
+        __m128 vy = vx;
+
+        //        ///* tap low delayline */
+        // #define tap(name,NAME) \
+//        __m128i videlay##name = _mm_cvttps_epi32(vdelay##name); \
+//        __m128i vidx##name = _mm_and_si128( \
+//                                _mm_sub_epi32( \
+//                                    _mm_set1_epi32(springs->lowdelay##name##id),
+        //                                    \
+//                                    videlay##name \
+//                                ), \
+//                                _mm_set1_epi32(LOWDELAY##NAME##MASK)\
+//                             ); \
+//        vidx##name = _mm_slli_epi32(vidx##name, 2); \
+//        vidx##name = _mm_add_epi32(vidx##name,
+        //        _mm_set_epi32(3,2,1,0)); \
+//        __m128 vtap##name = _mm_i32gather_ps((float*)
+        //        &springs->vlowdelay##name, vidx##name, sizeof(float));
+        //
+        //        __m128 vdelay1 = springs->vL1;
+        //        tap(1,1);
+        //        springs->vlowdelayecho[springs->lowdelayechoid] =
+        //            _mm_mul_ps(vtap1, _mm_set1_ps(1.f-gecho));
+        //
+        //        __m128 vdelayecho =
+        //            _mm_add_ps(
+        //                _mm_sub_ps(vdelay1, _mm_cvtepi32_ps(videlay1)),
+        //                springs->vLecho
+        //            );
+        //        tap(echo,ECHO);
+        //        vtapecho = _mm_fmadd_ps(vtap1,_mm_set1_ps(gecho),vtapecho);
+        //        springs->vlowdelayripple[springs->lowdelayrippleid] =
+        //            _mm_mul_ps(vtapecho, _mm_set1_ps(1.f-gripple));
+        //
+        //        __m128 vdelayripple =
+        //            _mm_add_ps(
+        //                _mm_sub_ps(vdelayecho, _mm_cvtepi32_ps(videlayecho)),
+        //                springs->vLripple
+        //            );
+        //        tap(ripple,RIPPLE);
+        //        vtapripple =
+        //        _mm_fmadd_ps(vtapecho,_mm_set1_ps(gripple),vtapripple);
+        //
+        //        vy = _mm_fmadd_ps(vtapripple, _mm_set1_ps(glf), vy);
+        // #undef tap
+
+        /* low allpass filter chain */
+        // int idx = (lowBufId - iK[i]) & MLOWBUFMASK;
+        __m128i vidx = _mm_and_si128(
+            _mm_sub_epi32(_mm_set1_epi32(springs->lowbufid), springs->viK),
+            _mm_set1_epi32(MLOWBUFMASK));
+        // needed to get correct offset
+        vidx = _mm_slli_epi32(vidx, 2);
+        vidx = _mm_add_epi32(vidx, _mm_set_epi32(3, 2, 1, 0));
+        for (int j = 0; j < MLOW; ++j) {
+
+            // float s1mem = lowmem1[j][idx][i];
+            __m128 vs1mem = _mm_i32gather_ps((float *)&springs->vlowmem1[j][0],
+                                             vidx, sizeof(float));
+
+            // float s1 = y[i] - a1*s1mem;
+            __m128 vs1 = _mm_fnmadd_ps(springs->va1, vs1mem, vy);
+
+            /* compute allpass2 */
+            // float s2mem = lowmem2[j][i];
+            __m128 vs2mem = springs->vlowmem2[j];
+            // float s2 = s1 - a2[i]*s2mem;
+            __m128 vs2 = _mm_fnmadd_ps(springs->va2, vs2mem, vs1);
+            // float y2 = a2[i]*s2 + s2mem;
+            __m128 vy2 = _mm_fmadd_ps(springs->va2, vs2, vs2mem);
+            // lowMem[j][i] = s2;
+            springs->vlowmem2[j] = vs2;
+
+            /* compute allpass1 */
+            // y[i] = a1*s1 + s1mem;
+            vy = _mm_fmadd_ps(springs->va1, vs1, vs1mem);
+            // lowBuf[j][lowBufId][i] = y2;
+            springs->vlowmem1[j][springs->lowbufid] = vy2;
+        }
+
+        /* input to lowdelay line */
+        springs->vlowdelay1[springs->lowdelay1id] = vy;
+
+        __m128 vres;
+        vres      = _mm_hadd_ps(vy, vy);
+        vres      = _mm_hadd_ps(vres, vres);
+        out[0][n] = _mm_cvtss_f32(vres);
+
+        /* advance buffer ids */
+        springs->lowbufid    = (springs->lowbufid + 1) & MLOWBUFMASK;
+        springs->lowdelay1id = (springs->lowdelay1id + 1) & LOWDELAY1MASK;
+        springs->lowdelayechoid =
+            (springs->lowdelayechoid + 1) & LOWDELAYECHOMASK;
+        springs->lowdelayrippleid =
+            (springs->lowdelayrippleid + 1) & LOWDELAYRIPPLEMASK;
+    }
 }
 
 void springs_set_ftr(springs_t *springs, float *ftr)
@@ -267,44 +398,47 @@ void springs_process(springs_t *springs, float **in, float **out, int count)
     }
 }
 
-float test(springs_t *springs, void (*fp)(springs_t *, float **, float **, int))
+/*
+float test(springs_t* springs, void (*fp)(springs_t*, float**, float**, int))
 {
-    float a[NCHANNELS][N];
-    float b[NCHANNELS][N];
-    double dtime;
+  float a[NCHANNELS][N];
+  float b[NCHANNELS][N];
+  double dtime;
 
-    float *in[2], *out[2];
-    for (int c = 0; c < NCHANNELS; ++c) {
-        in[c]  = &a[c][0];
-        out[c] = &b[c][0];
-    }
+  float *in[2],*out[2];
+  for(int c = 0; c < NCHANNELS; ++c)
+  {
+      in[c] = &a[c][0];
+      out[c] = &b[c][0];
+  }
 
-    for (int i = 0; i < N; i++) a[0][i] = (i == 0);
-    fp(springs, in, out, N);
-    dtime = -omp_get_wtime();
-    for (int i = 0; i < R; i++) fp(springs, in, out, N);
-    dtime += omp_get_wtime();
-    return dtime;
+  for(int i=0; i<N; i++) a[0][i] = (i==0);
+  fp(springs,in,out,N);
+  dtime = -omp_get_wtime();
+  for(int i=0; i<R; i++)
+      fp(springs,in,out,N);
+  dtime += omp_get_wtime();
+  return dtime;
 }
 
 int main()
 {
     float samplerate = 48000;
-    float ftr[]      = {4210, 4106, 4200, 4300, 3930, 4118, 4190, 4310};
-    float a1[]       = {0.18, 0.21, 0.312, 0.32, 0.32, 0.23, 0.21, 0.2};
-    float Td[]       = {0.0552, 0.04366, 0.04340, 0.04370,
-                        .0552,  0.04423, 0.04367, 0.0432};
+    float ftr[] = {4210,4106,4200,4300,3930,4118,4190,4310};
+    float a1[] = {0.18,0.21,0.312,0.32,0.32,0.23,0.21,0.2};
+    float Td[] = {0.0552,0.04366,0.04340,0.04370,.0552,0.04423,0.04367,0.0432};
 
     float ins[NCHANNELS][N];
     float outs[NCHANNELS][N];
-    float *in[2], *out[2];
+    float *in[2],*out[2];
 
-    for (int c = 0; c < NCHANNELS; ++c) {
-        in[c]  = &ins[c][0];
+    for(int c = 0; c < NCHANNELS; ++c)
+    {
+        in[c] = &ins[c][0];
         out[c] = &outs[c][0];
     }
 
-    memset(ins, 0, sizeof(ins));
+    memset(ins,0,sizeof(ins));
 
     springs_t springs;
     springs_init(&springs, samplerate);
@@ -313,30 +447,43 @@ int main()
     springs_set_Nripple(&springs, 0.5);
     springs_set_Td(&springs, Td);
 
-    void (*fp[4])(springs_t *, float **, float **, int);
-    fp[0]      = springs_process;
-    int ntests = 1;
-    double dtime;
+    //void (*fp[4])(springs_t*, float**, float**, int);
+    //fp[0] = springs_process;
+    //fp[1] = springs_process_vec;
+    //int ntests=2;
+    //double dtime;
 
-    for (int i = 0; i < ntests; i++) {
-        printf("test %d\n", i);
-        test(&springs, fp[i]);
-        dtime = test(&springs, fp[i]);
-        printf("%.4f      ", dtime);
+    //for(int i=0; i<ntests; i++) {
+    //    printf("test %d\n", i);
+    //     test(&springs, fp[i]);
+    //     dtime = test(&springs, fp[i]);
+    //     printf("%.4f      ", dtime);
+    //    printf("\n");
+    //}
+
+    for(int r=0; r < R; ++r)
+    {
+        ins[0][0] = r==0 ? 1.f : 0.f;
+        springs_process(&springs, in, out, N);
+        for(int i = 0; i < N; ++i)
+        {
+            printf("%.7f, ", out[0][i]);
+            if((i+1)%8==0)
+                printf("\n");
+        }
         printf("\n");
     }
+    printf("\n");
 
-    // for(int r=0; r < R; ++r)
+    //springs_init(&springs, samplerate);
+    //springs_process_vec(&springs, in, out, N);
+    //for(int i = 0; i < N; ++i)
     //{
-    //     ins[0][0] = r==0 ? 1.f : 0.f;
-    //     springs_process(&springs, in, out, N);
-    //     for(int i = 0; i < N; ++i)
-    //     {
-    //         printf("%.7f, ", out[0][i]);
-    //         if((i+1)%8==0)
-    //             printf("\n");
-    //     }
-    //     printf("\n");
-    // }
-    // printf("\n");
+    //    printf("%.7f, ", out[i]);
+    //    if((i+1)%8==0)
+    //        printf("\n");
+    //}
+    //printf("\n");
+    //printf("\n");
 }
+*/

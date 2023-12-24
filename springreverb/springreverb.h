@@ -1,11 +1,11 @@
 #ifndef _SPRINGREVERB_H
 #define _SPRINGREVERB_H
 
-#ifndef NSPRINGS
-#define NSPRINGS 8
+#ifndef MAXSPRINGS
+#define MAXSPRINGS 8
 #endif
-#ifndef CSPRINGS
-#define CSPRINGS NSPRINGS
+#ifndef NSPRINGS
+#define NSPRINGS MAXSPRINGS
 #endif
 
 #ifndef STEREO
@@ -44,7 +44,7 @@
 #define LOWPASSMEMSIZE 4
 #define LOWPASSMEMMASK (LOWPASSMEMSIZE - 1)
 
-#define springparam(typescal, name) typescal name[NSPRINGS];
+#define springparam(typescal, name) typescal name[MAXSPRINGS];
 
 typedef struct {
     /* set with ftr */

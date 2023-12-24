@@ -35,7 +35,7 @@ int main(int argc, char **argv)
     float ins[NCHANNELS][8192];
     float outs[NCHANNELS][8192];
     float *in[2], *out[2];
-    float y[NSPRINGS];
+    float y[MAXSPRINGS];
 
     for (int c = 0; c < NCHANNELS; ++c) {
         in[c]  = &ins[c][0];

@@ -5,7 +5,7 @@
 
 #include "springreverb.h"
 
-#define loopsprings(i) for (int i = 0; i < CSPRINGS; ++i)
+#define loopsprings(i) for (int i = 0; i < NSPRINGS; ++i)
 
 void springs_init(springs_t *springs, float samplerate)
 {
@@ -101,7 +101,7 @@ void springs_lowdelayline(springs_t *restrict springs, float *restrict y)
 void springs_lowallpasschain(springs_t *restrict springs, float *restrict y)
 {
     /* low allpass filter chain */
-    int idx[NSPRINGS];
+    int idx[MAXSPRINGS];
     loopsprings(i) idx[i] = (springs->lowbufid - springs->iK[i]) & MLOWBUFMASK;
 
     for (int j = 0; j < MLOW; ++j) {
@@ -163,7 +163,7 @@ void springs_process(springs_t *restrict springs, float **restrict in,
                      float **restrict out, int count)
 {
     for (int n = 0; n < count; ++n) {
-        float y[NSPRINGS];
+        float y[MAXSPRINGS];
         loopsprings(i) y[i] = in[i * NCHANNELS / NSPRINGS][n];
 
         springs_lowdelayline(springs, y);

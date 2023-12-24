@@ -21,6 +21,18 @@ void springs_set_ftr(springs_t *springs, float *ftr)
         springs->iK[i] = springs->K[i] - .5f;
         float fd       = springs->K[i] - (float)springs->iK[i];
         springs->a2[i] = (1 - fd) / (1 + fd);
+
+        /* EQ params */
+        float B = 146.f, fpeak = 183.f;
+        int Keq    = springs->K[i];
+        float R    = 1.f - M_PI * B * Keq / springs->samplerate;
+        float cos0 = (1.f + R * R) / (2.f * R) *
+                     cos(2.f * M_PI * fpeak * Keq / springs->samplerate);
+        springs->loweq.Keq[i] = Keq;
+        springs->loweq.b0[i]  = (1 - R * R) / 2.f;
+        springs->loweq.ak[i]  = -2.f * R * cos0;
+        springs->loweq.a2k[i] = R * R;
+        ;
     }
 }
 
@@ -178,6 +190,27 @@ inline void springs_lowlpf(springs_t *restrict springs, float *restrict y)
     springs->lowpassmemid = (springs->lowpassmemid + 1) & LOWPASSMEMMASK;
 }
 
+inline void springs_loweq(springs_t *restrict springs, float *restrict y)
+{
+    int id = springs->loweq.id;
+    loopsprings(i)
+    {
+        int idk   = (id - springs->loweq.Keq[i]) & MLOWEQMASK;
+        int id2k  = (id - springs->loweq.Keq[i] * 2) & MLOWEQMASK;
+        float b0  = springs->loweq.b0[i];
+        float ak  = springs->loweq.ak[i];
+        float a2k = springs->loweq.a2k[i];
+
+        float vk  = springs->loweq.mem[idk][i];
+        float v2k = springs->loweq.mem[id2k][i];
+        float v0  = y[i] - ak * vk - a2k * v2k;
+
+        springs->loweq.mem[id][i] = v0;
+        y[i]                      = b0 * (v0 - v2k);
+    }
+    springs->loweq.id = (springs->loweq.id + 1) & MLOWEQMASK;
+}
+
 void springs_process(springs_t *restrict springs, float **restrict in,
                      float **restrict out, int count)
 {
@@ -191,6 +224,7 @@ void springs_process(springs_t *restrict springs, float **restrict in,
         /* feed delayline */
         loopsprings(i) { springs->lowdelay1[springs->lowdelay1id][i] = y[i]; }
 
+        springs_loweq(springs, y);
         springs_lowlpf(springs, y);
 
         /* sum springs */

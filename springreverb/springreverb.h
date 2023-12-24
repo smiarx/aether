@@ -26,6 +26,9 @@
 #define MLOWBUFSIZE 32
 #define MLOWBUFMASK (MLOWBUFSIZE - 1)
 
+#define MLOWEQSIZE (MLOWBUFSIZE * 2)
+#define MLOWEQMASK (MLOWEQSIZE - 1)
+
 #define LOWDELAY1SIZE      2048
 #define LOWDELAY1MASK      (LOWDELAY1SIZE - 1)
 #define LOWDELAYECHOSIZE   512
@@ -76,6 +79,15 @@ typedef struct {
     int lowdelayechoid;
     int lowdelayrippleid;
 
+    struct {
+        springparam(int, Keq);
+        springparam(float, b0);
+        springparam(float, ak);
+        springparam(float, a2k);
+        springparam(float, mem[MLOWEQSIZE]);
+        int id;
+    } loweq;
+
     springparam(float, lowpassmem[LOWPASSN2ND + 1][LOWPASSMEMSIZE]);
     int lowpassmemid;
 
@@ -95,6 +107,7 @@ void springs_set_Nripple(springs_t *springs, float Nripple);
 void springs_lowdelayline(springs_t *restrict springs, float *restrict y);
 void springs_lowallpasschain(springs_t *restrict springs, float *restrict y);
 void springs_lowlpf(springs_t *restrict springs, float *restrict y);
+void springs_loweq(springs_t *restrict springs, float *restrict y);
 void springs_process(springs_t *restrict springs, float **restrict in,
                      float **restrict out, int count);
 

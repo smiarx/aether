@@ -46,7 +46,7 @@ void springs_set_Nripple(springs_t *springs, float Nripple)
     loopsprings(i) { springs->Lripple[i] = 2.f * springs->K[i] * Nripple; }
 }
 
-void springs_lowdelayline(springs_t *restrict springs, float *restrict y)
+inline void springs_lowdelayline(springs_t *restrict springs, float *restrict y)
 {
     /* delay modulation */
     loopsprings(i)
@@ -117,7 +117,8 @@ void springs_lowdelayline(springs_t *restrict springs, float *restrict y)
 }
 
 /* compute low all pass chain */
-void springs_lowallpasschain(springs_t *restrict springs, float *restrict y)
+inline void springs_lowallpasschain(springs_t *restrict springs,
+                                    float *restrict y)
 {
     /* low allpass filter chain */
     int idx[MAXSPRINGS];
@@ -143,7 +144,7 @@ void springs_lowallpasschain(springs_t *restrict springs, float *restrict y)
     springs->lowbufid = (springs->lowbufid + 1) & MLOWBUFMASK;
 }
 
-void springs_lowlpf(springs_t *restrict springs, float *restrict y)
+inline void springs_lowlpf(springs_t *restrict springs, float *restrict y)
 {
     /* low pass filter */
     const float filtersos[][2][3] = {

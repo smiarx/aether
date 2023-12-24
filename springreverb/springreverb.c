@@ -139,7 +139,46 @@ void springs_set_Nripple(springs_t *springs, float Nripple)
     loopsprings(i) { springs->Lripple[i] = 2.f * springs->K[i] * Nripple; }
 }
 
-void springs_process(springs_t *springs, float **in, float **out, int count)
+/* compute low all pass chain */
+void springs_lowallpasschain(springs_t *restrict springs, float *restrict y)
+{
+    /* low allpass filter chain */
+    int idx[NSPRINGS];
+    loopsprings(i)
+    {
+        idx[i] = (springs->lowbufid - springs->iK[i]) & MLOWBUFMASK;
+        idx[i] = idx[i] * 4 + i;
+    }
+
+    for (int j = 0; j < MLOW; ++j) {
+        const float *lowmem1 = &springs->lowmem1[j][0][0];
+        float s2[NSPRINGS];
+        float y2[NSPRINGS];
+        loopsprings(i)
+        {
+            /* compute internal allpass1 */
+            float s1mem = lowmem1[idx[i]];
+            float s1    = y[i] - springs->a1[i] * s1mem;
+
+            /* compute allpass2 */
+            float s2mem = springs->lowmem2[j][i];
+            s2[i]       = s1 - springs->a2[i] * s2mem;
+            y2[i]       = springs->a2[i] * s2[i] + s2mem;
+
+            /* compute allpass1 */
+            y[i] = springs->a1[i] * s1 + s1mem;
+        }
+        loopsprings(i)
+        {
+            springs->lowmem2[j][i]                    = s2[i];
+            springs->lowmem1[j][springs->lowbufid][i] = y2[i];
+        }
+    }
+    springs->lowbufid = (springs->lowbufid + 1) & MLOWBUFMASK;
+}
+
+void springs_process(springs_t *restrict springs, float **restrict in,
+                     float **restrict out, int count)
 {
     for (int n = 0; n < count; ++n) {
         float y[NSPRINGS];
@@ -188,28 +227,7 @@ void springs_process(springs_t *springs, float **in, float **out, int count)
 #undef tap
         }
 
-        /* low allpass filter chain */
-        int idx[NSPRINGS];
-        loopsprings(i) idx[i] =
-            (springs->lowbufid - springs->iK[i]) & MLOWBUFMASK;
-        for (int j = 0; j < MLOW; ++j) {
-            loopsprings(i)
-            {
-                /* compute internal allpass1 */
-                float s1mem = springs->lowmem1[j][idx[i]][i];
-                float s1    = y[i] - springs->a1[i] * s1mem;
-
-                /* compute allpass2 */
-                float s2mem            = springs->lowmem2[j][i];
-                float s2               = s1 - springs->a2[i] * s2mem;
-                float y2               = springs->a2[i] * s2 + s2mem;
-                springs->lowmem2[j][i] = s2;
-
-                /* compute allpass1 */
-                y[i] = springs->a1[i] * s1 + s1mem;
-                springs->lowmem1[j][springs->lowbufid][i] = y2;
-            }
-        }
+        springs_lowallpasschain(springs, y);
 
         /* feed delayline */
         loopsprings(i) { springs->lowdelay1[springs->lowdelay1id][i] = y[i]; }
@@ -248,17 +266,20 @@ void springs_process(springs_t *springs, float **in, float **out, int count)
         }
         springs->lowpassmemid = (springs->lowpassmemid + 1) & LOWPASSMEMMASK;
 
-        /* sum springs */
-        for (int c = 0; c < NCHANNELS; ++c) {
-            int offset = c * NSPRINGS / NCHANNELS;
-            for (int i = NSPRINGS / 2 / NCHANNELS; i > 0; i /= 2) {
-                for (int j = 0; j < i; ++j) y[offset + j] += y[offset + j + i];
-            }
-            out[c][n] = y[offset];
-        }
+        ///* sum springs */
+        // for(int c = 0; c < NCHANNELS; ++c)
+        //{
+        //     int offset = c*NSPRINGS/NCHANNELS;
+        //     for(int i = NSPRINGS/2/NCHANNELS; i > 0; i /=2)
+        //     {
+        //         for(int j = 0; j < i; ++j)
+        //             y[offset+j] += y[offset+j+i];
+        //     }
+        //     out[c][n] = y[offset];
+        // }
+        out[0][0] = y[0];
 
         /* advance buffer ids */
-        springs->lowbufid    = (springs->lowbufid + 1) & MLOWBUFMASK;
         springs->lowdelay1id = (springs->lowdelay1id + 1) & LOWDELAY1MASK;
         springs->lowdelayechoid =
             (springs->lowdelayechoid + 1) & LOWDELAYECHOMASK;

@@ -46,6 +46,57 @@ void springs_set_Nripple(springs_t *springs, float Nripple)
     loopsprings(i) { springs->Lripple[i] = 2.f * springs->K[i] * Nripple; }
 }
 
+void springs_lowdelayline(springs_t *restrict springs, float *restrict y)
+{
+    /* delay modulation */
+    loopsprings(i)
+    {
+        springs->randstate[i] =
+            springs->randseed[i] + springs->randstate[i] * 1103515245;
+        float mod = springs->randstate[i] / ((float)INT_MAX);
+        // filter modulation
+        springs->Lmodmem[i] = mod =
+            (1 - amod) * mod + amod * springs->Lmodmem[i];
+    }
+    /* tap low delayline */
+    loopsprings(i)
+    {
+
+#define tap(name, NAME)                                                      \
+    int idelay##name   = delay##name;                                        \
+    float fdelay##name = delay##name - (float)idelay##name;                  \
+    int idx##name =                                                          \
+        (springs->lowdelay##name##id - idelay##name) & LOWDELAY##NAME##MASK; \
+    float val0##name = springs->lowdelay##name[idx##name][i];                \
+    float val1##name =                                                       \
+        springs->lowdelay##name[(idx##name - 1) & LOWDELAY##NAME##MASK][i];  \
+    float tap##name = val0##name + (val1##name - val0##name) * fdelay##name
+
+        float delay1 = springs->L1[i] + gmod * springs->Lmodmem[i];
+        tap(1, 1);
+        springs->lowdelayecho[springs->lowdelayechoid][i] =
+            tap1 * (1.f - gecho);
+
+        float delayecho = fdelay1 + springs->Lecho[i];
+        tap(echo, ECHO);
+        tapecho += tap1 * gecho;
+        springs->lowdelayripple[springs->lowdelayrippleid][i] =
+            tapecho * (1.f - gripple);
+
+        float delayripple = fdelayecho + springs->Lripple[i];
+        tap(ripple, RIPPLE);
+        tapripple += tapecho * gripple;
+
+        y[i] += tapripple * glf;
+#undef tap
+    }
+    /* advance buffer ids */
+    springs->lowdelay1id    = (springs->lowdelay1id + 1) & LOWDELAY1MASK;
+    springs->lowdelayechoid = (springs->lowdelayechoid + 1) & LOWDELAYECHOMASK;
+    springs->lowdelayrippleid =
+        (springs->lowdelayrippleid + 1) & LOWDELAYRIPPLEMASK;
+}
+
 /* compute low all pass chain */
 void springs_lowallpasschain(springs_t *restrict springs, float *restrict y)
 {
@@ -80,55 +131,7 @@ void springs_process(springs_t *restrict springs, float **restrict in,
         float y[NSPRINGS];
         loopsprings(i) y[i] = in[i * NCHANNELS / NSPRINGS][n];
 
-        /* delay modulation */
-        loopsprings(i)
-        {
-            springs->randstate[i] =
-                springs->randseed[i] + springs->randstate[i] * 1103515245;
-            float mod = springs->randstate[i] / ((float)INT_MAX);
-            // filter modulation
-            springs->Lmodmem[i] = mod =
-                (1 - amod) * mod + amod * springs->Lmodmem[i];
-        }
-        /* tap low delayline */
-        loopsprings(i)
-        {
-
-#define tap(name, NAME)                                                      \
-    int idelay##name   = delay##name;                                        \
-    float fdelay##name = delay##name - (float)idelay##name;                  \
-    int idx##name =                                                          \
-        (springs->lowdelay##name##id - idelay##name) & LOWDELAY##NAME##MASK; \
-    float val0##name = springs->lowdelay##name[idx##name][i];                \
-    float val1##name =                                                       \
-        springs->lowdelay##name[(idx##name - 1) & LOWDELAY##NAME##MASK][i];  \
-    float tap##name = val0##name + (val1##name - val0##name) * fdelay##name
-
-            float delay1 = springs->L1[i] + gmod * springs->Lmodmem[i];
-            tap(1, 1);
-            springs->lowdelayecho[springs->lowdelayechoid][i] =
-                tap1 * (1.f - gecho);
-
-            float delayecho = fdelay1 + springs->Lecho[i];
-            tap(echo, ECHO);
-            tapecho += tap1 * gecho;
-            springs->lowdelayripple[springs->lowdelayrippleid][i] =
-                tapecho * (1.f - gripple);
-
-            float delayripple = fdelayecho + springs->Lripple[i];
-            tap(ripple, RIPPLE);
-            tapripple += tapecho * gripple;
-
-            y[i] += tapripple * glf;
-#undef tap
-        }
-        /* advance buffer ids */
-        springs->lowdelay1id = (springs->lowdelay1id + 1) & LOWDELAY1MASK;
-        springs->lowdelayechoid =
-            (springs->lowdelayechoid + 1) & LOWDELAYECHOMASK;
-        springs->lowdelayrippleid =
-            (springs->lowdelayrippleid + 1) & LOWDELAYRIPPLEMASK;
-
+        springs_lowdelayline(springs, y);
         springs_lowallpasschain(springs, y);
 
         /* feed delayline */

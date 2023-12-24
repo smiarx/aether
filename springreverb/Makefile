@@ -13,6 +13,9 @@ clean:
 	rm -f springreverb.o bench.o
 	rm -f bench
 
+springreverb: springreverb.c springreverb.h springreverb_inj.cpp
+	faust2jack -cn springreverb -inj springreverb_inj.cpp springreverb.dsp
+
 dobench:
 	@make clean > /dev/null
 	@CFLAGS=-DNSPRINGS=1 make > /dev/null

@@ -88,6 +88,10 @@ void springs_set_a1(springs_t *springs, float *a1);
 void springs_set_Td(springs_t *springs, float *Td);
 void springs_set_Nripple(springs_t *springs, float Nripple);
 
+#ifdef __cplusplus
+#define restrict __restrict__
+#endif
+
 void springs_lowdelayline(springs_t *restrict springs, float *restrict y);
 void springs_lowallpasschain(springs_t *restrict springs, float *restrict y);
 void springs_lowlpf(springs_t *restrict springs, float *restrict y);

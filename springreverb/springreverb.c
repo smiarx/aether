@@ -130,7 +130,7 @@ void springs_set_Td(springs_t *springs, float *Td)
         float L           = fmaxf(0.f, Td[i] * springs->samplerate -
                                            springs->K[i] * MLOW * (1 - a1) / (1 + a1));
         springs->Lecho[i] = L / 5;
-        springs->L1[i]    = L - springs->Lecho[1] - springs->Lripple[i];
+        springs->L1[i]    = L - springs->Lecho[i] - springs->Lripple[i];
     }
 }
 

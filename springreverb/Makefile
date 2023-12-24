@@ -10,7 +10,18 @@ bench: bench.c springreverb.o
 	$(CC) -lm -lgomp bench.o springreverb.o -o bench
 
 clean:
-	rm springreverb.o bench.o
-	rm bench
+	rm -f springreverb.o bench.o
+	rm -f bench
 
-.PHONY: all clean
+dobench:
+	@make clean > /dev/null
+	@CFLAGS=-DNSPRINGS=1 make > /dev/null
+	@echo "1 spring"
+	./bench -r 5000
+	@make clean > /dev/null
+	@make > /dev/null
+	@echo
+	@echo "8 springs"
+	./bench -r 5000
+
+.PHONY: all clean dobench

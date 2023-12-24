@@ -124,6 +124,41 @@ void springs_lowallpasschain(springs_t *restrict springs, float *restrict y)
     springs->lowbufid = (springs->lowbufid + 1) & MLOWBUFMASK;
 }
 
+void springs_lowlpf(springs_t *restrict springs, float *restrict y)
+{
+    /* low pass filter */
+    const float filtersos[][2][3] = {
+        {{2.18740696e-03, 6.16778351e-04, 2.18740696e-03},
+         {1.00000000e+00, -1.70313982e+00, 7.48223150e-01}},
+        {{1.00000000e+00, -1.31079983e+00, 1.00000000e+00},
+         {1.00000000e+00, -1.68138176e+00, 8.53580218e-01}},
+        {{1.00000000e+00, -1.55984297e+00, 1.00000000e+00},
+         {1.00000000e+00, -1.66400724e+00, 9.39118831e-01}},
+        {{1.00000000e+00, -1.62171918e+00, 1.00000000e+00},
+         {1.00000000e+00, -1.65694459e+00, 9.78755965e-01}},
+        {{1.00000000e+00, -1.63865216e+00, 1.00000000e+00},
+         {1.00000000e+00, -1.65708087e+00, 9.94971669e-01}}};
+    loopsprings(i)
+    {
+        int id                        = springs->lowpassmemid;
+        springs->lowpassmem[0][id][i] = y[i];
+
+        for (int j = 0; j < LOWPASSN2ND; ++j) {
+            float a_acc = 0, b_acc = 0;
+            for (int k = 1; k < 3; ++k)
+                a_acc +=
+                    filtersos[j][1][k] *
+                    springs->lowpassmem[j + 1][(id - k) & LOWPASSMEMMASK][i];
+            for (int k = 0; k < 3; ++k)
+                b_acc += filtersos[j][0][k] *
+                         springs->lowpassmem[j][(id - k) & LOWPASSMEMMASK][i];
+            springs->lowpassmem[j + 1][id][i] = b_acc - a_acc;
+        }
+        y[i] = springs->lowpassmem[LOWPASSN2ND][id][i];
+    }
+    springs->lowpassmemid = (springs->lowpassmemid + 1) & LOWPASSMEMMASK;
+}
+
 void springs_process(springs_t *restrict springs, float **restrict in,
                      float **restrict out, int count)
 {
@@ -137,39 +172,7 @@ void springs_process(springs_t *restrict springs, float **restrict in,
         /* feed delayline */
         loopsprings(i) { springs->lowdelay1[springs->lowdelay1id][i] = y[i]; }
 
-        /* low pass filter */
-        const float filtersos[][2][3] = {
-            {{2.18740696e-03, 6.16778351e-04, 2.18740696e-03},
-             {1.00000000e+00, -1.70313982e+00, 7.48223150e-01}},
-            {{1.00000000e+00, -1.31079983e+00, 1.00000000e+00},
-             {1.00000000e+00, -1.68138176e+00, 8.53580218e-01}},
-            {{1.00000000e+00, -1.55984297e+00, 1.00000000e+00},
-             {1.00000000e+00, -1.66400724e+00, 9.39118831e-01}},
-            {{1.00000000e+00, -1.62171918e+00, 1.00000000e+00},
-             {1.00000000e+00, -1.65694459e+00, 9.78755965e-01}},
-            {{1.00000000e+00, -1.63865216e+00, 1.00000000e+00},
-             {1.00000000e+00, -1.65708087e+00, 9.94971669e-01}}};
-        loopsprings(i)
-        {
-            int id                        = springs->lowpassmemid;
-            springs->lowpassmem[0][id][i] = y[i];
-
-            for (int j = 0; j < LOWPASSN2ND; ++j) {
-                float a_acc = 0, b_acc = 0;
-                for (int k = 1; k < 3; ++k)
-                    a_acc +=
-                        filtersos[j][1][k] *
-                        springs
-                            ->lowpassmem[j + 1][(id - k) & LOWPASSMEMMASK][i];
-                for (int k = 0; k < 3; ++k)
-                    b_acc +=
-                        filtersos[j][0][k] *
-                        springs->lowpassmem[j][(id - k) & LOWPASSMEMMASK][i];
-                springs->lowpassmem[j + 1][id][i] = b_acc - a_acc;
-            }
-            y[i] = springs->lowpassmem[LOWPASSN2ND][id][i];
-        }
-        springs->lowpassmemid = (springs->lowpassmemid + 1) & LOWPASSMEMMASK;
+        springs_lowlpf(springs, y);
 
         /* sum springs */
         for (int c = 0; c < NCHANNELS; ++c) {

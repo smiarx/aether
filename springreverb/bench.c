@@ -71,6 +71,15 @@ int main(int argc, char **argv)
     }
     printf("low delay line: %.5f\n", time);
 
+    time = 0, dtime = 0;
+    for (int i = 0; i < n * r; i++) {
+        dtime = -omp_get_wtime();
+        springs_lowlpf(&springs, y);
+        dtime += omp_get_wtime();
+        time += dtime;
+    }
+    printf("low lpf: %.5f\n", time);
+
     time  = 0;
     dtime = 0;
     for (int i = 0; i < r; i++) {

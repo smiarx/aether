@@ -90,6 +90,7 @@ void springs_set_Nripple(springs_t *springs, float Nripple);
 
 void springs_lowdelayline(springs_t *restrict springs, float *restrict y);
 void springs_lowallpasschain(springs_t *restrict springs, float *restrict y);
+void springs_lowlpf(springs_t *restrict springs, float *restrict y);
 void springs_process(springs_t *restrict springs, float **restrict in,
                      float **restrict out, int count);
 

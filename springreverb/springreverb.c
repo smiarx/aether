@@ -59,32 +59,51 @@ void springs_lowdelayline(springs_t *restrict springs, float *restrict y)
             (1 - amod) * mod + amod * springs->Lmodmem[i];
     }
     /* tap low delayline */
+#define delayvecs(name)                                   \
+    int idx##name[MAXSPRINGS], idx##name##m1[MAXSPRINGS]; \
+    float fdelay##name[MAXSPRINGS]
+    delayvecs(1);
+    delayvecs(echo);
+    delayvecs(ripple);
+#undef delayvecs
     loopsprings(i)
     {
-
-#define tap(name, NAME)                                                      \
-    int idelay##name   = delay##name;                                        \
-    float fdelay##name = delay##name - (float)idelay##name;                  \
-    int idx##name =                                                          \
+#define setidx(name, NAME)                                                   \
+    int idelay##name = delay##name;                                          \
+    fdelay##name[i]  = delay##name - (float)idelay##name;                    \
+    idx##name[i] =                                                           \
         (springs->lowdelay##name##id - idelay##name) & LOWDELAY##NAME##MASK; \
-    float val0##name = springs->lowdelay##name[idx##name][i];                \
-    float val1##name =                                                       \
-        springs->lowdelay##name[(idx##name - 1) & LOWDELAY##NAME##MASK][i];  \
-    float tap##name = val0##name + (val1##name - val0##name) * fdelay##name
+    idx##name##m1[i] = (idx##name[i] - 1) & LOWDELAY##NAME##MASK;            \
+    idx##name[i]     = idx##name[i] * MAXSPRINGS + i;                        \
+    idx##name##m1[i] = idx##name##m1[i] * MAXSPRINGS + i
 
         float delay1 = springs->L1[i] + gmod * springs->Lmodmem[i];
-        tap(1, 1);
+        setidx(1, 1);
+        float delayecho = fdelay1[i] + springs->Lecho[i];
+        setidx(echo, ECHO);
+        float delayripple = fdelayecho[i] + springs->Lripple[i];
+        setidx(ripple, RIPPLE);
+#undef setidx
+    }
+
+    loopsprings(i)
+    {
+#define tap(name)                                             \
+    float *lowdelay##name = &springs->lowdelay##name[0][0];   \
+    float val0##name      = lowdelay##name[idx##name[i]];     \
+    float val1##name      = lowdelay##name[idx##name##m1[i]]; \
+    float tap##name = val0##name + (val1##name - val0##name) * fdelay##name[i]
+
+        tap(1);
         springs->lowdelayecho[springs->lowdelayechoid][i] =
             tap1 * (1.f - gecho);
 
-        float delayecho = fdelay1 + springs->Lecho[i];
-        tap(echo, ECHO);
+        tap(echo);
         tapecho += tap1 * gecho;
         springs->lowdelayripple[springs->lowdelayrippleid][i] =
             tapecho * (1.f - gripple);
 
-        float delayripple = fdelayecho + springs->Lripple[i];
-        tap(ripple, RIPPLE);
+        tap(ripple);
         tapripple += tapecho * gripple;
 
         y[i] += tapripple * glf;

@@ -38,14 +38,18 @@
 
 #define gecho   0.01f
 #define gripple 0.01f
-#define glf     0.95f
+#define glf     -0.95f
 
 #define amod 0.997f
 #define gmod 8.3f
 
-#define MHIGH 158
+#define MHIGH         158
+#define HIGHDELAYSIZE LOWDELAY1SIZE
+#define HIGHDELAYMASK (HIGHDELAYSIZE - 1)
+#define ghf           -0.94f
+
 #define glow  1.0f
-#define ghigh (glow / 1000.f)
+#define ghigh (glow / 500.f)
 
 #define LOWPASSN2ND    5 // number of lowpass 2nd order filter
 #define LOWPASSMEMSIZE 4
@@ -106,6 +110,11 @@ typedef struct {
     springparam(float, ahigh);
     springparam(float, highmem[MHIGH]);
 
+    springparam(int, iLhigh);
+    springparam(float, fLhigh);
+    springparam(float, highdelay[HIGHDELAYSIZE]);
+    int highdelayid;
+
     float samplerate;
 } springs_t;
 
@@ -127,6 +136,7 @@ void springs_lowallpasschain(springs_t *restrict springs, float *restrict y);
 void springs_lowlpf(springs_t *restrict springs, float *restrict y);
 void springs_loweq(springs_t *restrict springs, float *restrict y);
 void springs_highallpasschain(springs_t *restrict springs, float *restrict y);
+void springs_highdelayline(springs_t *restrict springs, float *restrict y);
 void springs_process(springs_t *restrict springs, float **restrict in,
                      float **restrict out, int count);
 

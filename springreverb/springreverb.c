@@ -64,6 +64,10 @@ void springs_set_Td(springs_t *springs, float *Td)
                                            springs->K[i] * MLOW * (1 - a1) / (1 + a1));
         springs->Lecho[i] = L / 5;
         springs->L1[i]    = L - springs->Lecho[i] - springs->Lripple[i];
+
+        float Lhigh        = L / 2.3f;
+        springs->iLhigh[i] = (int)Lhigh;
+        springs->fLhigh[i] = Lhigh - (float)springs->iLhigh[i];
     }
 }
 
@@ -136,7 +140,8 @@ inline void springs_lowdelayline(springs_t *restrict springs, float *restrict y)
 #undef tap
     }
     /* advance buffer ids */
-    springs->lowdelay1id    = (springs->lowdelay1id + 1) & LOWDELAY1MASK;
+    // no this one
+    // springs->lowdelay1id = (springs->lowdelay1id+1) & LOWDELAY1MASK;
     springs->lowdelayechoid = (springs->lowdelayechoid + 1) & LOWDELAYECHOMASK;
     springs->lowdelayrippleid =
         (springs->lowdelayrippleid + 1) & LOWDELAYRIPPLEMASK;
@@ -260,6 +265,30 @@ void springs_highallpasschain(springs_t *restrict springs, float *restrict y)
     }
 }
 
+void springs_highdelayline(springs_t *restrict springs, float *restrict y)
+{
+    int idx0[MAXSPRINGS], idx1[MAXSPRINGS];
+
+    loopsprings(i)
+    {
+        idx0[i] = (springs->highdelayid - springs->iLhigh[i]) & HIGHDELAYMASK;
+        idx1[i] = (idx0[i] - 1) & HIGHDELAYMASK;
+
+        idx0[i] = idx0[i] * MAXSPRINGS + 1;
+        idx1[i] = idx1[i] * MAXSPRINGS + 1;
+    }
+
+    float *delayline = (float *)springs->highdelay;
+    loopsprings(i)
+    {
+        float x0 = delayline[idx0[i]];
+        float x1 = delayline[idx1[i]];
+        float x  = x0 + springs->fLhigh[i] * (x1 - x0);
+
+        y[i] += x * ghf;
+    }
+}
+
 void springs_process(springs_t *restrict springs, float **restrict in,
                      float **restrict out, int count)
 {
@@ -276,11 +305,20 @@ void springs_process(springs_t *restrict springs, float **restrict in,
         {
             springs->lowdelay1[springs->lowdelay1id][i] = ylow[i];
         }
+        springs->lowdelay1id = (springs->lowdelay1id + 1) & LOWDELAY1MASK;
 
         springs_loweq(springs, ylow);
         springs_lowlpf(springs, ylow);
 
         springs_highallpasschain(springs, yhigh);
+        springs_highdelayline(springs, yhigh);
+
+        /* feed high delayline */
+        loopsprings(i)
+        {
+            springs->highdelay[springs->highdelayid][i] = yhigh[i];
+        }
+        springs->highdelayid = (springs->highdelayid + 1) & HIGHDELAYMASK;
 
         /* sum low and high */
         float y[MAXSPRINGS];

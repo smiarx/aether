@@ -193,20 +193,27 @@ inline void springs_lowlpf(springs_t *restrict springs, float *restrict y)
 inline void springs_loweq(springs_t *restrict springs, float *restrict y)
 {
     int id = springs->loweq.id;
+    int idk[MAXSPRINGS];
+    int id2k[MAXSPRINGS];
     loopsprings(i)
     {
-        int idk   = (id - springs->loweq.Keq[i]) & MLOWEQMASK;
-        int id2k  = (id - springs->loweq.Keq[i] * 2) & MLOWEQMASK;
+        idk[i]  = (id - springs->loweq.Keq[i]) & MLOWEQMASK;
+        idk[i]  = idk[i] * MAXSPRINGS + i;
+        id2k[i] = (id - springs->loweq.Keq[i] * 2) & MLOWEQMASK;
+        id2k[i] = id2k[i] * MAXSPRINGS + i;
+    }
+    float *loweqmem = (float *)springs->loweq.mem;
+    loopsprings(i)
+    {
         float b0  = springs->loweq.b0[i];
         float ak  = springs->loweq.ak[i];
         float a2k = springs->loweq.a2k[i];
 
-        float vk  = springs->loweq.mem[idk][i];
-        float v2k = springs->loweq.mem[id2k][i];
+        float vk  = loweqmem[idk[i]];
+        float v2k = loweqmem[id2k[i]];
         float v0  = y[i] - ak * vk - a2k * v2k;
 
-        springs->loweq.mem[id][i] = v0;
-        y[i]                      = b0 * (v0 - v2k);
+        y[i] = b0 * (v0 - v2k);
     }
     springs->loweq.id = (springs->loweq.id + 1) & MLOWEQMASK;
 }

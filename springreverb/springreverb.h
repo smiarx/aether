@@ -63,6 +63,9 @@ typedef struct {
 
     springparam(float, a1);
 
+    springparam(float, adc);
+    springparam(float, dcmem);
+
     /* modulation */
     springparam(int, randseed);
     springparam(int, randstate);
@@ -100,6 +103,7 @@ typedef struct {
 } springs_t;
 
 void springs_init(springs_t *springs, float samplerate);
+void springs_set_dccutoff(springs_t *springs, float *fcutoff);
 void springs_set_ftr(springs_t *springs, float *ftr);
 void springs_set_a1(springs_t *springs, float *a1);
 void springs_set_Td(springs_t *springs, float *Td);
@@ -110,6 +114,7 @@ void springs_set_Nripple(springs_t *springs, float Nripple);
 #endif
 
 void springs_lowdelayline(springs_t *restrict springs, float *restrict y);
+void springs_lowdc(springs_t *restrict springs, float *restrict y);
 void springs_lowallpasschain(springs_t *restrict springs, float *restrict y);
 void springs_lowlpf(springs_t *restrict springs, float *restrict y);
 void springs_loweq(springs_t *restrict springs, float *restrict y);

@@ -13,6 +13,15 @@ void springs_init(springs_t *springs, float samplerate)
     springs->samplerate = samplerate;
 }
 
+void springs_set_dccutoff(springs_t *springs, float *fcutoff)
+{
+    loopsprings(i)
+    {
+        springs->adc[i] =
+            tan(M_PI / 4.f - M_PI * fcutoff[i] / springs->samplerate);
+    }
+}
+
 void springs_set_ftr(springs_t *springs, float *ftr)
 {
     loopsprings(i)
@@ -128,6 +137,20 @@ inline void springs_lowdelayline(springs_t *restrict springs, float *restrict y)
         (springs->lowdelayrippleid + 1) & LOWDELAYRIPPLEMASK;
 }
 
+inline void springs_lowdc(springs_t *restrict springs, float *restrict y)
+{
+    loopsprings(i)
+    {
+        /* update filter state */
+        float dcmem1 = springs->dcmem[i];
+        float dcmem0 = y[i] + springs->adc[i] * dcmem1;
+        /* set output */
+        y[i] = (1.f + springs->adc[i]) / 2.f * (dcmem0 - dcmem1);
+
+        springs->dcmem[i] = dcmem0;
+    }
+}
+
 /* compute low all pass chain */
 inline void springs_lowallpasschain(springs_t *restrict springs,
                                     float *restrict y)
@@ -226,6 +249,7 @@ void springs_process(springs_t *restrict springs, float **restrict in,
         loopsprings(i) y[i] = in[i * NCHANNELS / NSPRINGS][n];
 
         springs_lowdelayline(springs, y);
+        springs_lowdc(springs, y);
         springs_lowallpasschain(springs, y);
 
         /* feed delayline */

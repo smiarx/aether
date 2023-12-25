@@ -43,6 +43,10 @@
 #define amod 0.997f
 #define gmod 8.3f
 
+#define MHIGH 158
+#define glow  1.0f
+#define ghigh (glow / 1000.f)
+
 #define LOWPASSN2ND    5 // number of lowpass 2nd order filter
 #define LOWPASSMEMSIZE 4
 #define LOWPASSMEMMASK (LOWPASSMEMSIZE - 1)
@@ -99,6 +103,9 @@ typedef struct {
     springparam(float, lowpassmem[LOWPASSN2ND + 1][LOWPASSMEMSIZE]);
     int lowpassmemid;
 
+    springparam(float, ahigh);
+    springparam(float, highmem[MHIGH]);
+
     float samplerate;
 } springs_t;
 
@@ -108,6 +115,7 @@ void springs_set_ftr(springs_t *springs, float *ftr);
 void springs_set_a1(springs_t *springs, float *a1);
 void springs_set_Td(springs_t *springs, float *Td);
 void springs_set_Nripple(springs_t *springs, float Nripple);
+void springs_set_ahigh(springs_t *springs, float *a1);
 
 #ifdef __cplusplus
 #define restrict __restrict__
@@ -118,6 +126,7 @@ void springs_lowdc(springs_t *restrict springs, float *restrict y);
 void springs_lowallpasschain(springs_t *restrict springs, float *restrict y);
 void springs_lowlpf(springs_t *restrict springs, float *restrict y);
 void springs_loweq(springs_t *restrict springs, float *restrict y);
+void springs_highallpasschain(springs_t *restrict springs, float *restrict y);
 void springs_process(springs_t *restrict springs, float **restrict in,
                      float **restrict out, int count);
 

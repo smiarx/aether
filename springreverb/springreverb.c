@@ -50,6 +50,11 @@ void springs_set_a1(springs_t *springs, float *a1)
     loopsprings(i) springs->a1[i] = a1[i];
 }
 
+void springs_set_ahigh(springs_t *springs, float *ahigh)
+{
+    loopsprings(i) springs->ahigh[i] = ahigh[i];
+}
+
 void springs_set_Td(springs_t *springs, float *Td)
 {
     loopsprings(i)
@@ -241,22 +246,45 @@ inline void springs_loweq(springs_t *restrict springs, float *restrict y)
     springs->loweq.id = (springs->loweq.id + 1) & MLOWEQMASK;
 }
 
+void springs_highallpasschain(springs_t *restrict springs, float *restrict y)
+{
+    for (int j = 0; j < MHIGH; ++j) {
+        loopsprings(i)
+        {
+            float s1 = springs->highmem[j][i];
+            float s0 = y[i] - springs->ahigh[i] * s1;
+
+            y[i]                   = springs->ahigh[i] * s0 + s1;
+            springs->highmem[j][i] = s0;
+        }
+    }
+}
+
 void springs_process(springs_t *restrict springs, float **restrict in,
                      float **restrict out, int count)
 {
     for (int n = 0; n < count; ++n) {
-        float y[MAXSPRINGS];
-        loopsprings(i) y[i] = in[i * NCHANNELS / NSPRINGS][n];
+        float ylow[MAXSPRINGS], yhigh[MAXSPRINGS];
+        loopsprings(i) yhigh[i] = ylow[i] = in[i * NCHANNELS / NSPRINGS][n];
 
-        springs_lowdelayline(springs, y);
-        springs_lowdc(springs, y);
-        springs_lowallpasschain(springs, y);
+        springs_lowdelayline(springs, ylow);
+        springs_lowdc(springs, ylow);
+        springs_lowallpasschain(springs, ylow);
 
         /* feed delayline */
-        loopsprings(i) { springs->lowdelay1[springs->lowdelay1id][i] = y[i]; }
+        loopsprings(i)
+        {
+            springs->lowdelay1[springs->lowdelay1id][i] = ylow[i];
+        }
 
-        springs_loweq(springs, y);
-        springs_lowlpf(springs, y);
+        springs_loweq(springs, ylow);
+        springs_lowlpf(springs, ylow);
+
+        springs_highallpasschain(springs, yhigh);
+
+        /* sum low and high */
+        float y[MAXSPRINGS];
+        loopsprings(i) y[i] = glow * ylow[i] + ghigh * yhigh[i];
 
         /* sum springs */
         for (int c = 0; c < NCHANNELS; ++c) {

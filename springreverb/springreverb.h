@@ -47,7 +47,12 @@
 #define LOWPASSMEMSIZE 4
 #define LOWPASSMEMMASK (LOWPASSMEMSIZE - 1)
 
-#define springparam(typescal, name) typescal name[MAXSPRINGS];
+#ifdef __cplusplus
+#define springparam(type, name) type name[MAXSPRINGS]
+#else
+#define springparam(type, name) \
+    type name[MAXSPRINGS] __attribute__((aligned(sizeof(type) * MAXSPRINGS)))
+#endif
 
 typedef struct {
     /* set with ftr */

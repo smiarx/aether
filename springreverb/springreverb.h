@@ -49,7 +49,10 @@
 #define ghf           -0.94f
 
 #define glow  1.0f
-#define ghigh (glow / 500.f)
+#define ghigh (glow / 1000.f)
+
+#define glow2high (0.99f * glow)
+#define ghigh2low (0.4 * ghigh)
 
 #define LOWPASSN2ND    5 // number of lowpass 2nd order filter
 #define LOWPASSMEMSIZE 4

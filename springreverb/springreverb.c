@@ -300,24 +300,23 @@ void springs_process(springs_t *restrict springs, float **restrict in,
         springs_lowdc(springs, ylow);
         springs_lowallpasschain(springs, ylow);
 
-        /* feed delayline */
-        loopsprings(i)
-        {
-            springs->lowdelay1[springs->lowdelay1id][i] = ylow[i];
-        }
-        springs->lowdelay1id = (springs->lowdelay1id + 1) & LOWDELAY1MASK;
-
+        float ylowin[MAXSPRINGS];
+        loopsprings(i) ylowin[i] = ylow[i];
         springs_loweq(springs, ylow);
         springs_lowlpf(springs, ylow);
 
-        springs_highallpasschain(springs, yhigh);
+        /* high chirps */
         springs_highdelayline(springs, yhigh);
+        springs_highallpasschain(springs, yhigh);
+
+        /* feed delaylines */
+        loopsprings(i) springs->lowdelay1[springs->lowdelay1id][i] =
+            ylowin[i] + ghigh2low * yhigh[i];
+        springs->lowdelay1id = (springs->lowdelay1id + 1) & LOWDELAY1MASK;
 
         /* feed high delayline */
-        loopsprings(i)
-        {
-            springs->highdelay[springs->highdelayid][i] = yhigh[i];
-        }
+        loopsprings(i) springs->highdelay[springs->highdelayid][i] =
+            yhigh[i] + glow2high * ylow[i];
         springs->highdelayid = (springs->highdelayid + 1) & HIGHDELAYMASK;
 
         /* sum low and high */

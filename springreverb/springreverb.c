@@ -18,7 +18,7 @@ void springs_set_dccutoff(springs_t *springs, float *fcutoff)
     loopsprings(i)
     {
         springs->adc[i] =
-            tan(M_PI / 4.f - M_PI * fcutoff[i] / springs->samplerate);
+            tanf(M_PI / 4.f - M_PI * fcutoff[i] / springs->samplerate);
     }
 }
 
@@ -36,7 +36,7 @@ void springs_set_ftr(springs_t *springs, float *ftr)
         int Keq    = springs->K[i];
         float R    = 1.f - M_PI * B * Keq / springs->samplerate;
         float cos0 = (1.f + R * R) / (2.f * R) *
-                     cos(2.f * M_PI * fpeak * Keq / springs->samplerate);
+                     cosf(2.f * M_PI * fpeak * Keq / springs->samplerate);
         springs->loweq.Keq[i] = Keq;
         springs->loweq.b0[i]  = (1 - R * R) / 2.f;
         springs->loweq.ak[i]  = -2.f * R * cos0;

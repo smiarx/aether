@@ -41,7 +41,53 @@ void springs_set_ftr(springs_t *springs, float *ftr)
         springs->loweq.b0[i]  = (1 - R * R) / 2.f;
         springs->loweq.ak[i]  = -2.f * R * cos0;
         springs->loweq.a2k[i] = R * R;
-        ;
+    }
+
+    /* LowPass params */
+    /* let's use a fixed ellptic lowpass filter designed with analog
+     * coefficients and use bilinear transform to find the corresponding digital
+     * coefficients for the desired frequency
+     */
+
+    /* scipy.signal.ellip(10, 1, 60, 1.0, analog=True, output='sos') */
+    const float analogsos[][2][3] = {
+        {{1.00000000e-03, 0.00000000e+00, 1.43497622e-02},
+         {1.00000000e+00, 4.79554974e-01, 1.41121071e-01}},
+        {{1.00000000e+00, 0.00000000e+00, 2.24894555e+00},
+         {1.00000000e+00, 2.72287841e-01, 5.26272885e-01}},
+        {{1.00000000e+00, 0.00000000e+00, 1.33580569e+00},
+         {1.00000000e+00, 1.11075112e-01, 8.24889759e-01}},
+        {{1.00000000e+00, 0.00000000e+00, 1.12840768e+00},
+         {1.00000000e+00, 3.84115770e-02, 9.56268315e-01}},
+        {{1.00000000e+00, 0.00000000e+00, 1.07288063e+00},
+         {1.00000000e+00, 9.05107247e-03, 9.99553018e-01}}};
+
+    loopsprings(i)
+    {
+        /* bilinear transform */
+        float w1  = 2.f * M_PI * ftr[i];
+        float c   = 1 / tanf(w1 * 0.5f / springs->samplerate);
+        float csq = c * c;
+        for (int j = 0; j < NLOWPASSSOS; ++j) {
+            float a0  = analogsos[j][1][2];
+            float a1  = analogsos[j][1][1];
+            float b0  = analogsos[j][0][2];
+            float b1  = analogsos[j][0][1];
+            float b2  = analogsos[j][0][0];
+            float d   = 1.f / (a0 + a1 * c + csq);
+            float b0d = (b0 + b1 * c + b2 * csq) * d;
+            float b1d = 2 * (b0 - b2 * csq) * d;
+            float b2d = (b0 - b1 * c + b2 * csq) * d;
+            float a1d = 2 * (a0 - csq) * d;
+            float a2d = (a0 - a1 * c + csq) * d;
+
+            springs->lowpasssos[j][0][0][i] = b0d;
+            springs->lowpasssos[j][0][1][i] = b1d;
+            springs->lowpasssos[j][0][2][i] = b2d;
+            springs->lowpasssos[j][1][0][i] = 1.f;
+            springs->lowpasssos[j][1][1][i] = a1d;
+            springs->lowpasssos[j][1][2][i] = a2d;
+        }
     }
 }
 
@@ -192,34 +238,23 @@ inline void springs_lowallpasschain(springs_t *restrict springs,
 inline void springs_lowlpf(springs_t *restrict springs, float *restrict y)
 {
     /* low pass filter */
-    const float filtersos[][2][3] = {
-        {{2.18740696e-03, 6.16778351e-04, 2.18740696e-03},
-         {1.00000000e+00, -1.70313982e+00, 7.48223150e-01}},
-        {{1.00000000e+00, -1.31079983e+00, 1.00000000e+00},
-         {1.00000000e+00, -1.68138176e+00, 8.53580218e-01}},
-        {{1.00000000e+00, -1.55984297e+00, 1.00000000e+00},
-         {1.00000000e+00, -1.66400724e+00, 9.39118831e-01}},
-        {{1.00000000e+00, -1.62171918e+00, 1.00000000e+00},
-         {1.00000000e+00, -1.65694459e+00, 9.78755965e-01}},
-        {{1.00000000e+00, -1.63865216e+00, 1.00000000e+00},
-         {1.00000000e+00, -1.65708087e+00, 9.94971669e-01}}};
     int id                                       = springs->lowpassmemid;
     loopsprings(i) springs->lowpassmem[0][id][i] = y[i];
-    for (int j = 0; j < LOWPASSN2ND; ++j) {
+    for (int j = 0; j < NLOWPASSSOS; ++j) {
         float acc[MAXSPRINGS] = {0};
         for (int k = 0; k < 3; ++k) loopsprings(i)
             {
-                acc[i] += filtersos[j][0][k] *
+                acc[i] += springs->lowpasssos[j][0][k][i] *
                           springs->lowpassmem[j][(id - k) & LOWPASSMEMMASK][i];
                 if (k > 0)
                     acc[i] -=
-                        filtersos[j][1][k] *
+                        springs->lowpasssos[j][1][k][i] *
                         springs
                             ->lowpassmem[j + 1][(id - k) & LOWPASSMEMMASK][i];
             }
         loopsprings(i) springs->lowpassmem[j + 1][id][i] = acc[i];
     }
-    loopsprings(i) y[i]   = springs->lowpassmem[LOWPASSN2ND][id][i];
+    loopsprings(i) y[i]   = springs->lowpassmem[NLOWPASSSOS][id][i];
     springs->lowpassmemid = (springs->lowpassmemid + 1) & LOWPASSMEMMASK;
 }
 

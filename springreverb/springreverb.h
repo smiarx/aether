@@ -54,7 +54,7 @@
 #define glow2high (0.99f * glow)
 #define ghigh2low (0.4 * ghigh)
 
-#define LOWPASSN2ND    5 // number of lowpass 2nd order filter
+#define NLOWPASSSOS    5 // number of lowpass 2nd order filter
 #define LOWPASSMEMSIZE 4
 #define LOWPASSMEMMASK (LOWPASSMEMSIZE - 1)
 
@@ -107,7 +107,8 @@ typedef struct {
         int id;
     } loweq;
 
-    springparam(float, lowpassmem[LOWPASSN2ND + 1][LOWPASSMEMSIZE]);
+    springparam(float, lowpasssos[NLOWPASSSOS][2][3]);
+    springparam(float, lowpassmem[NLOWPASSSOS + 1][LOWPASSMEMSIZE]);
     int lowpassmemid;
 
     springparam(float, ahigh);

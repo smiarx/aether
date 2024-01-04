@@ -7,6 +7,73 @@
 
 #define loopsprings(i) for (int i = 0; i < NSPRINGS; ++i)
 
+/* filter function */
+void filter_set_sos(const float analogsos[][2][3],
+                    float digitalsos[][2][3][MAXSPRINGS], const float *freqs,
+                    float samplerate, int nsos)
+{
+
+    /* filter params */
+    /* we define a filter designed with analog coefficients
+     * and use bilinear transform to find the corresponding digital coefficients
+     * for the desired frequency
+     *
+     * we use second order section filters (sos) for stability
+     */
+
+    loopsprings(i)
+    {
+        /* bilinear transform */
+        float w1  = 2.f * M_PI * freqs[i];
+        float c   = 1 / tanf(w1 * 0.5f / samplerate);
+        float csq = c * c;
+        for (int j = 0; j < nsos; ++j) {
+            float a0  = analogsos[j][1][2];
+            float a1  = analogsos[j][1][1];
+            float b0  = analogsos[j][0][2];
+            float b1  = analogsos[j][0][1];
+            float b2  = analogsos[j][0][0];
+            float d   = 1.f / (a0 + a1 * c + csq);
+            float b0d = (b0 + b1 * c + b2 * csq) * d;
+            float b1d = 2 * (b0 - b2 * csq) * d;
+            float b2d = (b0 - b1 * c + b2 * csq) * d;
+            float a1d = 2 * (a0 - csq) * d;
+            float a2d = (a0 - a1 * c + csq) * d;
+
+            digitalsos[j][0][0][i] = b0d;
+            digitalsos[j][0][1][i] = b1d;
+            digitalsos[j][0][2][i] = b2d;
+            digitalsos[j][1][0][i] = 1.f;
+            digitalsos[j][1][1][i] = a1d;
+            digitalsos[j][1][2][i] = a2d;
+        }
+    }
+}
+
+void filter_process(const float sos[restrict][2][3][MAXSPRINGS],
+                    float mem[restrict][FILTERMEMSIZE][MAXSPRINGS],
+                    int *restrict id, int nsos, float *restrict y)
+{
+    for (int j = 0; j < nsos; ++j) {
+        /* use direct form II */
+        loopsprings(i)
+        {
+            float a1 = sos[j][1][1][i];
+            float a2 = sos[j][1][2][i];
+            float b0 = sos[j][0][0][i];
+            float b1 = sos[j][0][1][i];
+            float b2 = sos[j][0][2][i];
+
+            float v1       = mem[j][(*id - 1) & FILTERMEMMASK][i];
+            float v2       = mem[j][(*id - 2) & FILTERMEMMASK][i];
+            float v0       = y[i] - a1 * v1 - a2 * v2;
+            y[i]           = b0 * v0 + b1 * v1 + b2 * v2;
+            mem[j][*id][i] = v0;
+        }
+    }
+    *id = (*id + 1) & FILTERMEMMASK;
+}
+
 void springs_init(springs_t *springs, float samplerate)
 {
     memset(springs, 0, sizeof(springs_t));
@@ -43,12 +110,7 @@ void springs_set_ftr(springs_t *springs, float *ftr)
         springs->loweq.a2k[i] = R * R;
     }
 
-    /* LowPass params */
-    /* let's use a fixed ellptic lowpass filter designed with analog
-     * coefficients and use bilinear transform to find the corresponding digital
-     * coefficients for the desired frequency
-     */
-
+    /* low pass filter */
     /* scipy.signal.ellip(10, 1, 60, 1.0, analog=True, output='sos') */
     const float analogsos[][2][3] = {
         {{1.00000000e-03, 0.00000000e+00, 1.43497622e-02},
@@ -61,34 +123,8 @@ void springs_set_ftr(springs_t *springs, float *ftr)
          {1.00000000e+00, 3.84115770e-02, 9.56268315e-01}},
         {{1.00000000e+00, 0.00000000e+00, 1.07288063e+00},
          {1.00000000e+00, 9.05107247e-03, 9.99553018e-01}}};
-
-    loopsprings(i)
-    {
-        /* bilinear transform */
-        float w1  = 2.f * M_PI * ftr[i];
-        float c   = 1 / tanf(w1 * 0.5f / springs->samplerate);
-        float csq = c * c;
-        for (int j = 0; j < NLOWPASSSOS; ++j) {
-            float a0  = analogsos[j][1][2];
-            float a1  = analogsos[j][1][1];
-            float b0  = analogsos[j][0][2];
-            float b1  = analogsos[j][0][1];
-            float b2  = analogsos[j][0][0];
-            float d   = 1.f / (a0 + a1 * c + csq);
-            float b0d = (b0 + b1 * c + b2 * csq) * d;
-            float b1d = 2 * (b0 - b2 * csq) * d;
-            float b2d = (b0 - b1 * c + b2 * csq) * d;
-            float a1d = 2 * (a0 - csq) * d;
-            float a2d = (a0 - a1 * c + csq) * d;
-
-            springs->lowpasssos[j][0][0][i] = b0d;
-            springs->lowpasssos[j][0][1][i] = b1d;
-            springs->lowpasssos[j][0][2][i] = b2d;
-            springs->lowpasssos[j][1][0][i] = 1.f;
-            springs->lowpasssos[j][1][1][i] = a1d;
-            springs->lowpasssos[j][1][2][i] = a2d;
-        }
-    }
+    filter_set_sos(analogsos, springs->lowpasssos, ftr, springs->samplerate,
+                   NLOWPASSSOS);
 }
 
 void springs_set_a1(springs_t *springs, float *a1)
@@ -237,26 +273,8 @@ inline void springs_lowallpasschain(springs_t *restrict springs,
 
 inline void springs_lowlpf(springs_t *restrict springs, float *restrict y)
 {
-    /* low pass filter */
-    int id = springs->lowpassmemid;
-    for (int j = 0; j < NLOWPASSSOS; ++j) {
-        /* use direct form II */
-        loopsprings(i)
-        {
-            float a1 = springs->lowpasssos[j][1][1][i];
-            float a2 = springs->lowpasssos[j][1][2][i];
-            float b0 = springs->lowpasssos[j][0][0][i];
-            float b1 = springs->lowpasssos[j][0][1][i];
-            float b2 = springs->lowpasssos[j][0][2][i];
-
-            float v1 = springs->lowpassmem[j][(id - 1) & LOWPASSMEMMASK][i];
-            float v2 = springs->lowpassmem[j][(id - 2) & LOWPASSMEMMASK][i];
-            float v0 = y[i] - a1 * v1 - a2 * v2;
-            y[i]     = b0 * v0 + b1 * v1 + b2 * v2;
-            springs->lowpassmem[j][id][i] = v0;
-        }
-    }
-    springs->lowpassmemid = (springs->lowpassmemid + 1) & LOWPASSMEMMASK;
+    filter_process(springs->lowpasssos, springs->lowpassmem,
+                   &springs->lowpassmemid, NLOWPASSSOS, y);
 }
 
 inline void springs_loweq(springs_t *restrict springs, float *restrict y)

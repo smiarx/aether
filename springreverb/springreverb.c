@@ -238,23 +238,24 @@ inline void springs_lowallpasschain(springs_t *restrict springs,
 inline void springs_lowlpf(springs_t *restrict springs, float *restrict y)
 {
     /* low pass filter */
-    int id                                       = springs->lowpassmemid;
-    loopsprings(i) springs->lowpassmem[0][id][i] = y[i];
+    int id = springs->lowpassmemid;
     for (int j = 0; j < NLOWPASSSOS; ++j) {
-        float acc[MAXSPRINGS] = {0};
-        for (int k = 0; k < 3; ++k) loopsprings(i)
-            {
-                acc[i] += springs->lowpasssos[j][0][k][i] *
-                          springs->lowpassmem[j][(id - k) & LOWPASSMEMMASK][i];
-                if (k > 0)
-                    acc[i] -=
-                        springs->lowpasssos[j][1][k][i] *
-                        springs
-                            ->lowpassmem[j + 1][(id - k) & LOWPASSMEMMASK][i];
-            }
-        loopsprings(i) springs->lowpassmem[j + 1][id][i] = acc[i];
+        /* use direct form II */
+        loopsprings(i)
+        {
+            float a1 = springs->lowpasssos[j][1][1][i];
+            float a2 = springs->lowpasssos[j][1][2][i];
+            float b0 = springs->lowpasssos[j][0][0][i];
+            float b1 = springs->lowpasssos[j][0][1][i];
+            float b2 = springs->lowpasssos[j][0][2][i];
+
+            float v1 = springs->lowpassmem[j][(id - 1) & LOWPASSMEMMASK][i];
+            float v2 = springs->lowpassmem[j][(id - 2) & LOWPASSMEMMASK][i];
+            float v0 = y[i] - a1 * v1 - a2 * v2;
+            y[i]     = b0 * v0 + b1 * v1 + b2 * v2;
+            springs->lowpassmem[j][id][i] = v0;
+        }
     }
-    loopsprings(i) y[i]   = springs->lowpassmem[NLOWPASSSOS][id][i];
     springs->lowpassmemid = (springs->lowpassmemid + 1) & LOWPASSMEMMASK;
 }
 

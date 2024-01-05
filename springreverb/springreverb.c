@@ -50,8 +50,8 @@ void filter_set_sos(const float analogsos[][2][3],
     }
 }
 
-void filter_process(const float sos[restrict][2][3][MAXSPRINGS],
-                    float mem[restrict][FILTERMEMSIZE][MAXSPRINGS],
+void filter_process(const float (*restrict sos)[2][3][MAXSPRINGS],
+                    float (*restrict mem)[FILTERMEMSIZE][MAXSPRINGS],
                     int *restrict id, int nsos, float *restrict y)
 {
     for (int j = 0; j < nsos; ++j) {

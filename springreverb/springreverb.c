@@ -74,6 +74,8 @@ void filter_process(const float (*restrict sos)[2][3][MAXSPRINGS],
     *id = (*id + 1) & FILTERMEMMASK;
 }
 
+/* springs */
+
 void springs_init(springs_t *springs, float samplerate)
 {
     memset(springs, 0, sizeof(springs_t));
@@ -89,11 +91,46 @@ void springs_set_dccutoff(springs_t *springs, float *fcutoff)
     }
 }
 
+/* should be first function calledafter init as for now */
 void springs_set_ftr(springs_t *springs, float *ftr)
 {
+    /* compute K factors */
+    loopsprings(i) { springs->K[i] = (springs->samplerate / 2.f) / (ftr[i]); }
+
+    /* find down sample factor M
+     * the smallest of the K's, new samplerate should be at least
+     * twice spring freq to prevent distortion from interpolation
+     * then process antialiasing filter coefficient if the factor has
+     * changed
+     */
+    int M = INT_MAX;
     loopsprings(i)
     {
-        springs->K[i]  = (springs->samplerate / 2.f) / (ftr[i]);
+        int Mtmp = springs->K[i] * 0.5f;
+        if (Mtmp < M) M = Mtmp;
+    }
+
+    if (M != springs->downsampleM) {
+        float aafreq[MAXSPRINGS];
+
+        springs->downsampleM     = M;
+        springs->downsampleid    = 0;
+        loopsprings(i) aafreq[i] = springs->samplerate * 0.5f / M;
+
+        const float analogaasos[][2][3] = {
+            {{0., 0., 0.00255383}, {1., 0.21436212, 0.0362477}},
+            {{0., 0., 1.}, {1., 0.19337886, 0.21788333}},
+            {{0., 0., 1.}, {1., 0.15346633, 0.51177596}},
+            {{0., 0., 1.}, {1., 0.09853145, 0.80566858}},
+            {{0., 0., 1.}, {1., 0.03395162, 0.98730422}}};
+        filter_set_sos(analogaasos, springs->aasos, aafreq, springs->samplerate,
+                       NAASOS);
+    }
+
+    float samplerate = springs->samplerate / (float)M;
+    loopsprings(i)
+    {
+        springs->K[i] /= (float)M;
         springs->iK[i] = springs->K[i] - .5f;
         float fd       = springs->K[i] - (float)springs->iK[i];
         springs->a2[i] = (1 - fd) / (1 + fd);
@@ -101,9 +138,9 @@ void springs_set_ftr(springs_t *springs, float *ftr)
         /* EQ params */
         float B = 146.f, fpeak = 183.f;
         int Keq    = springs->K[i];
-        float R    = 1.f - M_PI * B * Keq / springs->samplerate;
+        float R    = 1.f - M_PI * B * Keq / samplerate;
         float cos0 = (1.f + R * R) / (2.f * R) *
-                     cosf(2.f * M_PI * fpeak * Keq / springs->samplerate);
+                     cosf(2.f * M_PI * fpeak * Keq / samplerate);
         springs->loweq.Keq[i] = Keq;
         springs->loweq.b0[i]  = (1 - R * R) / 2.f;
         springs->loweq.ak[i]  = -2.f * R * cos0;
@@ -112,7 +149,7 @@ void springs_set_ftr(springs_t *springs, float *ftr)
 
     /* low pass filter */
     /* scipy.signal.ellip(10, 1, 60, 1.0, analog=True, output='sos') */
-    const float analogsos[][2][3] = {
+    const float analoglowpasssos[][2][3] = {
         {{1.00000000e-03, 0.00000000e+00, 1.43497622e-02},
          {1.00000000e+00, 4.79554974e-01, 1.41121071e-01}},
         {{1.00000000e+00, 0.00000000e+00, 2.24894555e+00},
@@ -123,13 +160,22 @@ void springs_set_ftr(springs_t *springs, float *ftr)
          {1.00000000e+00, 3.84115770e-02, 9.56268315e-01}},
         {{1.00000000e+00, 0.00000000e+00, 1.07288063e+00},
          {1.00000000e+00, 9.05107247e-03, 9.99553018e-01}}};
-    filter_set_sos(analogsos, springs->lowpasssos, ftr, springs->samplerate,
-                   NLOWPASSSOS);
+    filter_set_sos(analoglowpasssos, springs->lowpasssos, ftr,
+                   springs->samplerate, NLOWPASSSOS);
 }
 
 void springs_set_a1(springs_t *springs, float *a1)
 {
-    loopsprings(i) springs->a1[i] = a1[i];
+    loopsprings(i)
+    {
+        if (springs->iK[i] <= 1) {
+            /* revert back to classic 2nd order allpass filter */
+            springs->iK[i] = 1;
+            springs->a2[i] =
+                -2.f * sqrtf(a1[i]) * cosf(M_PI / springs->K[i]) / (1 + a1[i]);
+        }
+        springs->a1[i] = a1[i];
+    }
 }
 
 void springs_set_ahigh(springs_t *springs, float *ahigh)
@@ -139,15 +185,16 @@ void springs_set_ahigh(springs_t *springs, float *ahigh)
 
 void springs_set_Td(springs_t *springs, float *Td)
 {
+    float samplerate = springs->samplerate / (float)springs->downsampleM;
     loopsprings(i)
     {
         float a1          = springs->a1[i];
-        float L           = fmaxf(0.f, Td[i] * springs->samplerate -
+        float L           = fmaxf(0.f, Td[i] * samplerate -
                                            springs->K[i] * MLOW * (1 - a1) / (1 + a1));
         springs->Lecho[i] = L / 5;
         springs->L1[i]    = L - springs->Lecho[i] - springs->Lripple[i];
 
-        float Lhigh        = L / 2.3f;
+        float Lhigh        = L / 2.3f * (float)springs->downsampleM;
         springs->iLhigh[i] = (int)Lhigh;
         springs->fLhigh[i] = Lhigh - (float)springs->iLhigh[i];
     }
@@ -350,23 +397,37 @@ void springs_process(springs_t *restrict springs, float **restrict in,
         float ylow[MAXSPRINGS], yhigh[MAXSPRINGS];
         loopsprings(i) yhigh[i] = ylow[i] = in[i * NCHANNELS / NSPRINGS][n];
 
-        springs_lowdelayline(springs, ylow);
-        springs_lowdc(springs, ylow);
-        springs_lowallpasschain(springs, ylow);
+        if (springs->downsampleM > 1)
+            filter_process(springs->aasos, springs->aamem, &springs->aaid,
+                           NAASOS, ylow);
 
-        float ylowin[MAXSPRINGS];
-        loopsprings(i) ylowin[i] = ylow[i];
-        springs_loweq(springs, ylow);
+        if (springs->downsampleid == 0) {
+            springs_lowdelayline(springs, ylow);
+            springs_lowdc(springs, ylow);
+            springs_lowallpasschain(springs, ylow);
+
+            float ylowin[MAXSPRINGS];
+            loopsprings(i) ylowin[i] = ylow[i];
+            /* feed delaylines */
+            loopsprings(i) springs->lowdelay1[springs->lowdelay1id][i] =
+                ylowin[i]; // + ghigh2low*yhigh[i];
+            springs->lowdelay1id = (springs->lowdelay1id + 1) & LOWDELAY1MASK;
+
+            springs_loweq(springs, ylow);
+
+            loopsprings(i) ylow[i] *= (float)springs->downsampleM;
+        } else {
+            loopsprings(i) ylow[i] = 0.f;
+        }
+        if (springs->downsampleM > 1)
+            springs->downsampleid =
+                (springs->downsampleid + 1) % springs->downsampleM;
+
         springs_lowlpf(springs, ylow);
 
         /* high chirps */
         springs_highdelayline(springs, yhigh);
         springs_highallpasschain(springs, yhigh);
-
-        /* feed delaylines */
-        loopsprings(i) springs->lowdelay1[springs->lowdelay1id][i] =
-            ylowin[i] + ghigh2low * yhigh[i];
-        springs->lowdelay1id = (springs->lowdelay1id + 1) & LOWDELAY1MASK;
 
         /* feed high delayline */
         loopsprings(i) springs->highdelay[springs->highdelayid][i] =

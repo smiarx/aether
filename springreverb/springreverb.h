@@ -57,6 +57,7 @@
 // filter
 #define FILTERMEMSIZE 4
 #define FILTERMEMMASK (FILTERMEMSIZE - 1)
+#define NAASOS        5 // number of aa 2nd order filter
 #define NLOWPASSSOS   5 // number of lowpass 2nd order filter
 
 #ifdef __cplusplus
@@ -67,6 +68,13 @@
 #endif
 
 typedef struct {
+    /* down sampling */
+    int downsampleM;
+    int downsampleid;
+    springparam(float, aasos[NAASOS][2][3]);
+    springparam(float, aamem[NAASOS][FILTERMEMSIZE]);
+    int aaid;
+
     /* set with ftr */
     springparam(float, K);
     springparam(int, iK);

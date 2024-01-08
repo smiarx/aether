@@ -102,9 +102,9 @@ class springreverb : public dsp
                           .0552,  0.04423, 0.04367, 0.0432};
 
         springs_init(&springs, sample_rate);
+        springs_set_ftr(&springs, ftr);
         springs_set_a1(&springs, a1);
         springs_set_dccutoff(&springs, cutoff);
-        springs_set_ftr(&springs, ftr);
         springs_set_Nripple(&springs, 0.5);
         springs_set_Td(&springs, Td);
         springs_set_ahigh(&springs, ahigh);

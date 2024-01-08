@@ -1,6 +1,7 @@
 #include <limits.h>
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "springreverb.h"
@@ -79,7 +80,8 @@ void filter_process(const float (*restrict sos)[2][3][MAXSPRINGS],
 void springs_init(springs_t *springs, float samplerate)
 {
     memset(springs, 0, sizeof(springs_t));
-    springs->samplerate = samplerate;
+    loopsprings(i) springs->randseed[i] = rand();
+    springs->samplerate                 = samplerate;
 }
 
 void springs_set_dccutoff(springs_t *springs, float *fcutoff)

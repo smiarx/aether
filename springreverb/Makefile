@@ -1,9 +1,9 @@
 all: bench
 
-CFLAGS+= -Wall -march=native -mtune=native
+CFLAGS+= -Wall -march=native -mtune=native -ffinite-math-only -fno-signed-zeros -fno-trapping-math -fassociative-math -fno-math-errno -freciprocal-math -fcx-limited-range
 
 springreverb.o : springreverb.c springreverb.h
-	$(CC) $(CFLAGS) -O3 -DMONO -c -o $@ $<
+	$(CC) $(CFLAGS) -O3 -c -o $@ $<
 
 bench: bench.c springreverb.o
 	$(CC) $(CFLAGS) -O2 -c -o bench.o $<
@@ -12,9 +12,16 @@ bench: bench.c springreverb.o
 clean:
 	rm -f springreverb.o bench.o
 	rm -f bench
+	rm -f springreverb_faust.o springreverb
 
-springreverb: springreverb.c springreverb.h springreverb_inj.cpp
-	faust2jack -cn springreverb -inj springreverb_inj.cpp springreverb.dsp
+springreverb_faust.o : springreverb_inj.cpp springreverb.h
+	CXXFLAGS="-c" faust2jack -cn springreverb -inj springreverb_inj.cpp springreverb.dsp
+	mv springreverb springreverb_faust.o
+
+springreverb: springreverb.o springreverb_faust.o
+	$(CXX) `pkg-config --cflags --libs alsa jack gtk+-2.0` -lm springreverb.o springreverb_faust.o -o springreverb
+	
+
 
 dobench:
 	@make clean > /dev/null

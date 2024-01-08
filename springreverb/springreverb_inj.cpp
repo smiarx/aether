@@ -32,7 +32,6 @@ Compilation options: -lang cpp -ct 1 -cn springreverb -es 1 -mcd 16 -single -ftz
 #endif
 
 extern "C" {
-#include "springreverb.c"
 #include "springreverb.h"
 }
 

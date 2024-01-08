@@ -56,12 +56,8 @@
 #define NAASOS        5 // number of aa 2nd order filter
 #define NLOWPASSSOS   5 // number of lowpass 2nd order filter
 
-#ifdef __cplusplus
-#define springparam(type, name) type name[MAXSPRINGS]
-#else
 #define springparam(type, name) \
     type name[MAXSPRINGS] __attribute__((aligned(sizeof(type) * MAXSPRINGS)))
-#endif
 
 typedef struct {
     /* down sampling */

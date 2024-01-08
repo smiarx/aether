@@ -215,7 +215,7 @@ void springs_set_Nripple(springs_t *springs, float Nripple)
 gfunc(gripple) gfunc(gecho) gfunc(glf) gfunc(ghf)
 
     inline void springs_lowdelayline(springs_t *restrict springs,
-                                     float *restrict y)
+                                     float y[restrict MAXSPRINGS])
 {
     /* delay modulation */
     loopsprings(i)
@@ -286,7 +286,8 @@ gfunc(gripple) gfunc(gecho) gfunc(glf) gfunc(ghf)
         (springs->lowdelayrippleid + 1) & LOWDELAYRIPPLEMASK;
 }
 
-inline void springs_lowdc(springs_t *restrict springs, float *restrict y)
+inline void springs_lowdc(springs_t *restrict springs,
+                          float y[restrict MAXSPRINGS])
 {
     loopsprings(i)
     {
@@ -302,7 +303,7 @@ inline void springs_lowdc(springs_t *restrict springs, float *restrict y)
 
 /* compute low all pass chain */
 inline void springs_lowallpasschain(springs_t *restrict springs,
-                                    float *restrict y)
+                                    float y[restrict MAXSPRINGS])
 {
     /* low allpass filter chain */
     int idx[MAXSPRINGS];
@@ -328,13 +329,15 @@ inline void springs_lowallpasschain(springs_t *restrict springs,
     springs->lowbufid = (springs->lowbufid + 1) & MLOWBUFMASK;
 }
 
-inline void springs_lowlpf(springs_t *restrict springs, float *restrict y)
+inline void springs_lowlpf(springs_t *restrict springs,
+                           float y[restrict MAXSPRINGS])
 {
     filter_process(springs->lowpasssos, springs->lowpassmem,
                    &springs->lowpassmemid, NLOWPASSSOS, y);
 }
 
-inline void springs_loweq(springs_t *restrict springs, float *restrict y)
+inline void springs_loweq(springs_t *restrict springs,
+                          float y[restrict MAXSPRINGS])
 {
     int id = springs->loweq.id;
     int idk[MAXSPRINGS];
@@ -363,7 +366,7 @@ inline void springs_loweq(springs_t *restrict springs, float *restrict y)
 }
 
 inline void springs_highallpasschain(springs_t *restrict springs,
-                                     float *restrict y)
+                                     float y[restrict MAXSPRINGS])
 {
     /* high chirp allpass chain is stretched by a factor of two,
      * this isn't the way it's supposed to be but it sounds better so ehh..
@@ -382,7 +385,8 @@ inline void springs_highallpasschain(springs_t *restrict springs,
     springs->highmemid = (springs->highmemid + 1) & 1;
 }
 
-void springs_highdelayline(springs_t *restrict springs, float *restrict y)
+void springs_highdelayline(springs_t *restrict springs,
+                           float y[restrict MAXSPRINGS])
 {
     int idx0[MAXSPRINGS], idx1[MAXSPRINGS];
     float fLhigh[MAXSPRINGS];

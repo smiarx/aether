@@ -141,16 +141,20 @@ void springs_set_glf(springs_t *springs, float *glf);
 void springs_set_ghf(springs_t *springs, float *ghf);
 
 #ifdef __cplusplus
-#define restrict __restrict__
+#define restrict
 #endif
 
-void springs_lowdelayline(springs_t *restrict springs, float *restrict y);
-void springs_lowdc(springs_t *restrict springs, float *restrict y);
-void springs_lowallpasschain(springs_t *restrict springs, float *restrict y);
-void springs_lowlpf(springs_t *restrict springs, float *restrict y);
-void springs_loweq(springs_t *restrict springs, float *restrict y);
-void springs_highallpasschain(springs_t *restrict springs, float *restrict y);
-void springs_highdelayline(springs_t *restrict springs, float *restrict y);
+void springs_lowdelayline(springs_t *restrict springs,
+                          float y[restrict MAXSPRINGS]);
+void springs_lowdc(springs_t *restrict springs, float y[restrict MAXSPRINGS]);
+void springs_lowallpasschain(springs_t *restrict springs,
+                             float y[restrict MAXSPRINGS]);
+void springs_lowlpf(springs_t *restrict springs, float y[restrict MAXSPRINGS]);
+void springs_loweq(springs_t *restrict springs, float y[restrict MAXSPRINGS]);
+void springs_highallpasschain(springs_t *restrict springs,
+                              float y[restrict MAXSPRINGS]);
+void springs_highdelayline(springs_t *restrict springs,
+                           float y[restrict MAXSPRINGS]);
 void springs_process(springs_t *restrict springs, float **restrict in,
                      float **restrict out, int count);
 

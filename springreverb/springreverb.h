@@ -43,7 +43,8 @@
 #define amod 0.997f
 #define gmod 8.3f
 
-#define MHIGH         158
+#define MHIGH         70
+#define HIGHSTRETCH   2
 #define HIGHDELAYSIZE LOWDELAY1SIZE
 #define HIGHDELAYMASK (HIGHDELAYSIZE - 1)
 #define ghf           -0.94f
@@ -121,7 +122,8 @@ typedef struct {
     int lowpassmemid;
 
     springparam(float, ahigh);
-    springparam(float, highmem[MHIGH]);
+    springparam(float, highmem[MHIGH][HIGHSTRETCH]);
+    int highmemid;
 
     springparam(int, iLhigh);
     springparam(float, fLhigh);

@@ -352,18 +352,24 @@ inline void springs_loweq(springs_t *restrict springs, float *restrict y)
     springs->loweq.id = (springs->loweq.id + 1) & MLOWEQMASK;
 }
 
-void springs_highallpasschain(springs_t *restrict springs, float *restrict y)
+inline void springs_highallpasschain(springs_t *restrict springs,
+                                     float *restrict y)
 {
+    /* high chirp allpass chain is stretched by a factor of two,
+     * this isn't the way it's supposed to be but it sounds better so ehh..
+     */
+    int id = springs->highmemid;
     for (int j = 0; j < MHIGH; ++j) {
         loopsprings(i)
         {
-            float s1 = springs->highmem[j][i];
-            float s0 = y[i] - springs->ahigh[i] * s1;
+            float s2 = springs->highmem[j][id][i];
+            float s0 = y[i] - springs->ahigh[i] * s2;
 
-            y[i]                   = springs->ahigh[i] * s0 + s1;
-            springs->highmem[j][i] = s0;
+            y[i]                       = springs->ahigh[i] * s0 + s2;
+            springs->highmem[j][id][i] = s0;
         }
     }
+    springs->highmemid = (springs->highmemid + 1) & 1;
 }
 
 void springs_highdelayline(springs_t *restrict springs, float *restrict y)

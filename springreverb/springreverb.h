@@ -29,15 +29,15 @@
 #define MLOWEQSIZE (MLOWBUFSIZE * 2)
 #define MLOWEQMASK (MLOWEQSIZE - 1)
 
-#define LOWDELAY1SIZE      2048
+#define LOWDELAY1SIZE      (2048 << 1)
 #define LOWDELAY1MASK      (LOWDELAY1SIZE - 1)
-#define LOWDELAYECHOSIZE   512
+#define LOWDELAYECHOSIZE   (512 << 1)
 #define LOWDELAYECHOMASK   (LOWDELAYECHOSIZE - 1)
-#define LOWDELAYRIPPLESIZE 128
+#define LOWDELAYRIPPLESIZE (128 << 1)
 #define LOWDELAYRIPPLEMASK (LOWDELAYRIPPLESIZE - 1)
 
-#define amod 0.997f
-#define gmod 8.3f
+#define gmod 10.f
+#define amod (1.f - 0.05f / gmod)
 
 #define MHIGH         70
 #define HIGHSTRETCH   2
@@ -119,8 +119,8 @@ typedef struct {
     springparam(float, highmem[MHIGH][HIGHSTRETCH]);
     int highmemid;
 
-    springparam(int, iLhigh);
-    springparam(float, fLhigh);
+    springparam(float, Lmodhighmem);
+    springparam(float, Lhigh);
     springparam(float, highdelay[HIGHDELAYSIZE]);
     springparam(float, ghf);
     int highdelayid;

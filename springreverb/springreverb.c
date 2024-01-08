@@ -196,9 +196,8 @@ void springs_set_Td(springs_t *springs, float *Td)
         springs->Lecho[i] = L / 5;
         springs->L1[i]    = L - springs->Lecho[i] - springs->Lripple[i];
 
-        float Lhigh        = L / 2.3f * (float)springs->downsampleM;
-        springs->iLhigh[i] = (int)Lhigh;
-        springs->fLhigh[i] = Lhigh - (float)springs->iLhigh[i];
+        float Lhigh       = L / 1.8f * (float)springs->downsampleM;
+        springs->Lhigh[i] = Lhigh;
     }
 }
 
@@ -225,8 +224,7 @@ gfunc(gripple) gfunc(gecho) gfunc(glf) gfunc(ghf)
             springs->randseed[i] + springs->randstate[i] * 1103515245;
         float mod = springs->randstate[i] / ((float)INT_MAX);
         // filter modulation
-        springs->Lmodmem[i] = mod =
-            (1 - amod) * mod + amod * springs->Lmodmem[i];
+        springs->Lmodmem[i] = mod += amod * (springs->Lmodmem[i] - mod);
     }
     /* tap low delayline */
 #define delayvecs(name)                                   \
@@ -247,7 +245,8 @@ gfunc(gripple) gfunc(gecho) gfunc(glf) gfunc(ghf)
     idx##name[i]     = idx##name[i] * MAXSPRINGS + i;                        \
     idx##name##m1[i] = idx##name##m1[i] * MAXSPRINGS + i
 
-        float delay1 = springs->L1[i] + gmod * springs->Lmodmem[i];
+        float delay1 =
+            springs->L1[i] + gmod * springs->Lmodmem[i] / springs->downsampleM;
         setidx(1, 1);
         float delayecho = fdelay1[i] + springs->Lecho[i];
         setidx(echo, ECHO);
@@ -386,11 +385,25 @@ inline void springs_highallpasschain(springs_t *restrict springs,
 void springs_highdelayline(springs_t *restrict springs, float *restrict y)
 {
     int idx0[MAXSPRINGS], idx1[MAXSPRINGS];
+    float fLhigh[MAXSPRINGS];
+
+    /* delay modulation */
+    loopsprings(i)
+    {
+        springs->randstate[i] =
+            springs->randseed[i] + springs->randstate[i] * 1103515256;
+        float mod = springs->randstate[i] / ((float)INT_MAX);
+        // filter modulation
+        springs->Lmodhighmem[i] = mod += amod * (springs->Lmodhighmem[i] - mod);
+    }
 
     loopsprings(i)
     {
-        idx0[i] = (springs->highdelayid - springs->iLhigh[i]) & HIGHDELAYMASK;
-        idx1[i] = (idx0[i] - 1) & HIGHDELAYMASK;
+        float Lhigh = springs->Lhigh[i] + gmod * springs->Lmodhighmem[i];
+        int iLhigh  = (int)Lhigh;
+        fLhigh[i]   = Lhigh - iLhigh;
+        idx0[i]     = (springs->highdelayid - iLhigh) & HIGHDELAYMASK;
+        idx1[i]     = (idx0[i] - 1) & HIGHDELAYMASK;
 
         idx0[i] = idx0[i] * MAXSPRINGS + 1;
         idx1[i] = idx1[i] * MAXSPRINGS + 1;
@@ -401,7 +414,7 @@ void springs_highdelayline(springs_t *restrict springs, float *restrict y)
     {
         float x0 = delayline[idx0[i]];
         float x1 = delayline[idx1[i]];
-        float x  = x0 + springs->fLhigh[i] * (x1 - x0);
+        float x  = x0 + fLhigh[i] * (x1 - x0);
 
         y[i] += x * springs->ghf[i];
     }

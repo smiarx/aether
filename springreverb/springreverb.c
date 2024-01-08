@@ -205,7 +205,16 @@ void springs_set_Nripple(springs_t *springs, float Nripple)
     loopsprings(i) { springs->Lripple[i] = 2.f * springs->K[i] * Nripple; }
 }
 
-inline void springs_lowdelayline(springs_t *restrict springs, float *restrict y)
+#define gfunc(gname)                                           \
+    void springs_set_##gname(springs_t *springs, float *gname) \
+    {                                                          \
+        loopsprings(i) springs->gname[i] = gname[i];           \
+    }
+
+gfunc(gripple) gfunc(gecho) gfunc(glf) gfunc(ghf)
+
+    inline void springs_lowdelayline(springs_t *restrict springs,
+                                     float *restrict y)
 {
     /* delay modulation */
     loopsprings(i)
@@ -255,17 +264,17 @@ inline void springs_lowdelayline(springs_t *restrict springs, float *restrict y)
 
         tap(1);
         springs->lowdelayecho[springs->lowdelayechoid][i] =
-            tap1 * (1.f - gecho);
+            tap1 * (1.f - springs->gecho[i]);
 
         tap(echo);
-        tapecho += tap1 * gecho;
+        tapecho += tap1 * springs->gecho[i];
         springs->lowdelayripple[springs->lowdelayrippleid][i] =
-            tapecho * (1.f - gripple);
+            tapecho * (1.f - springs->gripple[i]);
 
         tap(ripple);
-        tapripple += tapecho * gripple;
+        tapripple += tapecho * springs->gripple[i];
 
-        y[i] += tapripple * glf;
+        y[i] += tapripple * springs->glf[i];
 #undef tap
     }
     /* advance buffer ids */
@@ -392,7 +401,7 @@ void springs_highdelayline(springs_t *restrict springs, float *restrict y)
         float x1 = delayline[idx1[i]];
         float x  = x0 + springs->fLhigh[i] * (x1 - x0);
 
-        y[i] += x * ghf;
+        y[i] += x * springs->ghf[i];
     }
 }
 

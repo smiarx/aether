@@ -36,10 +36,6 @@
 #define LOWDELAYRIPPLESIZE 128
 #define LOWDELAYRIPPLEMASK (LOWDELAYRIPPLESIZE - 1)
 
-#define gecho   0.01f
-#define gripple 0.01f
-#define glf     -0.95f
-
 #define amod 0.997f
 #define gmod 8.3f
 
@@ -47,7 +43,6 @@
 #define HIGHSTRETCH   2
 #define HIGHDELAYSIZE LOWDELAY1SIZE
 #define HIGHDELAYMASK (HIGHDELAYSIZE - 1)
-#define ghf           -0.94f
 
 #define glow  1.0f
 #define ghigh (glow / 1000.f)
@@ -104,6 +99,9 @@ typedef struct {
     springparam(float, lowdelay1[LOWDELAY1SIZE]);
     springparam(float, lowdelayecho[LOWDELAYECHOSIZE]);
     springparam(float, lowdelayripple[LOWDELAYRIPPLESIZE]);
+    springparam(float, gecho);
+    springparam(float, gripple);
+    springparam(float, glf);
     int lowdelay1id;
     int lowdelayechoid;
     int lowdelayrippleid;
@@ -128,6 +126,7 @@ typedef struct {
     springparam(int, iLhigh);
     springparam(float, fLhigh);
     springparam(float, highdelay[HIGHDELAYSIZE]);
+    springparam(float, ghf);
     int highdelayid;
 
     float samplerate;
@@ -140,6 +139,10 @@ void springs_set_a1(springs_t *springs, float *a1);
 void springs_set_Td(springs_t *springs, float *Td);
 void springs_set_Nripple(springs_t *springs, float Nripple);
 void springs_set_ahigh(springs_t *springs, float *a1);
+void springs_set_gripple(springs_t *springs, float *gripple);
+void springs_set_gecho(springs_t *springs, float *gecho);
+void springs_set_glf(springs_t *springs, float *glf);
+void springs_set_ghf(springs_t *springs, float *ghf);
 
 #ifdef __cplusplus
 #define restrict __restrict__

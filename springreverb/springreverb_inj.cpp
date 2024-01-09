@@ -44,6 +44,7 @@ class springreverb : public dsp
     int fSampleRate;
 
     springs_t springs;
+    springs_desc_t desc;
 
   public:
     springreverb() {}
@@ -92,21 +93,6 @@ class springreverb : public dsp
         instanceResetUserInterface();
         instanceClear();
 
-        springs_desc_t desc = {
-            .ftr   = {4210, 4106, 4200, 4300, 4330, 4118, 4190, 4310},
-            .a1    = {0.18, 0.21, 0.312, 0.32, 0.32, 0.23, 0.21, 0.2},
-            .ahigh = {-0.63, -0.56, -0.83, -0.37, -0.67, -0.48, -0.76, -0.32},
-            //.Td =
-            //{0.0552,0.04366,0.04340,0.04370,.0552,0.04423,0.04367,0.0432},
-            .Td      = {0.052, 0.054, 0.046, 0.048, 0.050, 0.05612, 0.04983,
-                        0.051291},
-            .fcutoff = {40, 40, 38, 20, 49, 31, 32, 33},
-            .gripple = {0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01},
-            .gecho   = {0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01},
-            .glf     = {-0.98, -0.98, -0.98, -0.98, -0.98, -0.98, -0.98, -0.98},
-            .ghf = {-0.98, -0.98, -0.98, -0.98, -0.98, -0.98, -0.986, -0.98},
-        };
-
         springs_init(&springs, &desc, sample_rate);
     }
 
@@ -116,20 +102,48 @@ class springreverb : public dsp
 
     virtual void buildUserInterface(UI *ui_interface)
     {
-        ui_interface->openVerticalBox("a");
-        ui_interface->addButton("impulse", &fButton0);
+        ui_interface->openVerticalBox("springreverb");
+
+        for (int i = 0; i < MAXSPRINGS; ++i) {
+            char name[16];
+            sprintf(name, "spring %d", i);
+            ui_interface->openHorizontalBox(name);
+            ui_interface->addHorizontalSlider(
+                "freq", &desc.ftr[i], FAUSTFLOAT(4.5e+03f), FAUSTFLOAT(2e+02f),
+                FAUSTFLOAT(1e+04f), FAUSTFLOAT(1.0f));
+            ui_interface->addHorizontalSlider(
+                "a1", &desc.a1[i], FAUSTFLOAT(0.4), FAUSTFLOAT(0.f),
+                FAUSTFLOAT(1.f), FAUSTFLOAT(0.0001f));
+            ui_interface->addHorizontalSlider(
+                "ahigh", &desc.ahigh[i], FAUSTFLOAT(-0.4f), FAUSTFLOAT(-1.f),
+                FAUSTFLOAT(0.f), FAUSTFLOAT(0.0001f));
+            ui_interface->addHorizontalSlider(
+                "Td", &desc.Td[i], FAUSTFLOAT(0.05f), FAUSTFLOAT(0.02),
+                FAUSTFLOAT(0.2), FAUSTFLOAT(0.0001f));
+            ui_interface->addHorizontalSlider(
+                "fcutoff", &desc.fcutoff[i], FAUSTFLOAT(20.f), FAUSTFLOAT(1.f),
+                FAUSTFLOAT(80.f), FAUSTFLOAT(0.0001f));
+            ui_interface->addHorizontalSlider(
+                "gripple", &desc.gripple[i], FAUSTFLOAT(0.01f), FAUSTFLOAT(0.f),
+                FAUSTFLOAT(1.f), FAUSTFLOAT(0.0001f));
+            ui_interface->addHorizontalSlider(
+                "gecho", &desc.gecho[i], FAUSTFLOAT(0.01f), FAUSTFLOAT(0.f),
+                FAUSTFLOAT(1.f), FAUSTFLOAT(0.0001f));
+            ui_interface->addHorizontalSlider(
+                "glf", &desc.glf[i], FAUSTFLOAT(0.95f), FAUSTFLOAT(0.f),
+                FAUSTFLOAT(1.f), FAUSTFLOAT(0.0001f));
+            ui_interface->addHorizontalSlider(
+                "ghf", &desc.ghf[i], FAUSTFLOAT(0.95f), FAUSTFLOAT(0.f),
+                FAUSTFLOAT(1.f), FAUSTFLOAT(0.0001f));
+            ui_interface->closeBox();
+        }
         ui_interface->closeBox();
     }
 
     virtual void compute(int count, FAUSTFLOAT **RESTRICT inputs,
                          FAUSTFLOAT **RESTRICT outputs)
     {
-        for (int i = 0; i < count; ++i) {
-            float temp = fButton0 - fVec0[1];
-            inputs[0][0] += temp * float(temp > 0);
-            inputs[1][0] += temp * float(temp > 0);
-            fVec0[1] = fButton0;
-        }
+        springs_update(&springs, &desc);
         springs_process(&springs, inputs, outputs, count);
     }
 };

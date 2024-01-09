@@ -155,6 +155,7 @@ typedef struct {
 #endif
 
 void springs_init(springs_t *springs, springs_desc_t *desc, float samplerate);
+void springs_update(springs_t *springs, springs_desc_t *desc);
 void springs_set_dccutoff(springs_t *springs,
                           float fcutoff[restrict MAXSPRINGS]);
 void springs_set_ftr(springs_t *springs, float ftr[restrict MAXSPRINGS]);

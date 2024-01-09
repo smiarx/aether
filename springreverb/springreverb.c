@@ -95,19 +95,40 @@ void springs_init(springs_t *springs, springs_desc_t *desc, float samplerate)
     springs_set_ghf(springs, springs->desc.ghf);
 }
 
+void springs_update(springs_t *springs, springs_desc_t *desc)
+{
+#define param_update(name)                                     \
+    loopsprings(i) if (springs->desc.name[i] != desc->name[i]) \
+    {                                                          \
+        springs_set_##name(springs, desc->name);               \
+        break;                                                 \
+    }
+
+    param_update(ftr);
+    param_update(Td);
+    param_update(a1);
+    param_update(ahigh);
+    param_update(gripple);
+    param_update(gecho);
+    param_update(glf);
+    param_update(ghf);
+}
+
 void springs_set_dccutoff(springs_t *springs,
                           float fcutoff[restrict MAXSPRINGS])
 {
     loopsprings(i)
     {
+        springs->desc.fcutoff[i] = fcutoff[i];
         springs->adc[i] =
             tanf(M_PI / 4.f - M_PI * fcutoff[i] / springs->samplerate);
     }
 }
 
-/* should be first function calledafter init as for now */
 void springs_set_ftr(springs_t *springs, float ftr[restrict MAXSPRINGS])
 {
+    loopsprings(i) springs->desc.ftr[i] = ftr[i];
+
     /* compute K factors */
     loopsprings(i) { springs->K[i] = (springs->samplerate / 2.f) / (ftr[i]); }
 
@@ -139,6 +160,11 @@ void springs_set_ftr(springs_t *springs, float ftr[restrict MAXSPRINGS])
             {{0., 0., 1.}, {1., 0.03395162, 0.98730422}}};
         filter_set_sos(analogaasos, springs->aasos, aafreq, springs->samplerate,
                        NAASOS);
+
+        /* other parameters are dependent of downsample M */
+        springs_set_dccutoff(springs, springs->desc.fcutoff);
+        springs_set_Td(springs, springs->desc.Td);
+        springs_set_a1(springs, springs->desc.a1);
     }
 
     float samplerate = springs->samplerate / (float)M;
@@ -182,6 +208,7 @@ void springs_set_a1(springs_t *springs, float a1[restrict MAXSPRINGS])
 {
     loopsprings(i)
     {
+        springs->desc.a1[i] = a1[i];
         if (springs->iK[i] <= 1) {
             /* revert back to classic 2nd order allpass filter */
             springs->iK[i] = 1;
@@ -194,7 +221,7 @@ void springs_set_a1(springs_t *springs, float a1[restrict MAXSPRINGS])
 
 void springs_set_ahigh(springs_t *springs, float ahigh[restrict MAXSPRINGS])
 {
-    loopsprings(i) springs->ahigh[i] = ahigh[i];
+    loopsprings(i) springs->desc.ahigh[i] = springs->ahigh[i] = ahigh[i];
 }
 
 void springs_set_Td(springs_t *springs, float Td[restrict MAXSPRINGS])
@@ -202,11 +229,12 @@ void springs_set_Td(springs_t *springs, float Td[restrict MAXSPRINGS])
     float samplerate = springs->samplerate / (float)springs->downsampleM;
     loopsprings(i)
     {
-        float a1          = springs->a1[i];
-        float L           = fmaxf(0.f, Td[i] * samplerate -
-                                           springs->K[i] * MLOW * (1 - a1) / (1 + a1));
-        springs->Lecho[i] = L / 5;
-        springs->L1[i]    = L - springs->Lecho[i] - springs->Lripple[i];
+        springs->desc.Td[i] = Td[i];
+        float a1            = springs->a1[i];
+        float L             = fmaxf(0.f, Td[i] * samplerate -
+                                             springs->K[i] * MLOW * (1 - a1) / (1 + a1));
+        springs->Lecho[i]   = L / 5;
+        springs->L1[i]      = L - springs->Lecho[i] - springs->Lripple[i];
 
         float Lhigh       = L / 1.8f * (float)springs->downsampleM;
         springs->Lhigh[i] = Lhigh;
@@ -224,11 +252,11 @@ void springs_set_Nripple(springs_t *springs, float Nripple)
     loopsprings(i) { springs->Lripple[i] = 2.f * springs->K[i] * Nripple; }
 }
 
-#define gfunc(gname)                                           \
-    void springs_set_##gname(springs_t *springs,               \
-                             float gname[restrict MAXSPRINGS]) \
-    {                                                          \
-        loopsprings(i) springs->gname[i] = gname[i];           \
+#define gfunc(gname)                                                          \
+    void springs_set_##gname(springs_t *springs,                              \
+                             float gname[restrict MAXSPRINGS])                \
+    {                                                                         \
+        loopsprings(i) springs->desc.gname[i] = springs->gname[i] = gname[i]; \
     }
 
 gfunc(gripple) gfunc(gecho) gfunc(glf) gfunc(ghf)

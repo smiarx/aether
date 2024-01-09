@@ -199,6 +199,12 @@ void springs_set_Td(springs_t *springs, float *Td)
         float Lhigh       = L / 1.8f * (float)springs->downsampleM;
         springs->Lhigh[i] = Lhigh;
     }
+
+    /* find block size */
+    int blocksize = MAXBLOCKSIZE;
+    loopsprings(i) if (springs->Lhigh[i] < blocksize) blocksize =
+        (int)springs->Lhigh[i];
+    springs->blocksize = blocksize;
 }
 
 void springs_set_Nripple(springs_t *springs, float Nripple)
@@ -424,61 +430,115 @@ void springs_highdelayline(springs_t *restrict springs,
     }
 }
 
+#define loopsamples(n) for (int n = 0; n < blocksize; ++n)
+#define loopdownsamples(n) \
+    for (int n = downsamplestart; n < blocksize; n += springs->downsampleM)
 void springs_process(springs_t *restrict springs, float **restrict in,
                      float **restrict out, int count)
 {
-    for (int n = 0; n < count; ++n) {
-        float ylow[MAXSPRINGS], yhigh[MAXSPRINGS];
-        loopsprings(i) yhigh[i] = ylow[i] = in[i * NCHANNELS / NSPRINGS][n];
+    /* springs */
+    float(*y)[MAXSPRINGS]     = springs->ylow;
+    float(*ylow)[MAXSPRINGS]  = springs->ylow;
+    float(*yhigh)[MAXSPRINGS] = springs->yhigh;
 
-        if (springs->downsampleM > 1)
-            filter_process(springs->aasos, springs->aamem, &springs->aaid,
-                           NAASOS, ylow);
+    int nbase = 0;
 
-        if (springs->downsampleid == 0) {
-            springs_lowdelayline(springs, ylow);
-            springs_lowdc(springs, ylow);
-            springs_lowallpasschain(springs, ylow);
+    while (count) {
+        // block size to process
+        int blocksize = count < springs->blocksize ? count : springs->blocksize;
 
+        // when do the downsampled samples start ?
+        int downsamplestart = (springs->downsampleM - springs->downsampleid) %
+                              springs->downsampleM;
+
+        // load value and aa filter for downsampling
+        loopsamples(n)
+        {
             float ylowin[MAXSPRINGS];
-            loopsprings(i) ylowin[i] = ylow[i];
-            /* feed delaylines */
-            loopsprings(i) springs->lowdelay1[springs->lowdelay1id][i] =
-                ylowin[i]; // + ghigh2low*yhigh[i];
-            springs->lowdelay1id = (springs->lowdelay1id + 1) & LOWDELAY1MASK;
+            loopsprings(i) ylowin[i] = yhigh[n][i] =
+                in[i * NCHANNELS / NSPRINGS][n];
+            // aa filter
+            filter_process(springs->aasos, springs->aamem, &springs->aaid,
+                           NAASOS, ylowin);
 
-            springs_loweq(springs, ylow);
+            if (springs->downsampleid == 0)
+                loopsprings(i) ylow[n][i] =
+                    ylowin[i] * (float)springs->downsampleM;
+            else
+                loopsprings(i) ylow[n][i] = 0.f;
 
-            loopsprings(i) ylow[i] *= (float)springs->downsampleM;
-        } else {
-            loopsprings(i) ylow[i] = 0.f;
-        }
-        if (springs->downsampleM > 1)
             springs->downsampleid =
                 (springs->downsampleid + 1) % springs->downsampleM;
+        }
 
-        springs_lowlpf(springs, ylow);
+        /* low chirps */
+        // get delay tap
+        int lowdelay1id = springs->lowdelay1id;
+        loopdownsamples(n)
+        {
+            springs_lowdelayline(springs, ylow[n]);
+            springs->lowdelay1id = (springs->lowdelay1id + 1) & LOWDELAY1MASK;
+        }
+        springs->lowdelay1id = lowdelay1id;
+
+        // dc filter
+        loopdownsamples(n) springs_lowdc(springs, ylow[n]);
+        // allpass cascade
+        loopdownsamples(n) springs_lowallpasschain(springs, ylow[n]);
+
+        // feed delayline
+        loopdownsamples(n)
+        {
+            loopsprings(i) springs->lowdelay1[springs->lowdelay1id][i] =
+                ylow[n][i]; // + ghigh2low*yhigh[i];
+            springs->lowdelay1id = (springs->lowdelay1id + 1) & LOWDELAY1MASK;
+        }
+
+        // low chirps equalize
+        loopdownsamples(n) springs_loweq(springs, ylow[n]);
+
+        // filter higher freq, also for interpolation
+        loopsamples(n) springs_lowlpf(springs, ylow[n]);
 
         /* high chirps */
-        springs_highdelayline(springs, yhigh);
-        springs_highallpasschain(springs, yhigh);
+        // get delay tap
+        int highdelayid = springs->highdelayid;
+        loopsamples(n)
+        {
+            springs_highdelayline(springs, yhigh[n]);
+            springs->highdelayid = (springs->highdelayid + 1) & HIGHDELAYMASK;
+        }
+        springs->highdelayid = highdelayid;
 
-        /* feed high delayline */
-        loopsprings(i) springs->highdelay[springs->highdelayid][i] =
-            yhigh[i] + glow2high * ylow[i];
-        springs->highdelayid = (springs->highdelayid + 1) & HIGHDELAYMASK;
+        // allpass cascade
+        loopsamples(n) springs_highallpasschain(springs, yhigh[n]);
 
-        /* sum low and high */
-        float y[MAXSPRINGS];
-        loopsprings(i) y[i] = glow * ylow[i] + ghigh * yhigh[i];
+        // feed delayline
+        loopsamples(n)
+        {
+            loopsprings(i) springs->highdelay[springs->highdelayid][i] =
+                yhigh[n][i] + glow2high * ylow[n][i];
+            springs->highdelayid = (springs->highdelayid + 1) & HIGHDELAYMASK;
+        }
+
+        // sum high and low
+        loopsamples(n) loopsprings(i) y[n][i] =
+            glow * ylow[n][i] + ghigh * yhigh[n][i];
 
         /* sum springs */
-        for (int c = 0; c < NCHANNELS; ++c) {
-            int offset = c * NSPRINGS / NCHANNELS;
-            for (int i = NSPRINGS / 2 / NCHANNELS; i > 0; i /= 2) {
-                for (int j = 0; j < i; ++j) y[offset + j] += y[offset + j + i];
+        loopsamples(n)
+        {
+            for (int c = 0; c < NCHANNELS; ++c) {
+                int offset = c * NSPRINGS / NCHANNELS;
+                for (int i = NSPRINGS / 2 / NCHANNELS; i > 0; i /= 2) {
+                    for (int j = 0; j < i; ++j)
+                        y[n][offset + j] += y[n][offset + j + i];
+                }
+                out[c][nbase + n] = 6.f * y[n][offset];
             }
-            out[c][n] = y[offset];
         }
+
+        nbase += blocksize;
+        count -= blocksize;
     }
 }

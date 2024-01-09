@@ -56,10 +56,17 @@
 #define NAASOS        5 // number of aa 2nd order filter
 #define NLOWPASSSOS   5 // number of lowpass 2nd order filter
 
+#define MAXBLOCKSIZE 512
+
 #define springparam(type, name) \
     type name[MAXSPRINGS] __attribute__((aligned(sizeof(type) * MAXSPRINGS)))
 
 typedef struct {
+    /* block compute */
+    int blocksize;
+    springparam(float, ylow[MAXBLOCKSIZE]);
+    springparam(float, yhigh[MAXBLOCKSIZE]);
+
     /* down sampling */
     int downsampleM;
     int downsampleid;

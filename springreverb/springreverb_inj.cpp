@@ -92,29 +92,22 @@ class springreverb : public dsp
         instanceResetUserInterface();
         instanceClear();
 
-        float cutoff[]  = {40, 40, 38, 20, 49, 31, 32, 33};
-        float ftr[]     = {4210, 4106, 4200, 4300, 3330, 4118, 4190, 4310};
-        float a1[]      = {0.18, 0.21, 0.312, 0.32, 0.32, 0.23, 0.21, 0.2};
-        float ahigh[]   = {-0.63, -0.56, -0.83, -0.37,
-                           -0.67, -0.48, -0.76, -0.32};
-        float Td[]      = {0.0552, 0.04366, 0.04340, 0.04370,
-                           .0552,  0.04423, 0.04367, 0.0432};
-        float gripple[] = {0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01};
-        float gecho[]   = {0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01};
-        float glf[] = {-0.95, -0.95, -0.95, -0.97, -0.97, -0.95, -0.95, -0.95};
-        float ghf[] = {-0.94, -0.94, -0.94, -0.94, -0.94, -0.94, -0.946, -0.94};
+        springs_desc_t desc = {
+            .ftr   = {4210, 4106, 4200, 4300, 4330, 4118, 4190, 4310},
+            .a1    = {0.18, 0.21, 0.312, 0.32, 0.32, 0.23, 0.21, 0.2},
+            .ahigh = {-0.63, -0.56, -0.83, -0.37, -0.67, -0.48, -0.76, -0.32},
+            //.Td =
+            //{0.0552,0.04366,0.04340,0.04370,.0552,0.04423,0.04367,0.0432},
+            .Td      = {0.052, 0.054, 0.046, 0.048, 0.050, 0.05612, 0.04983,
+                        0.051291},
+            .fcutoff = {40, 40, 38, 20, 49, 31, 32, 33},
+            .gripple = {0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01},
+            .gecho   = {0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01},
+            .glf     = {-0.98, -0.98, -0.98, -0.98, -0.98, -0.98, -0.98, -0.98},
+            .ghf = {-0.98, -0.98, -0.98, -0.98, -0.98, -0.98, -0.986, -0.98},
+        };
 
-        springs_init(&springs, sample_rate);
-        springs_set_ftr(&springs, ftr);
-        springs_set_a1(&springs, a1);
-        springs_set_dccutoff(&springs, cutoff);
-        springs_set_Nripple(&springs, 0.5);
-        springs_set_Td(&springs, Td);
-        springs_set_ahigh(&springs, ahigh);
-        springs_set_gripple(&springs, gripple);
-        springs_set_gecho(&springs, gecho);
-        springs_set_glf(&springs, glf);
-        springs_set_ghf(&springs, ghf);
+        springs_init(&springs, &desc, sample_rate);
     }
 
     virtual springreverb *clone() { return new springreverb(); }

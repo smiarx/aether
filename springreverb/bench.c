@@ -26,13 +26,19 @@ int main(int argc, char **argv)
         --argc;
     }
 
-    float samplerate = 48000;
-    float cutoff[]   = {40, 40, 38, 20, 49, 31, 32, 33};
-    float ftr[]      = {4210, 4106, 4200, 4300, 3330, 4118, 4190, 4310};
-    float a1[]       = {0.18, 0.21, 0.312, 0.32, 0.32, 0.23, 0.21, 0.2};
-    float ahigh[]    = {-0.63, -0.56, -0.83, -0.37, -0.67, -0.48, -0.76, -0.32};
-    float Td[]       = {0.0552, 0.04366, 0.04340, 0.04370,
-                        .0552,  0.04423, 0.04367, 0.0432};
+    float samplerate    = 48000;
+    springs_desc_t desc = {
+        .ftr   = {4210, 4106, 4200, 4300, 4330, 4118, 4190, 4310},
+        .a1    = {0.18, 0.21, 0.312, 0.32, 0.32, 0.23, 0.21, 0.2},
+        .ahigh = {-0.63, -0.56, -0.83, -0.37, -0.67, -0.48, -0.76, -0.32},
+        //.Td = {0.0552,0.04366,0.04340,0.04370,.0552,0.04423,0.04367,0.0432},
+        .Td = {0.052, 0.054, 0.046, 0.048, 0.050, 0.05612, 0.04983, 0.051291},
+        .fcutoff = {40, 40, 38, 20, 49, 31, 32, 33},
+        .gripple = {0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01},
+        .gecho   = {0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01},
+        .glf     = {-0.98, -0.98, -0.98, -0.98, -0.98, -0.98, -0.98, -0.98},
+        .ghf     = {-0.98, -0.98, -0.98, -0.98, -0.98, -0.98, -0.986, -0.98},
+    };
 
     float ins[NCHANNELS][8192];
     float outs[NCHANNELS][8192];
@@ -47,13 +53,7 @@ int main(int argc, char **argv)
     memset(ins, 0, sizeof(ins));
 
     springs_t springs;
-    springs_init(&springs, samplerate);
-    springs_set_ftr(&springs, ftr);
-    springs_set_a1(&springs, a1);
-    springs_set_dccutoff(&springs, cutoff);
-    springs_set_Nripple(&springs, 0.5);
-    springs_set_Td(&springs, Td);
-    springs_set_ahigh(&springs, ahigh);
+    springs_init(&springs, &desc, samplerate);
 
     printf("%d tests of %d samples\n", r, n);
 

@@ -77,14 +77,26 @@ void filter_process(const float (*restrict sos)[2][3][MAXSPRINGS],
 
 /* springs */
 
-void springs_init(springs_t *springs, float samplerate)
+void springs_init(springs_t *springs, springs_desc_t *desc, float samplerate)
 {
     memset(springs, 0, sizeof(springs_t));
     loopsprings(i) springs->randseed[i] = rand();
+    springs->desc                       = *desc;
     springs->samplerate                 = samplerate;
+
+    springs_set_ftr(springs, springs->desc.ftr);
+    springs_set_a1(springs, springs->desc.a1);
+    springs_set_dccutoff(springs, springs->desc.fcutoff);
+    springs_set_Nripple(springs, 0.5);
+    springs_set_Td(springs, springs->desc.Td);
+    springs_set_gripple(springs, springs->desc.gripple);
+    springs_set_gecho(springs, springs->desc.gecho);
+    springs_set_glf(springs, springs->desc.glf);
+    springs_set_ghf(springs, springs->desc.ghf);
 }
 
-void springs_set_dccutoff(springs_t *springs, float *fcutoff)
+void springs_set_dccutoff(springs_t *springs,
+                          float fcutoff[restrict MAXSPRINGS])
 {
     loopsprings(i)
     {
@@ -94,7 +106,7 @@ void springs_set_dccutoff(springs_t *springs, float *fcutoff)
 }
 
 /* should be first function calledafter init as for now */
-void springs_set_ftr(springs_t *springs, float *ftr)
+void springs_set_ftr(springs_t *springs, float ftr[restrict MAXSPRINGS])
 {
     /* compute K factors */
     loopsprings(i) { springs->K[i] = (springs->samplerate / 2.f) / (ftr[i]); }
@@ -166,7 +178,7 @@ void springs_set_ftr(springs_t *springs, float *ftr)
                    springs->samplerate, NLOWPASSSOS);
 }
 
-void springs_set_a1(springs_t *springs, float *a1)
+void springs_set_a1(springs_t *springs, float a1[restrict MAXSPRINGS])
 {
     loopsprings(i)
     {
@@ -180,12 +192,12 @@ void springs_set_a1(springs_t *springs, float *a1)
     }
 }
 
-void springs_set_ahigh(springs_t *springs, float *ahigh)
+void springs_set_ahigh(springs_t *springs, float ahigh[restrict MAXSPRINGS])
 {
     loopsprings(i) springs->ahigh[i] = ahigh[i];
 }
 
-void springs_set_Td(springs_t *springs, float *Td)
+void springs_set_Td(springs_t *springs, float Td[restrict MAXSPRINGS])
 {
     float samplerate = springs->samplerate / (float)springs->downsampleM;
     loopsprings(i)
@@ -213,7 +225,8 @@ void springs_set_Nripple(springs_t *springs, float Nripple)
 }
 
 #define gfunc(gname)                                           \
-    void springs_set_##gname(springs_t *springs, float *gname) \
+    void springs_set_##gname(springs_t *springs,               \
+                             float gname[restrict MAXSPRINGS]) \
     {                                                          \
         loopsprings(i) springs->gname[i] = gname[i];           \
     }

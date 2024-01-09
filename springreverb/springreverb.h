@@ -61,7 +61,22 @@
 #define springparam(type, name) \
     type name[MAXSPRINGS] __attribute__((aligned(sizeof(type) * MAXSPRINGS)))
 
+/* spring parameters */
 typedef struct {
+    springparam(float, ftr);
+    springparam(float, a1);
+    springparam(float, ahigh);
+    springparam(float, Td);
+    springparam(float, fcutoff);
+    springparam(float, gripple);
+    springparam(float, gecho);
+    springparam(float, glf);
+    springparam(float, ghf);
+} springs_desc_t;
+
+typedef struct {
+    springs_desc_t desc;
+
     /* block compute */
     int blocksize;
     springparam(float, ylow[MAXBLOCKSIZE]);
@@ -135,21 +150,23 @@ typedef struct {
     float samplerate;
 } springs_t;
 
-void springs_init(springs_t *springs, float samplerate);
-void springs_set_dccutoff(springs_t *springs, float *fcutoff);
-void springs_set_ftr(springs_t *springs, float *ftr);
-void springs_set_a1(springs_t *springs, float *a1);
-void springs_set_Td(springs_t *springs, float *Td);
-void springs_set_Nripple(springs_t *springs, float Nripple);
-void springs_set_ahigh(springs_t *springs, float *a1);
-void springs_set_gripple(springs_t *springs, float *gripple);
-void springs_set_gecho(springs_t *springs, float *gecho);
-void springs_set_glf(springs_t *springs, float *glf);
-void springs_set_ghf(springs_t *springs, float *ghf);
-
 #ifdef __cplusplus
 #define restrict
 #endif
+
+void springs_init(springs_t *springs, springs_desc_t *desc, float samplerate);
+void springs_set_dccutoff(springs_t *springs,
+                          float fcutoff[restrict MAXSPRINGS]);
+void springs_set_ftr(springs_t *springs, float ftr[restrict MAXSPRINGS]);
+void springs_set_a1(springs_t *springs, float a1[restrict MAXSPRINGS]);
+void springs_set_Td(springs_t *springs, float Td[restrict MAXSPRINGS]);
+void springs_set_Nripple(springs_t *springs, float Nripple);
+void springs_set_ahigh(springs_t *springs, float a1[restrict MAXSPRINGS]);
+void springs_set_gripple(springs_t *springs,
+                         float gripple[restrict MAXSPRINGS]);
+void springs_set_gecho(springs_t *springs, float gecho[restrict MAXSPRINGS]);
+void springs_set_glf(springs_t *springs, float glf[restrict MAXSPRINGS]);
+void springs_set_ghf(springs_t *springs, float ghf[restrict MAXSPRINGS]);
 
 void springs_lowdelayline(springs_t *restrict springs,
                           float y[restrict MAXSPRINGS]);

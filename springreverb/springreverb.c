@@ -55,6 +55,8 @@ void filter_process(const float (*restrict sos)[2][3][MAXSPRINGS],
                     float (*restrict mem)[FILTERMEMSIZE][MAXSPRINGS],
                     int *restrict id, int nsos, float *restrict y)
 {
+    y = __builtin_assume_aligned(y, sizeof(float) * MAXSPRINGS);
+
     for (int j = 0; j < nsos; ++j) {
         /* use direct form II */
         loopsprings(i)
@@ -261,10 +263,13 @@ void springs_set_Nripple(springs_t *springs, float Nripple)
 
 gfunc(gripple) gfunc(gecho) gfunc(glf) gfunc(ghf)
 
-    inline void springs_lowdelayline(springs_t *restrict springs,
-                                     float y[restrict MAXSPRINGS])
+    void springs_lowdelayline(springs_t *restrict springs,
+                              float y[restrict MAXSPRINGS])
 {
-    /* delay modulation */
+    y = __builtin_assume_aligned(y, sizeof(float) * MAXSPRINGS);
+
+/* delay modulation */
+#pragma omp simd
     loopsprings(i)
     {
         springs->randstate[i] =
@@ -281,6 +286,7 @@ gfunc(gripple) gfunc(gecho) gfunc(glf) gfunc(ghf)
     delayvecs(echo);
     delayvecs(ripple);
 #undef delayvecs
+#pragma omp simd
     loopsprings(i)
     {
 #define setidx(name, NAME)                                                   \
@@ -302,6 +308,7 @@ gfunc(gripple) gfunc(gecho) gfunc(glf) gfunc(ghf)
 #undef setidx
     }
 
+#pragma omp simd
     loopsprings(i)
     {
 #define tap(name)                                             \
@@ -333,9 +340,11 @@ gfunc(gripple) gfunc(gecho) gfunc(glf) gfunc(ghf)
         (springs->lowdelayrippleid + 1) & LOWDELAYRIPPLEMASK;
 }
 
-inline void springs_lowdc(springs_t *restrict springs,
-                          float y[restrict MAXSPRINGS])
+void springs_lowdc(springs_t *restrict springs, float y[restrict MAXSPRINGS])
 {
+    y = __builtin_assume_aligned(y, sizeof(float) * MAXSPRINGS);
+
+#pragma omp simd
     loopsprings(i)
     {
         /* update filter state */
@@ -349,14 +358,18 @@ inline void springs_lowdc(springs_t *restrict springs,
 }
 
 /* compute low all pass chain */
-inline void springs_lowallpasschain(springs_t *restrict springs,
-                                    float y[restrict MAXSPRINGS])
+void springs_lowallpasschain(springs_t *restrict springs,
+                             float y[restrict MAXSPRINGS])
 {
+    y = __builtin_assume_aligned(y, sizeof(float) * MAXSPRINGS);
+
     /* low allpass filter chain */
     int idx[MAXSPRINGS];
+#pragma omp simd
     loopsprings(i) idx[i] = (springs->lowbufid - springs->iK[i]) & MLOWBUFMASK;
 
     for (int j = 0; j < MLOW; ++j) {
+#pragma omp simd
         loopsprings(i)
         {
             /* compute internal allpass1 */
@@ -376,19 +389,21 @@ inline void springs_lowallpasschain(springs_t *restrict springs,
     springs->lowbufid = (springs->lowbufid + 1) & MLOWBUFMASK;
 }
 
-inline void springs_lowlpf(springs_t *restrict springs,
-                           float y[restrict MAXSPRINGS])
+__attribute__((flatten)) void springs_lowlpf(springs_t *restrict springs,
+                                             float y[restrict MAXSPRINGS])
 {
     filter_process(springs->lowpasssos, springs->lowpassmem,
                    &springs->lowpassmemid, NLOWPASSSOS, y);
 }
 
-inline void springs_loweq(springs_t *restrict springs,
-                          float y[restrict MAXSPRINGS])
+void springs_loweq(springs_t *restrict springs, float y[restrict MAXSPRINGS])
 {
+    y = __builtin_assume_aligned(y, sizeof(float) * MAXSPRINGS);
+
     int id = springs->loweq.id;
     int idk[MAXSPRINGS];
     int id2k[MAXSPRINGS];
+#pragma omp simd
     loopsprings(i)
     {
         idk[i]  = (id - springs->loweq.Keq[i]) & MLOWEQMASK;
@@ -397,6 +412,7 @@ inline void springs_loweq(springs_t *restrict springs,
         id2k[i] = id2k[i] * MAXSPRINGS + i;
     }
     float *loweqmem = (float *)springs->loweq.mem;
+#pragma omp simd
     loopsprings(i)
     {
         float b0  = springs->loweq.b0[i];
@@ -412,14 +428,16 @@ inline void springs_loweq(springs_t *restrict springs,
     springs->loweq.id = (springs->loweq.id + 1) & MLOWEQMASK;
 }
 
-inline void springs_highallpasschain(springs_t *restrict springs,
-                                     float y[restrict MAXSPRINGS])
+void springs_highallpasschain(springs_t *restrict springs,
+                              float y[restrict MAXSPRINGS])
 {
+    y = __builtin_assume_aligned(y, sizeof(float) * MAXSPRINGS);
     /* high chirp allpass chain is stretched by a factor of two,
      * this isn't the way it's supposed to be but it sounds better so ehh..
      */
     int id = springs->highmemid;
     for (int j = 0; j < MHIGH; ++j) {
+#pragma omp simd
         loopsprings(i)
         {
             float s2 = springs->highmem[j][id][i];
@@ -435,10 +453,13 @@ inline void springs_highallpasschain(springs_t *restrict springs,
 void springs_highdelayline(springs_t *restrict springs,
                            float y[restrict MAXSPRINGS])
 {
+    y = __builtin_assume_aligned(y, sizeof(float) * MAXSPRINGS);
+
     int idx0[MAXSPRINGS], idx1[MAXSPRINGS];
     float fLhigh[MAXSPRINGS];
 
-    /* delay modulation */
+/* delay modulation */
+#pragma omp simd
     loopsprings(i)
     {
         springs->randstate[i] =
@@ -448,6 +469,7 @@ void springs_highdelayline(springs_t *restrict springs,
         springs->Lmodhighmem[i] = mod += amod * (springs->Lmodhighmem[i] - mod);
     }
 
+#pragma omp simd
     loopsprings(i)
     {
         float Lhigh = springs->Lhigh[i] + gmod * springs->Lmodhighmem[i];
@@ -461,6 +483,7 @@ void springs_highdelayline(springs_t *restrict springs,
     }
 
     float *delayline = (float *)springs->highdelay;
+#pragma omp simd
     loopsprings(i)
     {
         float x0 = delayline[idx0[i]];
@@ -474,8 +497,12 @@ void springs_highdelayline(springs_t *restrict springs,
 #define loopsamples(n) for (int n = 0; n < blocksize; ++n)
 #define loopdownsamples(n) \
     for (int n = downsamplestart; n < blocksize; n += springs->downsampleM)
-void springs_process(springs_t *restrict springs, float **restrict in,
-                     float **restrict out, int count)
+
+// only flatten in clang, gcc seems to break vectorization
+#ifdef __clang__
+__attribute__ ((flatten))
+#endif
+void springs_process(springs_t * restrict springs, float ** restrict in, float ** restrict out, int count)
 {
     /* springs */
     float(*y)[MAXSPRINGS]     = springs->ylow;
@@ -496,6 +523,7 @@ void springs_process(springs_t *restrict springs, float **restrict in,
         loopsamples(n)
         {
             float ylowin[MAXSPRINGS];
+#pragma omp simd
             loopsprings(i) ylowin[i] = yhigh[n][i] =
                 in[i * NCHANNELS / NSPRINGS][n];
             // aa filter
@@ -503,9 +531,11 @@ void springs_process(springs_t *restrict springs, float **restrict in,
                            NAASOS, ylowin);
 
             if (springs->downsampleid == 0)
+#pragma omp simd
                 loopsprings(i) ylow[n][i] =
                     ylowin[i] * (float)springs->downsampleM;
             else
+#pragma omp simd
                 loopsprings(i) ylow[n][i] = 0.f;
 
             springs->downsampleid =
@@ -530,6 +560,7 @@ void springs_process(springs_t *restrict springs, float **restrict in,
         // feed delayline
         loopdownsamples(n)
         {
+#pragma omp simd
             loopsprings(i) springs->lowdelay1[springs->lowdelay1id][i] =
                 ylow[n][i]; // + ghigh2low*yhigh[i];
             springs->lowdelay1id = (springs->lowdelay1id + 1) & LOWDELAY1MASK;
@@ -557,14 +588,16 @@ void springs_process(springs_t *restrict springs, float **restrict in,
         // feed delayline
         loopsamples(n)
         {
+#pragma omp simd
             loopsprings(i) springs->highdelay[springs->highdelayid][i] =
                 yhigh[n][i] + glow2high * ylow[n][i];
             springs->highdelayid = (springs->highdelayid + 1) & HIGHDELAYMASK;
         }
 
         // sum high and low
-        loopsamples(n) loopsprings(i) y[n][i] =
-            glow * ylow[n][i] + ghigh * yhigh[n][i];
+        loopsamples(n)
+#pragma omp simd
+            loopsprings(i) y[n][i] = glow * ylow[n][i] + ghigh * yhigh[n][i];
 
         /* sum springs */
         loopsamples(n)

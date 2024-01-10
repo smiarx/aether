@@ -1,13 +1,20 @@
 all: bench
 
-CFLAGS+= -Wall -march=native -mtune=native -ffinite-math-only -fno-signed-zeros -fno-trapping-math -fassociative-math -fno-math-errno -freciprocal-math -fcx-limited-range
+CFLAGS+= -Wall -march=native -mtune=native
+
+ifeq ($(CC),clang)
+	CFLAGS+= -fopenmp-simd
+endif
+
+springreverb.s : springreverb.c springreverb.h
+	$(CC) $(CFLAGS) -Ofast -c -S -o $@ $<
 
 springreverb.o : springreverb.c springreverb.h
-	$(CC) $(CFLAGS) -O3 -c -o $@ $<
+	$(CC) $(CFLAGS) -Ofast -c -o $@ $<
 
 bench: bench.c springreverb.o
 	$(CC) $(CFLAGS) -O2 -c -o bench.o $<
-	$(CC) -lm -lgomp bench.o springreverb.o -o bench
+	$(CC) -lm -lmvec -lgomp bench.o springreverb.o -o bench
 
 clean:
 	rm -f springreverb.o bench.o

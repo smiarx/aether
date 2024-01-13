@@ -144,6 +144,7 @@ void springs_set_ftr(springs_t *springs, float ftr[restrict MAXSPRINGS])
     loopsprings(i)
     {
         int Mtmp = springs->K[i] * 0.5f;
+        if (Mtmp == 0) Mtmp = 1;
         if (Mtmp < M) M = Mtmp;
     }
 
@@ -520,26 +521,35 @@ void springs_process(springs_t * restrict springs, float ** restrict in, float *
                               springs->downsampleM;
 
         // load value and aa filter for downsampling
-        loopsamples(n)
-        {
-            float ylowin[MAXSPRINGS];
+        if (springs->downsampleM > 1) {
+            loopsamples(n)
+            {
+                float ylowin[MAXSPRINGS];
 #pragma omp simd
-            loopsprings(i) ylowin[i] = yhigh[n][i] =
-                in[i * NCHANNELS / NSPRINGS][n];
-            // aa filter
-            filter_process(springs->aasos, springs->aamem, &springs->aaid,
-                           NAASOS, ylowin);
+                loopsprings(i) ylowin[i] = yhigh[n][i] =
+                    in[i * NCHANNELS / NSPRINGS][n];
+                // aa filter
+                filter_process(springs->aasos, springs->aamem, &springs->aaid,
+                               NAASOS, ylowin);
 
-            if (springs->downsampleid == 0)
+                if (springs->downsampleid == 0)
 #pragma omp simd
-                loopsprings(i) ylow[n][i] =
-                    ylowin[i] * (float)springs->downsampleM;
-            else
+                    loopsprings(i) ylow[n][i] =
+                        ylowin[i] * (float)springs->downsampleM;
+                else
 #pragma omp simd
-                loopsprings(i) ylow[n][i] = 0.f;
+                    loopsprings(i) ylow[n][i] = 0.f;
 
-            springs->downsampleid =
-                (springs->downsampleid + 1) % springs->downsampleM;
+                springs->downsampleid =
+                    (springs->downsampleid + 1) % springs->downsampleM;
+            }
+        } else {
+            loopsamples(n)
+            {
+#pragma omp simd
+                loopsprings(i) ylow[n][i] = yhigh[n][i] =
+                    in[i * NCHANNELS / NSPRINGS][n];
+            }
         }
 
         /* low chirps */

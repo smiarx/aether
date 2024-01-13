@@ -99,11 +99,11 @@ void springs_init(springs_t *springs, springs_desc_t *desc, float samplerate)
 
 void springs_update(springs_t *springs, springs_desc_t *desc)
 {
-#define param_update(name)                                     \
-    loopsprings(i) if (springs->desc.name[i] != desc->name[i]) \
-    {                                                          \
-        springs_set_##name(springs, desc->name);               \
-        break;                                                 \
+#define param_update(name)                                             \
+    {                                                                  \
+        int test = 0;                                                  \
+        loopsprings(i) test |= springs->desc.name[i] != desc->name[i]; \
+        if (test) springs_set_##name(springs, desc->name);             \
     }
 
     param_update(ftr);

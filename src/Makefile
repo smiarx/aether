@@ -22,13 +22,12 @@ clean:
 	rm -f springreverb_faust.o springreverb
 
 springreverb_faust.o : springreverb_inj.cpp springreverb.h
-	CXXFLAGS="-c" faust2jack -cn springreverb -inj springreverb_inj.cpp springreverb.dsp
-	mv springreverb springreverb_faust.o
+	CXXFLAGS="-c" faust2jack -cn springreverb -inj springreverb_inj.cpp dummy.dsp
+	mv dummy springreverb_faust.o
 
 springreverb: springreverb.o springreverb_faust.o
 	$(CXX) `pkg-config --cflags --libs alsa jack gtk+-2.0` -lm springreverb.o springreverb_faust.o -o springreverb
 	
-
 
 dobench:
 	@make clean > /dev/null

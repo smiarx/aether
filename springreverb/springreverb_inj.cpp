@@ -135,6 +135,12 @@ class springreverb : public dsp
             ui_interface->addHorizontalSlider(
                 "ghf", &desc.ghf[i], FAUSTFLOAT(0.95f), FAUSTFLOAT(0.f),
                 FAUSTFLOAT(1.f), FAUSTFLOAT(0.0001f));
+            ui_interface->addHorizontalSlider(
+                "hilomix", &desc.hilomix[i], FAUSTFLOAT(0.f), FAUSTFLOAT(0.f),
+                FAUSTFLOAT(1.f), FAUSTFLOAT(0.0001f));
+            ui_interface->addHorizontalSlider(
+                "volume", &desc.vol[i], FAUSTFLOAT(0.0), FAUSTFLOAT(-80.f),
+                FAUSTFLOAT(0.f), FAUSTFLOAT(0.0001f));
             ui_interface->closeBox();
         }
         ui_interface->closeBox();

@@ -95,6 +95,8 @@ void springs_init(springs_t *springs, springs_desc_t *desc, float samplerate)
     springs_set_gecho(springs, springs->desc.gecho);
     springs_set_glf(springs, springs->desc.glf);
     springs_set_ghf(springs, springs->desc.ghf);
+    springs_set_vol(springs, springs->desc.vol);
+    springs_set_hilomix(springs, springs->desc.hilomix);
 }
 
 void springs_update(springs_t *springs, springs_desc_t *desc)
@@ -114,6 +116,10 @@ void springs_update(springs_t *springs, springs_desc_t *desc)
     param_update(gecho);
     param_update(glf);
     param_update(ghf);
+    param_update(vol);
+    param_update(hilomix);
+
+#undef param_update
 }
 
 void springs_set_dccutoff(springs_t *springs,
@@ -263,9 +269,41 @@ void springs_set_Nripple(springs_t *springs, float Nripple)
     }
 
 gfunc(gripple) gfunc(gecho) gfunc(glf) gfunc(ghf)
+#undef gfunc
 
-    void springs_lowdelayline(springs_t *restrict springs,
-                              float y[restrict MAXSPRINGS])
+#define set_glow_ghigh(db, ratio)                                                \
+    {                                                                            \
+        float gain        = powf(10.f, db / 20.f);                               \
+        float ghigh       = atanf(5.f * (ratio - 0.5)) / atanf(5.f) / 2.f + .5f; \
+        float glow        = 1.f - ghigh;                                         \
+        springs->glow[i]  = 20.f * glow * gain;                                  \
+        springs->ghigh[i] = ghigh * gain;                                        \
+    }
+
+    void springs_set_vol(springs_t *springs, float vol[restrict MAXSPRINGS])
+{
+    loopsprings(i)
+    {
+        springs->desc.vol[i] = vol[i];
+        float db             = vol[i];
+        float ratio          = springs->desc.hilomix[i];
+        set_glow_ghigh(db, ratio);
+    }
+}
+void springs_set_hilomix(springs_t *springs, float hilomix[restrict MAXSPRINGS])
+{
+    loopsprings(i)
+    {
+        springs->desc.hilomix[i] = hilomix[i];
+        float db                 = springs->desc.vol[i];
+        float ratio              = hilomix[i];
+        set_glow_ghigh(db, ratio);
+    }
+}
+#undef set_glow_ghigh
+
+void springs_lowdelayline(springs_t *restrict springs,
+                          float y[restrict MAXSPRINGS])
 {
     y = __builtin_assume_aligned(y, sizeof(float) * MAXSPRINGS);
 
@@ -607,7 +645,8 @@ void springs_process(springs_t * restrict springs, float ** restrict in, float *
         // sum high and low
         loopsamples(n)
 #pragma omp simd
-            loopsprings(i) y[n][i] = glow * ylow[n][i] + ghigh * yhigh[n][i];
+            loopsprings(i) y[n][i] =
+                springs->glow[i] * ylow[n][i] + springs->ghigh[i] * yhigh[n][i];
 
         /* sum springs */
         loopsamples(n)
@@ -618,7 +657,7 @@ void springs_process(springs_t * restrict springs, float ** restrict in, float *
                     for (int j = 0; j < i; ++j)
                         y[n][offset + j] += y[n][offset + j + i];
                 }
-                out[c][nbase + n] = 6.f * y[n][offset];
+                out[c][nbase + n] = y[n][offset];
             }
         }
 

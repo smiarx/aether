@@ -44,11 +44,8 @@
 #define HIGHDELAYSIZE LOWDELAY1SIZE
 #define HIGHDELAYMASK (HIGHDELAYSIZE - 1)
 
-#define glow  1.0f
-#define ghigh (glow / 1000.f)
-
-#define glow2high (0.99f * glow)
-#define ghigh2low (0.4 * ghigh)
+#define glow2high (0.0f)
+#define ghigh2low (0.0f)
 
 // filter
 #define FILTERMEMSIZE 4
@@ -72,6 +69,8 @@ typedef struct {
     springparam(float, gecho);
     springparam(float, glf);
     springparam(float, ghf);
+    springparam(float, vol);
+    springparam(float, hilomix);
 } springs_desc_t;
 
 typedef struct {
@@ -147,6 +146,10 @@ typedef struct {
     springparam(float, ghf);
     int highdelayid;
 
+    /* low and high gain */
+    springparam(float, glow);
+    springparam(float, ghigh);
+
     float samplerate;
 } springs_t;
 
@@ -168,6 +171,9 @@ void springs_set_gripple(springs_t *springs,
 void springs_set_gecho(springs_t *springs, float gecho[restrict MAXSPRINGS]);
 void springs_set_glf(springs_t *springs, float glf[restrict MAXSPRINGS]);
 void springs_set_ghf(springs_t *springs, float ghf[restrict MAXSPRINGS]);
+void springs_set_vol(springs_t *springs, float vol[restrict MAXSPRINGS]);
+void springs_set_hilomix(springs_t *springs,
+                         float hilomix[restrict MAXSPRINGS]);
 
 void springs_lowdelayline(springs_t *restrict springs,
                           float y[restrict MAXSPRINGS]);

@@ -120,15 +120,14 @@ class springreverb : public dsp
             ui_interface->addHorizontalSlider(
                 "Td", &desc.Td[i], FAUSTFLOAT(0.05f), FAUSTFLOAT(0.02),
                 FAUSTFLOAT(0.2), FAUSTFLOAT(0.0001f));
-            ui_interface->addHorizontalSlider(
-                "fcutoff", &desc.fcutoff[i], FAUSTFLOAT(20.f), FAUSTFLOAT(1.f),
-                FAUSTFLOAT(80.f), FAUSTFLOAT(0.0001f));
-            ui_interface->addHorizontalSlider(
-                "gripple", &desc.gripple[i], FAUSTFLOAT(0.01f), FAUSTFLOAT(0.f),
-                FAUSTFLOAT(1.f), FAUSTFLOAT(0.0001f));
-            ui_interface->addHorizontalSlider(
-                "gecho", &desc.gecho[i], FAUSTFLOAT(0.01f), FAUSTFLOAT(0.f),
-                FAUSTFLOAT(1.f), FAUSTFLOAT(0.0001f));
+            // ui_interface->addHorizontalSlider("fcutoff", &desc.fcutoff[i],
+            // FAUSTFLOAT(20.f), FAUSTFLOAT(1.f), FAUSTFLOAT(80.f),
+            // FAUSTFLOAT(0.0001f));
+            // ui_interface->addHorizontalSlider("gripple", &desc.gripple[i],
+            // FAUSTFLOAT(0.01f), FAUSTFLOAT(0.f), FAUSTFLOAT(1.f),
+            // FAUSTFLOAT(0.0001f)); ui_interface->addHorizontalSlider("gecho",
+            // &desc.gecho[i], FAUSTFLOAT(0.01f), FAUSTFLOAT(0.f),
+            // FAUSTFLOAT(1.f), FAUSTFLOAT(0.0001f));
             ui_interface->addHorizontalSlider(
                 "glf", &desc.glf[i], FAUSTFLOAT(0.95f), FAUSTFLOAT(0.f),
                 FAUSTFLOAT(1.f), FAUSTFLOAT(0.0001f));

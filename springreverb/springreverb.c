@@ -88,15 +88,19 @@ void springs_init(springs_t *springs, springs_desc_t *desc, float samplerate)
 
     springs_set_ftr(springs, springs->desc.ftr);
     springs_set_a1(springs, springs->desc.a1);
-    springs_set_dccutoff(springs, springs->desc.fcutoff);
     springs_set_Nripple(springs, 0.5);
     springs_set_Td(springs, springs->desc.Td);
-    springs_set_gripple(springs, springs->desc.gripple);
-    springs_set_gecho(springs, springs->desc.gecho);
     springs_set_glf(springs, springs->desc.glf);
     springs_set_ghf(springs, springs->desc.ghf);
     springs_set_vol(springs, springs->desc.vol);
     springs_set_hilomix(springs, springs->desc.hilomix);
+
+    float fcutoff[] = {20, 20, 20, 20, 20, 20, 20, 20};
+    springs_set_dccutoff(springs, fcutoff);
+    float gripple[] = {0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01};
+    springs_set_gripple(springs, gripple);
+    float gecho[] = {0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01};
+    springs_set_gecho(springs, gecho);
 }
 
 void springs_update(springs_t *springs, springs_desc_t *desc)

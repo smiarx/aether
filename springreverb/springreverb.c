@@ -479,11 +479,11 @@ void springs_highdelayline(springs_t *restrict springs,
         idx0[i]     = (springs->highdelayid - iLhigh) & HIGHDELAYMASK;
         idx1[i]     = (idx0[i] - 1) & HIGHDELAYMASK;
 
-        idx0[i] = idx0[i] * MAXSPRINGS + 1;
-        idx1[i] = idx1[i] * MAXSPRINGS + 1;
+        idx0[i] = idx0[i] * MAXSPRINGS + i;
+        idx1[i] = idx1[i] * MAXSPRINGS + i;
     }
 
-    float *delayline = (float *)springs->highdelay;
+    float *delayline = (float *)&springs->highdelay[0][0];
 #pragma omp simd
     loopsprings(i)
     {

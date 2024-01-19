@@ -95,6 +95,7 @@ class tapedelay : public dsp
         ui_interface->addHorizontalSlider("drywet", &m_tapedelay.desc.drywet,
                                           FAUSTFLOAT(0.1f), FAUSTFLOAT(0.f),
                                           FAUSTFLOAT(1.f), FAUSTFLOAT(0.001f));
+        ui_interface->addCheckButton("reverse", &m_desc.reverse);
         ui_interface->closeBox();
     }
 

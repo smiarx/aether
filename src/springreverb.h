@@ -3,10 +3,15 @@
 
 #ifndef MAXSPRINGS
 #define MAXSPRINGS 8
+
 #endif
 #ifndef NSPRINGS
 #define NSPRINGS MAXSPRINGS
 #endif
+
+/* include filter functions */
+#include "filter.h"
+#define FILTER_VECSIZE NSPRINGS
 
 #ifndef STEREO
 #ifndef MONO
@@ -84,9 +89,7 @@ typedef struct {
     /* down sampling */
     int downsampleM;
     int downsampleid;
-    springparam(float, aasos[NAASOS][2][3]);
-    springparam(float, aamem[NAASOS][FILTERMEMSIZE]);
-    int aaid;
+    filter(_t) aafilter[NAASOS];
 
     /* set with ftr */
     springparam(float, K);
@@ -132,9 +135,7 @@ typedef struct {
         int id;
     } loweq;
 
-    springparam(float, lowpasssos[NLOWPASSSOS][2][3]);
-    springparam(float, lowpassmem[NLOWPASSSOS][FILTERMEMSIZE]);
-    int lowpassmemid;
+    filter(_t) lowpassfilter[NLOWPASSSOS];
 
     springparam(float, ahigh);
     springparam(float, highmem[MHIGH][HIGHSTRETCH]);

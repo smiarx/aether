@@ -6,6 +6,9 @@ ifeq ($(CC),clang)
 	CFLAGS+= -fopenmp-simd
 endif
 
+filter.o : filter.c filter.h
+	$(CC) $(CFLAGS) -Ofast -c -o $@ $<
+
 springreverb.s : springreverb.c springreverb.h
 	$(CC) $(CFLAGS) -Ofast -c -S -o $@ $<
 
@@ -17,6 +20,7 @@ bench: bench.c springreverb.o
 	$(CC) -lm -lmvec -lgomp bench.o springreverb.o -o bench
 
 clean:
+	rm -f filter.o
 	rm -f springreverb.o bench.o
 	rm -f bench
 	rm -f springreverb_faust.o springreverb
@@ -25,8 +29,8 @@ springreverb_faust.o : springreverb_inj.cpp springreverb.h
 	CXXFLAGS="-c" faust2jack -cn springreverb -inj springreverb_inj.cpp dummy.dsp
 	mv dummy springreverb_faust.o
 
-springreverb: springreverb.o springreverb_faust.o
-	$(CXX) `pkg-config --cflags --libs alsa jack gtk+-2.0` -lm springreverb.o springreverb_faust.o -o springreverb
+springreverb: springreverb.o springreverb_faust.o filter.o
+	$(CXX) `pkg-config --cflags --libs alsa jack gtk+-2.0` -lm $^ -o springreverb
 	
 
 dobench:

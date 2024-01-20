@@ -165,7 +165,7 @@ inline uint64_t tapedelay_movetape(tapedelay_t *restrict tapedelay,
         /* lowpass factor */
         float a = 1. / playbackspeed;
         do {
-            tapedelay->nread = (tapedelay->nread - 1) & DELAYMASK;
+            tapedelay->nread = (tapedelay->nread + direction) & DELAYMASK;
             for (int c = 0; c < NCHANNELS; ++c) {
                 tapedelay->ym1[c] = tapedelay->y0[c],
                 tapedelay->y0[c]  = tapedelay->y1[c],

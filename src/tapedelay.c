@@ -35,7 +35,7 @@ void tapedelay_init(tapedelay_t *tapedelay, tapedelay_desc_t *desc,
     tapedelay->prev_fnread                 = 0.;
 
     tapedelay->xrevread = 0;
-    tapedelay->xrevstop = -DELAYUNIT;
+    tapedelay->xrevstop = -DELAYUNIT / 2;
 
     for (int c = 0; c < NCHANNELS; ++c)
         tapedelay->ym1[c] = 0, tapedelay->y0[c] = 0, tapedelay->y1[c] = 0,
@@ -74,7 +74,7 @@ void tapedelay_set_reverse(tapedelay_t *tapedelay, float reverse)
         tapedelay->direction = BACKWARDS;
         uint64_t xwrite      = tapedelay->ringbuffer[tapedelay->nwrite].V;
         tapedelay->xrevread  = xwrite;
-        tapedelay->xrevstop  = xwrite - DELAYUNIT;
+        tapedelay->xrevstop  = xwrite - DELAYUNIT / 2;
         tapedelay->nread     = tapedelay->nwrite;
     }
 }
@@ -99,8 +99,8 @@ inline uint64_t tapedelay_movetape(tapedelay_t *restrict tapedelay,
     } else {
         xread = tapedelay->xrevread -= tapedelay->speed;
         if (comparegt(tapedelay->xrevstop, xread)) {
-            xread = tapedelay->xrevread += DELAYUNIT * 2;
-            tapedelay->xrevstop += DELAYUNIT;
+            xread = tapedelay->xrevread += DELAYUNIT;
+            tapedelay->xrevstop += DELAYUNIT / 2;
             tapedelay->nread       = nwrite;
             tapedelay->prev_fnread = 0.f;
         }

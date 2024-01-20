@@ -4,6 +4,9 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "filter.h"
+#define FILTER_VECSIZE 2
+
 #ifndef STEREO
 #ifndef MONO
 #define STEREO
@@ -33,6 +36,7 @@ typedef struct {
     float delay;
     float feedback;
     float drywet;
+    float cutoff;
 #if NCHANNELS == 2
     int pingpong;
 #endif
@@ -54,6 +58,8 @@ typedef struct {
 
     enum tape_direction direction;
 
+    filter(_t) lowpassfilter;
+
     float ym1[NCHANNELS], y0[NCHANNELS], y1[NCHANNELS], y2[NCHANNELS];
 } tapedelay_t;
 
@@ -66,6 +72,7 @@ void tapedelay_init(tapedelay_t *tapedelay, tapedelay_desc_t *desc,
 void tapedelay_update(tapedelay_t *tapedelay, tapedelay_desc_t *desc);
 void tapedelay_set_delay(tapedelay_t *tapedelay, float delay);
 void tapedelay_set_reverse(tapedelay_t *tapedelay, float reverse);
+void tapedelay_set_cutoff(tapedelay_t *tapedelay, float cutoff);
 void tapedelay_process(tapedelay_t *restrict tapedelay, float **restrict in,
                        float **restrict out, int count);
 

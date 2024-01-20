@@ -41,8 +41,8 @@ tapedelay_faust.o : tapedelay_inj.cpp tapedelay.h
 	CXXFLAGS="-c" faust2jack -cn tapedelay -inj tapedelay_inj.cpp dummy.dsp
 	mv dummy tapedelay_faust.o
 
-tapedelay: tapedelay.o tapedelay_faust.o
-	$(CXX) `pkg-config --cflags --libs alsa jack gtk+-2.0` -lm tapedelay.o tapedelay_faust.o -o tapedelay
+tapedelay: tapedelay.o tapedelay_faust.o filter.o
+	$(CXX) `pkg-config --cflags --libs alsa jack gtk+-2.0` -lm $^ -o tapedelay
 
 dobench:
 	@make clean > /dev/null

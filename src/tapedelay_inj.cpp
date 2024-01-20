@@ -92,6 +92,9 @@ class tapedelay : public dsp
         ui_interface->addHorizontalSlider(
             "feedback", &m_tapedelay.desc.feedback, FAUSTFLOAT(0.8f),
             FAUSTFLOAT(0.f), FAUSTFLOAT(1.f), FAUSTFLOAT(0.001f));
+        ui_interface->addHorizontalSlider("cutoff", &m_desc.cutoff,
+                                          FAUSTFLOAT(2000), FAUSTFLOAT(100),
+                                          FAUSTFLOAT(13000), FAUSTFLOAT(0.001));
         ui_interface->addHorizontalSlider("drywet", &m_tapedelay.desc.drywet,
                                           FAUSTFLOAT(0.1f), FAUSTFLOAT(0.f),
                                           FAUSTFLOAT(1.f), FAUSTFLOAT(0.001f));

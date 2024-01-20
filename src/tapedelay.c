@@ -47,10 +47,15 @@ void tapedelay_init(tapedelay_t *tapedelay, tapedelay_desc_t *desc,
 
 void tapedelay_update(tapedelay_t *tapedelay, tapedelay_desc_t *desc)
 {
-    if (tapedelay->desc.delay != desc->delay)
-        tapedelay_set_delay(tapedelay, desc->delay);
-    if (tapedelay->desc.reverse != desc->reverse)
-        tapedelay_set_reverse(tapedelay, desc->reverse);
+#define param_update(name)                               \
+    {                                                    \
+        if (tapedelay->desc.name != desc->name)          \
+            tapedelay_set_##name(tapedelay, desc->name); \
+    }
+    param_update(delay);
+    param_update(reverse);
+    param_update(cutoff);
+#undef param_update
 }
 
 void tapedelay_set_delay(tapedelay_t *tapedelay, float delay)
@@ -72,6 +77,13 @@ void tapedelay_set_reverse(tapedelay_t *tapedelay, float reverse)
         tapedelay->xrevstop  = xwrite - DELAYUNIT;
         tapedelay->nread     = tapedelay->nwrite;
     }
+}
+
+void tapedelay_set_cutoff(tapedelay_t *tapedelay, float cutoff)
+{
+    tapedelay->desc.cutoff = cutoff;
+    filter(_butterworth_lp)(&tapedelay->lowpassfilter, tapedelay->samplerate,
+                            cutoff);
 }
 
 inline uint64_t tapedelay_movetape(tapedelay_t *restrict tapedelay,
@@ -199,6 +211,9 @@ inline void tapedelay_output(tapedelay_t *restrict tapedelay,
                              float y[restrict NCHANNELS], float **restrict in,
                              float **restrict out, int n)
 {
+    /* apply lowpass to tapeoutput */
+    filter(_process)(&tapedelay->lowpassfilter, y, 1);
+
     for (int c = 0; c < NCHANNELS; ++c) {
         int c0 = c;
 #if NCHANNELS == 2

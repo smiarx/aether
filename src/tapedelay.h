@@ -27,6 +27,8 @@
 #define DELAYQ    61
 #define DELAYUNIT (((uint64_t)1) << DELAYQ)
 
+#define NTAPS 2
+
 enum tape_direction {
     FORWARDS  = 1,
     BACKWARDS = -1,
@@ -44,6 +46,12 @@ typedef struct {
 } tapedelay_desc_t;
 
 typedef struct {
+    size_t nread;
+    uint64_t xread, xrevstop; // for reverse only
+    float prev_fnread;
+    float ym1[NCHANNELS], y0[NCHANNELS], y1[NCHANNELS], y2[NCHANNELS];
+} tap_t;
+typedef struct {
     float samplerate;
     tapedelay_desc_t desc;
     struct {
@@ -51,16 +59,15 @@ typedef struct {
         float y[NCHANNELS];
     } ringbuffer[DELAYSIZE];
 
-    size_t nread, nwrite;
-    uint64_t xrevread, xrevstop;
-    float prev_fnread;
+    size_t nwrite;
+    tap_t tap[NTAPS];
+    size_t tap_id;
+
     uint64_t speed;
 
     enum tape_direction direction;
 
     filter(_t) lowpassfilter;
-
-    float ym1[NCHANNELS], y0[NCHANNELS], y1[NCHANNELS], y2[NCHANNELS];
 } tapedelay_t;
 
 #ifdef __cplusplus

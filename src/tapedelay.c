@@ -1,9 +1,9 @@
 #include "tapedelay.h"
 #include "fastmath.h"
 
-uint64_t tapedelay_movetape(tapedelay_t *restrict tapedelay,
-                            const enum tape_direction direction,
-                            float y[restrict NCHANNELS]);
+void tapedelay_tap(tapedelay_t *restrict tapedelay, tap_t *tap,
+                   const enum tape_direction direction,
+                   float y[restrict NCHANNELS]);
 void tapedelay_output(tapedelay_t *restrict tapedelay,
                       float y[restrict NCHANNELS], float **restrict in,
                       float **restrict out, int n);
@@ -78,26 +78,11 @@ void tapedelay_set_cutoff(tapedelay_t *tapedelay, float cutoff)
                             cutoff);
 }
 
-inline uint64_t tapedelay_movetape(tapedelay_t *restrict tapedelay,
-                                   const enum tape_direction direction,
-                                   float y[restrict NCHANNELS])
+inline void tapedelay_tap(tapedelay_t *restrict tapedelay, tap_t *tap,
+                          const enum tape_direction direction,
+                          float y[restrict NCHANNELS])
 {
-    size_t nwrite   = tapedelay->nwrite;
-    uint64_t xwrite = tapedelay->ringbuffer[nwrite].V + tapedelay->speed;
-
-    tap_t *tap = tapedelay->tap;
-    uint64_t xread;
-    if (direction == FORWARDS) {
-        xread = xwrite - DELAYUNIT;
-    } else {
-        xread = tap->xread -= tapedelay->speed;
-        if (comparegt(tap->xrevstop, xread)) {
-            xread = tap->xread += DELAYUNIT;
-            tap->xrevstop += DELAYUNIT / 2;
-            tap->nread       = nwrite;
-            tap->prev_fnread = 0.f;
-        }
-    }
+    uint64_t xread = tap->xread;
 
     size_t nread   = tap->nread;
     int searchsize = 2 * direction;
@@ -191,8 +176,6 @@ inline uint64_t tapedelay_movetape(tapedelay_t *restrict tapedelay,
 
     for (int c = 0; c < NCHANNELS; ++c)
         y[c] = hermite(ym1[c], y0[c], y1[c], y2[c], fnread);
-
-    return xwrite;
 }
 
 inline void tapedelay_output(tapedelay_t *restrict tapedelay,
@@ -219,11 +202,18 @@ void tapedelay_process(tapedelay_t *restrict tapedelay, float **restrict in,
                        float **restrict out, int count)
 {
     float y[NCHANNELS];
-    uint64_t xwrite;
+    tap_t *tap = &tapedelay->tap[tapedelay->tap_id];
 
     if (tapedelay->direction == FORWARDS) {
         for (int n = 0; n < count; ++n) {
-            xwrite = tapedelay_movetape(tapedelay, FORWARDS, y);
+            tap_t *tap    = tapedelay->tap;
+            size_t nwrite = tapedelay->nwrite;
+            uint64_t xwrite =
+                tapedelay->ringbuffer[nwrite].V + tapedelay->speed;
+
+            uint64_t xread = xwrite - DELAYUNIT;
+            tap->xread     = xread;
+            tapedelay_tap(tapedelay, tap, FORWARDS, y);
             tapedelay_output(tapedelay, y, in, out, n);
 
             tapedelay->nwrite = (tapedelay->nwrite + 1) & DELAYMASK;
@@ -231,7 +221,17 @@ void tapedelay_process(tapedelay_t *restrict tapedelay, float **restrict in,
         }
     } else if (tapedelay->direction == BACKWARDS) {
         for (int n = 0; n < count; ++n) {
-            xwrite = tapedelay_movetape(tapedelay, BACKWARDS, y);
+            size_t nwrite  = tapedelay->nwrite;
+            int64_t xwrite = tapedelay->ringbuffer[nwrite].V + tapedelay->speed;
+
+            uint64_t xread = tap->xread -= tapedelay->speed;
+            if (comparegt(tap->xrevstop, xread)) {
+                xread = tap->xread += DELAYUNIT;
+                tap->xrevstop += DELAYUNIT / 2;
+                tap->nread       = nwrite;
+                tap->prev_fnread = 0.f;
+            }
+            tapedelay_tap(tapedelay, tap, BACKWARDS, y);
             tapedelay_output(tapedelay, y, in, out, n);
 
             tapedelay->nwrite = (tapedelay->nwrite + 1) & DELAYMASK;

@@ -37,6 +37,8 @@ void tapedelay_init(tapedelay_t *tapedelay, tapedelay_desc_t *desc,
     tapedelay->desc = *desc;
 
     tapedelay->samplerate                  = samplerate;
+    tapedelay->ringbuffer[DELAYSIZE - 3].V = -DELAYUNIT;
+    tapedelay->ringbuffer[DELAYSIZE - 2].V = -DELAYUNIT;
     tapedelay->ringbuffer[DELAYSIZE - 1].V = -DELAYUNIT;
     tapedelay->ringbuffer[0].V             = -DELAYUNIT;
     tapedelay->nwrite                      = 2;

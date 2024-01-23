@@ -50,7 +50,10 @@ typedef struct {
     uint64_t xread, xrevstop; // for reverse only
     float prev_fnread;
     float ym1[NCHANNELS], y0[NCHANNELS], y1[NCHANNELS], y2[NCHANNELS];
+
+    enum tape_direction direction;
 } tap_t;
+
 typedef struct {
     float samplerate;
     tapedelay_desc_t desc;
@@ -62,10 +65,10 @@ typedef struct {
     size_t nwrite;
     tap_t tap[NTAPS];
     size_t tap_id;
+    int fade;
+    int fadepos;
 
     uint64_t speed;
-
-    enum tape_direction direction;
 
     filter(_t) lowpassfilter;
 } tapedelay_t;
@@ -74,6 +77,7 @@ typedef struct {
 #define restrict
 #endif
 
+void tapedelay_initlut();
 void tapedelay_init(tapedelay_t *tapedelay, tapedelay_desc_t *desc,
                     float samplerate);
 void tapedelay_update(tapedelay_t *tapedelay, tapedelay_desc_t *desc);

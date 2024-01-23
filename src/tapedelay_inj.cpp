@@ -47,7 +47,7 @@ class tapedelay : public dsp
     virtual int getNumInputs() { return 2; }
     virtual int getNumOutputs() { return 2; }
 
-    static void classInit(int sample_rate) {}
+    static void classInit(int sample_rate) { tapedelay_initlut(); }
 
     virtual void instanceConstants(int sample_rate)
     {

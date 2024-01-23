@@ -1,6 +1,9 @@
 #include "tapedelay.h"
 #include "fastmath.h"
 
+void tapedelay_inittaphermite(tapedelay_t *tapedelay, tap_t *tap);
+void tapedelay_inittap(tapedelay_t *tapedelay, tap_t *tap,
+                       const enum tape_direction direction);
 size_t tapedelay_movetap(tapedelay_t *tapedelay, tap_t *tap,
                          const enum tape_direction direction);
 void tapedelay_tap(tapedelay_t *tapedelay, tap_t *tap, size_t nread,
@@ -47,6 +50,24 @@ void tapedelay_init(tapedelay_t *tapedelay, tapedelay_desc_t *desc,
     tapedelay_set_delay(tapedelay, desc->delay);
 }
 
+void tapedelay_inittaphermite(tapedelay_t *tapedelay, tap_t *tap)
+{
+    const enum tape_direction direction = tap->direction;
+
+    for (int c = 0; c < NCHANNELS; ++c)
+        tap->ym1[c] =
+            tapedelay->ringbuffer[(tap->nread - direction) & DELAYMASK].y[c];
+    for (int c = 0; c < NCHANNELS; ++c)
+        tap->y0[c] = tapedelay->ringbuffer[tap->nread].y[c];
+    for (int c = 0; c < NCHANNELS; ++c)
+        tap->y1[c] =
+            tapedelay->ringbuffer[(tap->nread + direction) & DELAYMASK].y[c];
+    for (int c = 0; c < NCHANNELS; ++c)
+        tap->y2[c] =
+            tapedelay->ringbuffer[(tap->nread + 2 * direction) & DELAYMASK]
+                .y[c];
+}
+
 void tapedelay_inittap(tapedelay_t *tapedelay, tap_t *tap,
                        const enum tape_direction direction)
 {
@@ -60,6 +81,8 @@ void tapedelay_inittap(tapedelay_t *tapedelay, tap_t *tap,
         tap->xread    = xwrite;
         tap->xrevstop = xwrite - DELAYUNIT / 2;
     }
+
+    tapedelay_inittaphermite(tapedelay, tap);
 }
 
 void tapedelay_update(tapedelay_t *tapedelay, tapedelay_desc_t *desc)
@@ -252,6 +275,7 @@ void tapedelay_process(tapedelay_t *restrict tapedelay, float **restrict in,
                 tap->nread       = tapedelay->nwrite;
                 tap->prev_fnread = 0.f;
                 tap->direction   = BACKWARDS;
+                tapedelay_inittaphermite(tapedelay, tap);
 
                 tapedelay->fade    = 1;
                 tapedelay->fadepos = 0;

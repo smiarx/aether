@@ -129,10 +129,10 @@ void springs_set_ftr(springs_t *springs, float ftr[restrict MAXSPRINGS])
         float R    = 1.f - M_PI * B * Keq / samplerate;
         float cos0 = (1.f + R * R) / (2.f * R) *
                      cosf(2.f * M_PI * fpeak * Keq / samplerate);
-        springs->loweq.Keq[i] = Keq;
-        springs->loweq.b0[i]  = (1 - R * R) / 2.f;
-        springs->loweq.ak[i]  = -2.f * R * cos0;
-        springs->loweq.a2k[i] = R * R;
+        springs->low_eq.Keq[i] = Keq;
+        springs->low_eq.b0[i]  = (1 - R * R) / 2.f;
+        springs->low_eq.ak[i]  = -2.f * R * cos0;
+        springs->low_eq.a2k[i] = R * R;
     }
 
     /* low pass filter */
@@ -379,37 +379,36 @@ __attribute__((flatten)) void springs_lowlpf(springs_t *restrict springs,
     filter(_process)(springs->lowpassfilter, y, NLOWPASSSOS);
 }
 
-void springs_loweq(springs_t *restrict springs, float y[restrict MAXSPRINGS])
+void low_eq_process(struct low_eq *le, float y[restrict MAXSPRINGS])
 {
     y = __builtin_assume_aligned(y, sizeof(float) * MAXSPRINGS);
 
-    int id = springs->loweq.id;
     int idk[MAXSPRINGS];
     int id2k[MAXSPRINGS];
 #pragma omp simd
     loopsprings(i)
     {
-        idk[i]  = (id - springs->loweq.Keq[i]) & MLOWEQMASK;
+        idk[i]  = (le->id - le->Keq[i]) & LOW_EQ_STATE_MASK;
         idk[i]  = idk[i] * MAXSPRINGS + i;
-        id2k[i] = (id - springs->loweq.Keq[i] * 2) & MLOWEQMASK;
+        id2k[i] = (le->id - le->Keq[i] * 2) & LOW_EQ_STATE_MASK;
         id2k[i] = id2k[i] * MAXSPRINGS + i;
     }
-    float *loweqmem = (float *)springs->loweq.mem;
+    float *state = &le->state[0][0];
 #pragma omp simd
     loopsprings(i)
     {
-        float b0  = springs->loweq.b0[i];
-        float ak  = springs->loweq.ak[i];
-        float a2k = springs->loweq.a2k[i];
+        float b0  = le->b0[i];
+        float ak  = le->ak[i];
+        float a2k = le->a2k[i];
 
-        float vk  = loweqmem[idk[i]];
-        float v2k = loweqmem[id2k[i]];
-        float v0  = y[i] - ak * vk - a2k * v2k;
+        float sk  = state[idk[i]];
+        float s2k = state[id2k[i]];
+        float s0  = y[i] - ak * sk - a2k * s2k;
 
-        springs->loweq.mem[id][i] = v0;
-        y[i]                      = b0 * (v0 - v2k);
+        le->state[le->id][i] = s0;
+        y[i]                 = b0 * (s0 - s2k);
     }
-    springs->loweq.id = (springs->loweq.id + 1) & MLOWEQMASK;
+    le->id = (le->id + 1) & LOW_EQ_STATE_MASK;
 }
 
 void springs_highallpasschain(springs_t *restrict springs,
@@ -558,7 +557,7 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
         }
 
         // low chirps equalize
-        loopdownsamples(n) springs_loweq(springs, ylow[n]);
+        loopdownsamples(n) low_eq_process(&springs->low_eq, ylow[n]);
 
         // filter higher freq, also for interpolation
         loopsamples(n) springs_lowlpf(springs, ylow[n]);

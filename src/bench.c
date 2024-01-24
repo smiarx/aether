@@ -86,9 +86,10 @@ int main(int argc, char **argv)
     printf("low dc filter: %.5f\n", time);
 
     time = 0, dtime = 0;
+    struct low_eq *le = &springs.low_eq;
     for (int i = 0; i < n * r; i++) {
         dtime = -omp_get_wtime();
-        springs_loweq(&springs, y);
+        low_eq_process(le, y);
         dtime += omp_get_wtime();
         time += dtime;
     }

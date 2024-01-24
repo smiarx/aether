@@ -31,8 +31,8 @@
 #define LOW_CASCADE_STATE_SIZE 32
 #define LOW_CASCADE_STATE_MASK (LOW_CASCADE_STATE_SIZE - 1)
 
-#define MLOWEQSIZE (LOW_CASCADE_STATE_SIZE * 2)
-#define MLOWEQMASK (MLOWEQSIZE - 1)
+#define LOW_EQ_STATE_SIZE (LOW_CASCADE_STATE_SIZE * 2)
+#define LOW_EQ_STATE_MASK (LOW_EQ_STATE_SIZE - 1)
 
 #define LOWDELAY1SIZE      (2048 << 1)
 #define LOWDELAY1MASK      (LOWDELAY1SIZE - 1)
@@ -90,6 +90,16 @@ struct low_cascade {
     int id;
 };
 
+/* low equalizer */
+struct low_eq {
+    springparam(int, Keq);
+    springparam(float, b0);
+    springparam(float, ak);
+    springparam(float, a2k);
+    springparam(float, state[LOW_EQ_STATE_SIZE]);
+    int id;
+};
+
 typedef struct {
     springs_desc_t desc;
 
@@ -130,14 +140,7 @@ typedef struct {
     int lowdelayechoid;
     int lowdelayrippleid;
 
-    struct {
-        springparam(int, Keq);
-        springparam(float, b0);
-        springparam(float, ak);
-        springparam(float, a2k);
-        springparam(float, mem[MLOWEQSIZE]);
-        int id;
-    } loweq;
+    struct low_eq low_eq;
 
     filter(_t) lowpassfilter[NLOWPASSSOS];
 
@@ -185,7 +188,7 @@ void springs_lowdelayline(springs_t *restrict springs,
 void springs_lowdc(springs_t *restrict springs, float y[restrict MAXSPRINGS]);
 void low_cascade_process(struct low_cascade *lc, float y[restrict MAXSPRINGS]);
 void springs_lowlpf(springs_t *restrict springs, float y[restrict MAXSPRINGS]);
-void springs_loweq(springs_t *restrict springs, float y[restrict MAXSPRINGS]);
+void low_eq_process(struct low_eq *le, float y[restrict MAXSPRINGS]);
 void springs_highallpasschain(springs_t *restrict springs,
                               float y[restrict MAXSPRINGS]);
 void springs_highdelayline(springs_t *restrict springs,

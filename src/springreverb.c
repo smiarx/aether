@@ -169,7 +169,8 @@ void springs_set_a1(springs_t *springs, float a1[restrict MAXSPRINGS])
 
 void springs_set_ahigh(springs_t *springs, float ahigh[restrict MAXSPRINGS])
 {
-    loopsprings(i) springs->desc.ahigh[i] = springs->ahigh[i] = ahigh[i];
+    loopsprings(i) springs->desc.ahigh[i] = springs->high_cascade.a[i] =
+        ahigh[i];
 }
 
 void springs_set_Td(springs_t *springs, float Td[restrict MAXSPRINGS])
@@ -411,26 +412,30 @@ void low_eq_process(struct low_eq *le, float y[restrict MAXSPRINGS])
     le->id = (le->id + 1) & LOW_EQ_STATE_MASK;
 }
 
-void springs_highallpasschain(springs_t *restrict springs,
-                              float y[restrict MAXSPRINGS])
+void high_cascade_process(struct high_cascade *hc, float y[restrict MAXSPRINGS])
 {
     y = __builtin_assume_aligned(y, sizeof(float) * MAXSPRINGS);
     /* high chirp allpass chain is stretched by a factor of two,
      * this isn't the way it's supposed to be but it sounds better so ehh..
      */
-    int id = springs->highmemid;
-    for (int j = 0; j < MHIGH; ++j) {
+
+    float a[MAXSPRINGS];
+    loopsprings(i) a[i] = hc->a[i];
+
+    for (int j = 0; j < HIGH_CASCADE_N; ++j) {
 #pragma omp simd
         loopsprings(i)
         {
-            float s2 = springs->highmem[j][id][i];
-            float s0 = y[i] - springs->ahigh[i] * s2;
+            float sk = hc->state[j][HIGH_CASCADE_STRETCH - 1][i];
+            float s0 = y[i] - hc->a[i] * sk;
 
-            y[i]                       = springs->ahigh[i] * s0 + s2;
-            springs->highmem[j][id][i] = s0;
+            y[i] = a[i] * s0 + sk;
+
+            for (int k = HIGH_CASCADE_STRETCH - 1; k > 0; --k)
+                hc->state[j][k][i] = hc->state[j][k - 1][i];
+            hc->state[j][0][i] = s0;
         }
     }
-    springs->highmemid = (springs->highmemid + 1) & 1;
 }
 
 void springs_highdelayline(springs_t *restrict springs,
@@ -573,7 +578,7 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
         springs->highdelayid = highdelayid;
 
         // allpass cascade
-        loopsamples(n) springs_highallpasschain(springs, yhigh[n]);
+        loopsamples(n) high_cascade_process(&springs->high_cascade, yhigh[n]);
 
         // feed delayline
         loopsamples(n)

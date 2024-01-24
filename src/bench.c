@@ -104,11 +104,12 @@ int main(int argc, char **argv)
     }
     printf("low lpf: %.5f\n", time);
 
-    time  = 0;
-    dtime = 0;
+    time                    = 0;
+    dtime                   = 0;
+    struct high_cascade *hc = &springs.high_cascade;
     for (int i = 0; i < n * r; i++) {
         dtime = -omp_get_wtime();
-        springs_highallpasschain(&springs, y);
+        high_cascade_process(hc, y);
         dtime += omp_get_wtime();
         time += dtime;
     }

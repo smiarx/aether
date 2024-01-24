@@ -44,8 +44,9 @@
 #define gmod 10.f
 #define amod (1.f - 0.05f / gmod)
 
-#define MHIGH         70
-#define HIGHSTRETCH   2
+#define HIGH_CASCADE_N       70
+#define HIGH_CASCADE_STRETCH 2
+
 #define HIGHDELAYSIZE LOWDELAY1SIZE
 #define HIGHDELAYMASK (HIGHDELAYSIZE - 1)
 
@@ -100,6 +101,12 @@ struct low_eq {
     int id;
 };
 
+/* high cascade */
+struct high_cascade {
+    springparam(float, a);
+    springparam(float, state[HIGH_CASCADE_N][HIGH_CASCADE_STRETCH]);
+};
+
 typedef struct {
     springs_desc_t desc;
 
@@ -144,9 +151,7 @@ typedef struct {
 
     filter(_t) lowpassfilter[NLOWPASSSOS];
 
-    springparam(float, ahigh);
-    springparam(float, highmem[MHIGH][HIGHSTRETCH]);
-    int highmemid;
+    struct high_cascade high_cascade;
 
     springparam(float, Lmodhighmem);
     springparam(float, Lhigh);
@@ -189,8 +194,8 @@ void springs_lowdc(springs_t *restrict springs, float y[restrict MAXSPRINGS]);
 void low_cascade_process(struct low_cascade *lc, float y[restrict MAXSPRINGS]);
 void springs_lowlpf(springs_t *restrict springs, float y[restrict MAXSPRINGS]);
 void low_eq_process(struct low_eq *le, float y[restrict MAXSPRINGS]);
-void springs_highallpasschain(springs_t *restrict springs,
-                              float y[restrict MAXSPRINGS]);
+void high_cascade_process(struct high_cascade *hc,
+                          float y[restrict MAXSPRINGS]);
 void springs_highdelayline(springs_t *restrict springs,
                            float y[restrict MAXSPRINGS]);
 void springs_process(springs_t *restrict springs, float **restrict in,

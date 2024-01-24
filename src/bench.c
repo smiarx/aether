@@ -58,9 +58,10 @@ int main(int argc, char **argv)
     printf("%d tests of %d samples\n", r, n);
 
     double time = 0, dtime = 0;
+    struct low_cascade *lc = &springs.low_cascade;
     for (int i = 0; i < n * r; i++) {
         dtime = -omp_get_wtime();
-        springs_lowallpasschain(&springs, y);
+        low_cascade_process(lc, y);
         dtime += omp_get_wtime();
         time += dtime;
     }

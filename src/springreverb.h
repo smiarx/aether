@@ -27,11 +27,11 @@
 #define BUFFERSIZE (1 << 12)
 #define BUFFERMASK (BUFFERSIZE - 1)
 
-#define MLOW        120
-#define MLOWBUFSIZE 32
-#define MLOWBUFMASK (MLOWBUFSIZE - 1)
+#define LOW_CASCADE_N          120
+#define LOW_CASCADE_STATE_SIZE 32
+#define LOW_CASCADE_STATE_MASK (LOW_CASCADE_STATE_SIZE - 1)
 
-#define MLOWEQSIZE (MLOWBUFSIZE * 2)
+#define MLOWEQSIZE (LOW_CASCADE_STATE_SIZE * 2)
 #define MLOWEQMASK (MLOWEQSIZE - 1)
 
 #define LOWDELAY1SIZE      (2048 << 1)
@@ -78,6 +78,18 @@ typedef struct {
     springparam(float, hilomix);
 } springs_desc_t;
 
+/* low allpass cascade */
+struct low_cascade {
+    springparam(int, iK);
+    springparam(float, a1);
+    springparam(float, a2);
+    struct {
+        springparam(float, s2);
+        springparam(float, s1[LOW_CASCADE_STATE_SIZE]);
+    } state[LOW_CASCADE_N];
+    int id;
+};
+
 typedef struct {
     springs_desc_t desc;
 
@@ -93,25 +105,17 @@ typedef struct {
 
     /* set with ftr */
     springparam(float, K);
-    springparam(int, iK);
-    springparam(float, a2);
     /*--------*/
-
-    springparam(float, a1);
 
     springparam(float, adc);
     springparam(float, dcmem);
+
+    struct low_cascade low_cascade;
 
     /* modulation */
     springparam(int, randseed);
     springparam(int, randstate);
     springparam(float, Lmodmem);
-
-    struct {
-        springparam(float, mem2);
-        springparam(float, mem1[MLOWBUFSIZE]);
-    } lowstate[MLOW];
-    int lowbufid;
 
     springparam(float, L1);
     springparam(float, Lecho);
@@ -179,8 +183,7 @@ void springs_set_hilomix(springs_t *springs,
 void springs_lowdelayline(springs_t *restrict springs,
                           float y[restrict MAXSPRINGS]);
 void springs_lowdc(springs_t *restrict springs, float y[restrict MAXSPRINGS]);
-void springs_lowallpasschain(springs_t *restrict springs,
-                             float y[restrict MAXSPRINGS]);
+void low_cascade_process(struct low_cascade *lc, float y[restrict MAXSPRINGS]);
 void springs_lowlpf(springs_t *restrict springs, float y[restrict MAXSPRINGS]);
 void springs_loweq(springs_t *restrict springs, float y[restrict MAXSPRINGS]);
 void springs_highallpasschain(springs_t *restrict springs,

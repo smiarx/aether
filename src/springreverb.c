@@ -116,9 +116,12 @@ void springs_set_ftr(springs_t *springs, float ftr[restrict MAXSPRINGS])
     loopsprings(i)
     {
         springs->K[i] /= (float)M;
-        springs->iK[i] = springs->K[i] - .5f;
-        float fd       = springs->K[i] - (float)springs->iK[i];
-        springs->a2[i] = (1 - fd) / (1 + fd);
+        int iK   = springs->K[i] - .5f;
+        float fd = springs->K[i] - iK;
+        float a2 = (1 - fd) / (1 + fd);
+
+        springs->low_cascade.iK[i] = iK;
+        springs->low_cascade.a2[i] = a2;
 
         /* EQ params */
         float B = 146.f, fpeak = 183.f;
@@ -154,13 +157,13 @@ void springs_set_a1(springs_t *springs, float a1[restrict MAXSPRINGS])
     loopsprings(i)
     {
         springs->desc.a1[i] = a1[i];
-        if (springs->iK[i] <= 1) {
+        if (springs->low_cascade.iK[i] <= 1) {
             /* revert back to classic 2nd order allpass filter */
-            springs->iK[i] = 1;
-            springs->a2[i] =
+            springs->low_cascade.iK[i] = 1;
+            springs->low_cascade.a2[i] =
                 -2.f * sqrtf(a1[i]) * cosf(M_PI / springs->K[i]) / (1 + a1[i]);
         }
-        springs->a1[i] = a1[i];
+        springs->low_cascade.a1[i] = a1[i];
     }
 }
 
@@ -175,11 +178,12 @@ void springs_set_Td(springs_t *springs, float Td[restrict MAXSPRINGS])
     loopsprings(i)
     {
         springs->desc.Td[i] = Td[i];
-        float a1            = springs->a1[i];
-        float L             = fmaxf(0.f, Td[i] * samplerate -
-                                             springs->K[i] * MLOW * (1 - a1) / (1 + a1));
-        springs->Lecho[i]   = L / 5;
-        springs->L1[i]      = L - springs->Lecho[i] - springs->Lripple[i];
+        float a1            = springs->low_cascade.a1[i];
+        float L =
+            fmaxf(0.f, Td[i] * samplerate -
+                           springs->K[i] * LOW_CASCADE_N * (1 - a1) / (1 + a1));
+        springs->Lecho[i] = L / 5;
+        springs->L1[i]    = L - springs->Lecho[i] - springs->Lripple[i];
 
         float Lhigh       = L / 1.8f * (float)springs->downsampleM;
         springs->Lhigh[i] = Lhigh;
@@ -333,36 +337,40 @@ void springs_lowdc(springs_t *restrict springs, float y[restrict MAXSPRINGS])
 }
 
 /* compute low all pass chain */
-void springs_lowallpasschain(springs_t *restrict springs,
-                             float y[restrict MAXSPRINGS])
+void low_cascade_process(struct low_cascade *lc, float y[restrict MAXSPRINGS])
 {
     y = __builtin_assume_aligned(y, sizeof(float) * MAXSPRINGS);
 
-    /* low allpass filter chain */
+    // load mem id
     int idx[MAXSPRINGS];
 #pragma omp simd
-    loopsprings(i) idx[i] = (springs->lowbufid - springs->iK[i]) & MLOWBUFMASK;
+    loopsprings(i) idx[i] = (lc->id - lc->iK[i]) & LOW_CASCADE_STATE_MASK;
 
-    for (int j = 0; j < MLOW; ++j) {
+    // load parameters
+    float a1[MAXSPRINGS], a2[MAXSPRINGS];
+#pragma omp simd
+    loopsprings(i) a1[i] = lc->a1[i], a2[i] = lc->a2[i];
+
+    for (int j = 0; j < LOW_CASCADE_N; ++j) {
         float s1mem[MAXSPRINGS];
-        loopsprings(i) s1mem[i] = springs->lowstate[j].mem1[idx[i]][i];
+        loopsprings(i) s1mem[i] = lc->state[j].s1[idx[i]][i];
 #pragma omp simd
         loopsprings(i)
         {
             /* compute internal allpass1 */
-            float s1 = y[i] - springs->a1[i] * s1mem[i];
-            y[i]     = springs->a1[i] * s1 + s1mem[i];
+            float s1 = y[i] - a1[i] * s1mem[i];
+            y[i]     = a1[i] * s1 + s1mem[i];
 
             /* compute allpass2 */
-            float s2mem = springs->lowstate[j].mem2[i];
-            float s2    = s1 - springs->a2[i] * s2mem;
-            float y2    = springs->a2[i] * s2 + s2mem;
+            float s2mem = lc->state[j].s2[i];
+            float s2    = s1 - a2[i] * s2mem;
+            float y2    = a2[i] * s2 + s2mem;
 
-            springs->lowstate[j].mem2[i]                    = s2;
-            springs->lowstate[j].mem1[springs->lowbufid][i] = y2;
+            lc->state[j].s2[i]         = s2;
+            lc->state[j].s1[lc->id][i] = y2;
         }
     }
-    springs->lowbufid = (springs->lowbufid + 1) & MLOWBUFMASK;
+    lc->id = (lc->id + 1) & LOW_CASCADE_STATE_MASK;
 }
 
 __attribute__((flatten)) void springs_lowlpf(springs_t *restrict springs,
@@ -537,7 +545,7 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
         // dc filter
         loopdownsamples(n) springs_lowdc(springs, ylow[n]);
         // allpass cascade
-        loopdownsamples(n) springs_lowallpasschain(springs, ylow[n]);
+        loopdownsamples(n) low_cascade_process(&springs->low_cascade, ylow[n]);
 
         // feed delayline
         loopdownsamples(n)

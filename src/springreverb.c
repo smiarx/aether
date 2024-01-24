@@ -216,7 +216,7 @@ gfunc(gripple) gfunc(gecho) gfunc(glf) gfunc(ghf)
         float gain        = powf(10.f, db / 20.f);                               \
         float ghigh       = atanf(5.f * (ratio - 0.5)) / atanf(5.f) / 2.f + .5f; \
         float glow        = 1.f - ghigh;                                         \
-        springs->glow[i]  = 20.f * glow * gain;                                  \
+        springs->glow[i]  = glow * gain;                                         \
         springs->ghigh[i] = ghigh * gain;                                        \
     }
 
@@ -406,7 +406,8 @@ void springs_loweq(springs_t *restrict springs, float y[restrict MAXSPRINGS])
         float v2k = loweqmem[id2k[i]];
         float v0  = y[i] - ak * vk - a2k * v2k;
 
-        y[i] = b0 * (v0 - v2k);
+        springs->loweq.mem[id][i] = v0;
+        y[i]                      = b0 * (v0 - v2k);
     }
     springs->loweq.id = (springs->loweq.id + 1) & MLOWEQMASK;
 }

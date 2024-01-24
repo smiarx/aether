@@ -63,8 +63,9 @@ void springs_set_dccutoff(springs_t *springs,
     loopsprings(i)
     {
         springs->desc.fcutoff[i] = fcutoff[i];
-        springs->adc[i] =
+        springs->low_dc.a[i] =
             tanf(M_PI / 4.f - M_PI * fcutoff[i] / springs->samplerate);
+        springs->low_dc.b[i] = (1.f + springs->low_dc.a[i]) / 2.f;
     }
 }
 
@@ -320,7 +321,7 @@ void springs_lowdelayline(springs_t *restrict springs,
         (springs->lowdelayrippleid + 1) & LOWDELAYRIPPLEMASK;
 }
 
-void springs_lowdc(springs_t *restrict springs, float y[restrict MAXSPRINGS])
+void low_dc_process(struct low_dc *dc, float y[restrict MAXSPRINGS])
 {
     y = __builtin_assume_aligned(y, sizeof(float) * MAXSPRINGS);
 
@@ -328,12 +329,12 @@ void springs_lowdc(springs_t *restrict springs, float y[restrict MAXSPRINGS])
     loopsprings(i)
     {
         /* update filter state */
-        float dcmem1 = springs->dcmem[i];
-        float dcmem0 = y[i] + springs->adc[i] * dcmem1;
+        float s1 = dc->state[i];
+        float s0 = y[i] + dc->a[i] * s1;
         /* set output */
-        y[i] = (1.f + springs->adc[i]) / 2.f * (dcmem0 - dcmem1);
+        y[i] = dc->b[i] * (s0 - s1);
 
-        springs->dcmem[i] = dcmem0;
+        dc->state[i] = s0;
     }
 }
 
@@ -548,7 +549,7 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
         springs->lowdelay1id = lowdelay1id;
 
         // dc filter
-        loopdownsamples(n) springs_lowdc(springs, ylow[n]);
+        loopdownsamples(n) low_dc_process(&springs->low_dc, ylow[n]);
         // allpass cascade
         loopdownsamples(n) low_cascade_process(&springs->low_cascade, ylow[n]);
 

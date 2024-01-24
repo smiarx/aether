@@ -79,6 +79,13 @@ typedef struct {
     springparam(float, hilomix);
 } springs_desc_t;
 
+/* low dc filter */
+struct low_dc {
+    springparam(float, b);
+    springparam(float, a);
+    springparam(float, state);
+};
+
 /* low allpass cascade */
 struct low_cascade {
     springparam(int, iK);
@@ -124,9 +131,7 @@ typedef struct {
     springparam(float, K);
     /*--------*/
 
-    springparam(float, adc);
-    springparam(float, dcmem);
-
+    struct low_dc low_dc;
     struct low_cascade low_cascade;
 
     /* modulation */
@@ -190,7 +195,7 @@ void springs_set_hilomix(springs_t *springs,
 
 void springs_lowdelayline(springs_t *restrict springs,
                           float y[restrict MAXSPRINGS]);
-void springs_lowdc(springs_t *restrict springs, float y[restrict MAXSPRINGS]);
+void low_dc_process(struct low_dc *dc, float y[restrict MAXSPRINGS]);
 void low_cascade_process(struct low_cascade *lc, float y[restrict MAXSPRINGS]);
 void springs_lowlpf(springs_t *restrict springs, float y[restrict MAXSPRINGS]);
 void low_eq_process(struct low_eq *le, float y[restrict MAXSPRINGS]);

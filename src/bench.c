@@ -77,9 +77,10 @@ int main(int argc, char **argv)
     printf("low delay line: %.5f\n", time);
 
     time = 0, dtime = 0;
+    struct low_dc *dc = &springs.low_dc;
     for (int i = 0; i < n * r; i++) {
         dtime = -omp_get_wtime();
-        springs_lowdc(&springs, y);
+        low_dc_process(dc, y);
         dtime += omp_get_wtime();
         time += dtime;
     }

@@ -344,13 +344,14 @@ void springs_lowallpasschain(springs_t *restrict springs,
     loopsprings(i) idx[i] = (springs->lowbufid - springs->iK[i]) & MLOWBUFMASK;
 
     for (int j = 0; j < MLOW; ++j) {
+        float s1mem[MAXSPRINGS];
+        loopsprings(i) s1mem[i] = springs->lowstate[j].mem1[idx[i]][i];
 #pragma omp simd
         loopsprings(i)
         {
             /* compute internal allpass1 */
-            float s1mem = springs->lowstate[j].mem1[idx[i]][i];
-            float s1    = y[i] - springs->a1[i] * s1mem;
-            y[i]        = springs->a1[i] * s1 + s1mem;
+            float s1 = y[i] - springs->a1[i] * s1mem[i];
+            y[i]     = springs->a1[i] * s1 + s1mem[i];
 
             /* compute allpass2 */
             float s2mem = springs->lowstate[j].mem2[i];
@@ -473,10 +474,9 @@ void springs_highdelayline(springs_t *restrict springs,
     for (int n = downsamplestart; n < blocksize; n += springs->downsampleM)
 
 // only flatten in clang, gcc seems to break vectorization
-#ifdef __clang__
-__attribute__ ((flatten))
-#endif
-void springs_process(springs_t * restrict springs, float ** restrict in, float ** restrict out, int count)
+__attribute__((flatten)) void springs_process(springs_t *restrict springs,
+                                              float **restrict in,
+                                              float **restrict out, int count)
 {
     /* springs */
     float(*y)[MAXSPRINGS]     = springs->ylow;

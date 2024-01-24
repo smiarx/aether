@@ -1,10 +1,6 @@
 all: bench
 
-CFLAGS+= -Wall -march=native -mtune=native
-
-ifeq ($(CC),clang)
-	CFLAGS+= -fopenmp-simd
-endif
+CFLAGS+= -Wall -march=native -mtune=native -fopenmp-simd
 
 filter.o : filter.c filter.h
 	$(CC) $(CFLAGS) -Ofast -c -o $@ $<
@@ -15,9 +11,10 @@ springreverb.s : springreverb.c springreverb.h
 springreverb.o : springreverb.c springreverb.h
 	$(CC) $(CFLAGS) -Ofast -c -o $@ $<
 
-bench: bench.c springreverb.o
-	$(CC) $(CFLAGS) -O2 -c -o bench.o $<
-	$(CC) -lm -lmvec -lgomp bench.o springreverb.o -o bench
+bench.o: bench.c
+	$(CC) $(CFLAGS) -O2 -c -o $@ $<
+bench: bench.o springreverb.o filter.o
+	$(CC) -lm -lmvec -lgomp -o $@ $^
 
 clean:
 	rm -f filter.o

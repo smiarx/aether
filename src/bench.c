@@ -68,9 +68,11 @@ int main(int argc, char **argv)
     printf("low allpasschain: %.5f\n", time);
 
     time = 0, dtime = 0;
+    struct low_delayline *ldl = &springs.low_delayline;
+    struct rand *rand         = &springs.rand;
     for (int i = 0; i < n * r; i++) {
         dtime = -omp_get_wtime();
-        springs_lowdelayline(&springs, y);
+        low_delayline_process(ldl, rand, y);
         dtime += omp_get_wtime();
         time += dtime;
     }
@@ -116,11 +118,12 @@ int main(int argc, char **argv)
     }
     printf("high allpass: %.5f\n", time);
 
-    time  = 0;
-    dtime = 0;
+    time                       = 0;
+    dtime                      = 0;
+    struct high_delayline *hdl = &springs.high_delayline;
     for (int i = 0; i < n * r; i++) {
         dtime = -omp_get_wtime();
-        springs_highdelayline(&springs, y);
+        high_delayline_process(hdl, rand, y);
         dtime += omp_get_wtime();
         time += dtime;
     }

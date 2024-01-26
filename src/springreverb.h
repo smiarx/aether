@@ -114,6 +114,46 @@ struct high_cascade {
     springparam(float, state[HIGH_CASCADE_N][HIGH_CASCADE_STRETCH]);
 };
 
+/* random values */
+struct rand {
+    springparam(int, seed);
+    springparam(int, state);
+};
+/* delay line */
+struct delay_tap {
+    springparam(int, idelay);
+    springparam(float, fdelay);
+    int id;
+};
+
+struct low_delayline {
+    springparam(float, modstate);
+
+    springparam(float, L1);
+    struct delay_tap tap1;
+    springparam(float, buffer1[LOWDELAY1SIZE]);
+
+    struct delay_tap tap_echo;
+    springparam(float, buffer_echo[LOWDELAYECHOSIZE]);
+    springparam(float, gecho);
+
+    struct delay_tap tap_ripple;
+    springparam(float, buffer_ripple[LOWDELAYRIPPLESIZE]);
+    springparam(float, gripple);
+
+    springparam(float, glf);
+};
+
+struct high_delayline {
+    springparam(float, modstate);
+
+    springparam(float, L);
+    struct delay_tap tap;
+    springparam(float, buffer[HIGHDELAYSIZE]);
+
+    springparam(float, ghf);
+};
+
 typedef struct {
     springs_desc_t desc;
 
@@ -121,6 +161,8 @@ typedef struct {
     int blocksize;
     springparam(float, ylow[MAXBLOCKSIZE]);
     springparam(float, yhigh[MAXBLOCKSIZE]);
+
+    struct rand rand;
 
     /* down sampling */
     int downsampleM;
@@ -134,23 +176,7 @@ typedef struct {
     struct low_dc low_dc;
     struct low_cascade low_cascade;
 
-    /* modulation */
-    springparam(int, randseed);
-    springparam(int, randstate);
-    springparam(float, Lmodmem);
-
-    springparam(float, L1);
-    springparam(float, Lecho);
-    springparam(float, Lripple);
-    springparam(float, lowdelay1[LOWDELAY1SIZE]);
-    springparam(float, lowdelayecho[LOWDELAYECHOSIZE]);
-    springparam(float, lowdelayripple[LOWDELAYRIPPLESIZE]);
-    springparam(float, gecho);
-    springparam(float, gripple);
-    springparam(float, glf);
-    int lowdelay1id;
-    int lowdelayechoid;
-    int lowdelayrippleid;
+    struct low_delayline low_delayline;
 
     struct low_eq low_eq;
 
@@ -158,11 +184,7 @@ typedef struct {
 
     struct high_cascade high_cascade;
 
-    springparam(float, Lmodhighmem);
-    springparam(float, Lhigh);
-    springparam(float, highdelay[HIGHDELAYSIZE]);
-    springparam(float, ghf);
-    int highdelayid;
+    struct high_delayline high_delayline;
 
     /* low and high gain */
     springparam(float, glow);
@@ -193,16 +215,18 @@ void springs_set_vol(springs_t *springs, float vol[restrict MAXSPRINGS]);
 void springs_set_hilomix(springs_t *springs,
                          float hilomix[restrict MAXSPRINGS]);
 
-void springs_lowdelayline(springs_t *restrict springs,
-                          float y[restrict MAXSPRINGS]);
+void low_delayline_process(struct low_delayline *restrict dl,
+                           struct rand *restrict rd,
+                           float y[restrict MAXSPRINGS]);
 void low_dc_process(struct low_dc *dc, float y[restrict MAXSPRINGS]);
 void low_cascade_process(struct low_cascade *lc, float y[restrict MAXSPRINGS]);
 void springs_lowlpf(springs_t *restrict springs, float y[restrict MAXSPRINGS]);
 void low_eq_process(struct low_eq *le, float y[restrict MAXSPRINGS]);
 void high_cascade_process(struct high_cascade *hc,
                           float y[restrict MAXSPRINGS]);
-void springs_highdelayline(springs_t *restrict springs,
-                           float y[restrict MAXSPRINGS]);
+void high_delayline_process(struct high_delayline *restrict dl,
+                            struct rand *restrict rd,
+                            float y[restrict MAXSPRINGS]);
 void springs_process(springs_t *restrict springs, float **restrict in,
                      float **restrict out, int count);
 

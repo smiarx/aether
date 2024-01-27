@@ -540,6 +540,14 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
                                   ylow[n]);
         }
         springs->low_delayline.tap1.id = lowdelay1id;
+        // get delay tap
+        int highdelayid = springs->high_delayline.tap.id;
+        loopsamples(n)
+        {
+            high_delayline_process(&springs->high_delayline, &springs->rand,
+                                   yhigh[n]);
+        }
+        springs->high_delayline.tap.id = highdelayid;
 
         // dc filter
         loopdownsamples(n) low_dc_process(&springs->low_dc, ylow[n]);
@@ -563,14 +571,6 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
         loopsamples(n) springs_lowlpf(springs, ylow[n]);
 
         /* high chirps */
-        // get delay tap
-        int highdelayid = springs->high_delayline.tap.id;
-        loopsamples(n)
-        {
-            high_delayline_process(&springs->high_delayline, &springs->rand,
-                                   yhigh[n]);
-        }
-        springs->high_delayline.tap.id = highdelayid;
 
         // allpass cascade
         loopsamples(n) high_cascade_process(&springs->high_cascade, yhigh[n]);

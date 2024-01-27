@@ -177,14 +177,13 @@ typedef struct {
     struct low_cascade low_cascade;
 
     struct low_delayline low_delayline;
+    struct high_delayline high_delayline;
 
     struct low_eq low_eq;
 
     filter(_t) lowpassfilter[NLOWPASSSOS];
 
     struct high_cascade high_cascade;
-
-    struct high_delayline high_delayline;
 
     /* low and high gain */
     springparam(float, glow);

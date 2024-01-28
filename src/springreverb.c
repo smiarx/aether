@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "fastmath.h"
 #include "springreverb.h"
 
 #define loopsprings(i) for (int i = 0; i < NSPRINGS; ++i)
@@ -289,6 +290,27 @@ static inline float tap_linear(struct delay_tap *tap,
     return x0 + tap->fdelay[i] * (x1 - x0);
 }
 
+#pragma omp declare simd linear(i) uniform(tap, buffer, mask)
+static inline float tap_cubic(struct delay_tap *tap, float buffer[][MAXSPRINGS],
+                              int mask, int i)
+{
+    int id   = (tap->id - tap->idelay[i]) & mask;
+    int id1  = (id - 1) & mask;
+    int id2  = (id - 2) & mask;
+    int idm1 = (id + 1) & mask;
+    id       = (id * MAXSPRINGS) + i;
+    id1      = (id1 * MAXSPRINGS) + i;
+    id2      = (id2 * MAXSPRINGS) + i;
+    idm1     = (idm1 * MAXSPRINGS) + i;
+
+    float y0  = buffer[0][id];
+    float y1  = buffer[0][id1];
+    float y2  = buffer[0][id2];
+    float ym1 = buffer[0][idm1];
+
+    return hermite(ym1, y0, y1, y2, tap->fdelay[i]);
+}
+
 void low_delayline_process(struct low_delayline *restrict dl,
                            struct rand *restrict rd,
                            float y[restrict MAXSPRINGS])
@@ -308,7 +330,7 @@ void low_delayline_process(struct low_delayline *restrict dl,
 #pragma omp simd
     loopsprings(i)
     {
-        float tap1 = tap_linear(&dl->tap1, dl->buffer1, LOWDELAY1MASK, i);
+        float tap1 = tap_cubic(&dl->tap1, dl->buffer1, LOWDELAY1MASK, i);
 
         dl->buffer_echo[dl->tap_echo.id][i] = tap1 * (1.f - dl->gecho[i]);
         float tap_echo =

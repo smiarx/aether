@@ -97,6 +97,7 @@ void tapedelay_update(tapedelay_t *tapedelay, tapedelay_desc_t *desc)
     param_update(delay);
     param_update(reverse);
     param_update(cutoff);
+    param_update(drive);
 #undef param_update
 }
 
@@ -125,6 +126,14 @@ void tapedelay_set_cutoff(tapedelay_t *tapedelay, float cutoff)
     tapedelay->desc.cutoff = cutoff;
     filter(_butterworth_lp)(&tapedelay->lowpassfilter, tapedelay->samplerate,
                             cutoff);
+}
+
+void tapedelay_set_drive(tapedelay_t *tapedelay, float drive)
+{
+    tapedelay->desc.drive = drive;
+
+    tapedelay->predrive_gain  = db2gain(drive);
+    tapedelay->postdrive_gain = 1.f / tapedelay->predrive_gain;
 }
 
 inline size_t tapedelay_movetap(tapedelay_t *tapedelay, tap_t *tap,
@@ -306,6 +315,12 @@ void tapedelay_process(tapedelay_t *restrict tapedelay, float **restrict in,
 
         /* apply lowpass to tapeoutput */
         filter(_process)(&tapedelay->lowpassfilter, y, 1);
+
+        for (int c = 0; c < NCHANNELS; ++c) {
+            y[c] *= tapedelay->predrive_gain;
+            y[c] = fasttanh(y[c]);
+            y[c] *= tapedelay->postdrive_gain;
+        }
 
         for (int c = 0; c < NCHANNELS; ++c) {
             int c0 = c;

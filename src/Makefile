@@ -14,7 +14,7 @@ springreverb.o : springreverb.c springreverb.h
 tapedelay.s : tapedelay.c tapedelay.h
 	$(CC) $(CFLAGS) -Ofast -c -S -o $@ $<
 
-tapedelay.o : tapedelay.c tapedelay.h
+tapedelay.o : tapedelay.c tapedelay.h fastmath.h
 	$(CC) $(CFLAGS) -Ofast -c -o $@ $<
 
 bench.o: bench.c

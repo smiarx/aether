@@ -39,6 +39,7 @@ typedef struct {
     float feedback;
     float drywet;
     float cutoff;
+    float drive;
 #if NCHANNELS == 2
     int pingpong;
 #endif
@@ -68,6 +69,9 @@ typedef struct {
     int fade;
     int fadepos;
 
+    float predrive_gain;
+    float postdrive_gain;
+
     uint64_t speed;
 
     filter(_t) lowpassfilter;
@@ -84,6 +88,7 @@ void tapedelay_update(tapedelay_t *tapedelay, tapedelay_desc_t *desc);
 void tapedelay_set_delay(tapedelay_t *tapedelay, float delay);
 void tapedelay_set_reverse(tapedelay_t *tapedelay, float reverse);
 void tapedelay_set_cutoff(tapedelay_t *tapedelay, float cutoff);
+void tapedelay_set_drive(tapedelay_t *tapedelay, float drive);
 void tapedelay_process(tapedelay_t *restrict tapedelay, float **restrict in,
                        float **restrict out, int count);
 

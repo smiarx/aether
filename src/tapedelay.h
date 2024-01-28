@@ -72,6 +72,7 @@ typedef struct {
     float predrive_gain;
     float postdrive_gain;
 
+    uint64_t target_speed;
     uint64_t speed;
 
     filter(_t) lowpassfilter;

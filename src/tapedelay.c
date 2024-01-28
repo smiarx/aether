@@ -1,6 +1,13 @@
 #include "tapedelay.h"
 #include "fastmath.h"
 
+#define DELAYSMOOTHQ 30
+#define DELAYSMOOTHF 0.9995f
+#define DELAYSMOOTH                                        \
+    ((uint64_t)(((uint64_t)1 << (DELAYQ - DELAYSMOOTHQ)) * \
+                (1.f - DELAYSMOOTHF)))
+#define INIT_DELAY 0.02f
+
 void tapedelay_inittaphermite(tapedelay_t *tapedelay, tap_t *tap);
 void tapedelay_inittap(tapedelay_t *tapedelay, tap_t *tap,
                        const enum tape_direction direction);
@@ -42,6 +49,9 @@ void tapedelay_init(tapedelay_t *tapedelay, tapedelay_desc_t *desc,
     tapedelay->ringbuffer[DELAYSIZE - 1].V = -DELAYUNIT;
     tapedelay->ringbuffer[0].V             = -DELAYUNIT;
     tapedelay->nwrite                      = 2;
+
+    /* initial speed */
+    tapedelay->speed = DELAYUNIT / (INIT_DELAY * samplerate);
 
     for (int i = 0; i < NTAPS; ++i) {
         tapedelay->tap[i].direction = FORWARDS;
@@ -104,7 +114,8 @@ void tapedelay_update(tapedelay_t *tapedelay, tapedelay_desc_t *desc)
 void tapedelay_set_delay(tapedelay_t *tapedelay, float delay)
 {
     tapedelay->desc.delay = delay;
-    tapedelay->speed = ((float)DELAYUNIT) / (delay * tapedelay->samplerate);
+    tapedelay->target_speed =
+        ((float)DELAYUNIT) / (delay * tapedelay->samplerate);
 }
 
 void tapedelay_set_reverse(tapedelay_t *tapedelay, float reverse)
@@ -262,6 +273,11 @@ void tapedelay_process(tapedelay_t *restrict tapedelay, float **restrict in,
     tap_t *tap = &tapedelay->tap[tapedelay->tap_id];
 
     for (int n = 0; n < count; ++n) {
+        tapedelay->speed +=
+            DELAYSMOOTH *
+            ((int64_t)(tapedelay->target_speed - tapedelay->speed) >>
+             DELAYSMOOTHQ);
+
         size_t nwrite   = tapedelay->nwrite;
         uint64_t xwrite = tapedelay->ringbuffer[nwrite].V + tapedelay->speed;
 

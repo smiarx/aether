@@ -8,6 +8,10 @@
                 (1.f - DELAYSMOOTHF)))
 #define INIT_DELAY 0.02f
 
+#define SPEEDLFO_FREQ     0.87f
+#define SPEEDLFO_MAXDRIFT 0.06f
+#define SPEEDLFOQ         30
+
 void tapedelay_inittaphermite(tapedelay_t *tapedelay, tap_t *tap);
 void tapedelay_inittap(tapedelay_t *tapedelay, tap_t *tap,
                        const enum tape_direction direction);
@@ -52,6 +56,7 @@ void tapedelay_init(tapedelay_t *tapedelay, tapedelay_desc_t *desc,
 
     /* initial speed */
     tapedelay->speed = DELAYUNIT / (INIT_DELAY * samplerate);
+    lfosc_set_freq(&tapedelay->speed_lfo, SPEEDLFO_FREQ / samplerate);
 
     for (int i = 0; i < NTAPS; ++i) {
         tapedelay->tap[i].direction = FORWARDS;
@@ -108,6 +113,7 @@ void tapedelay_update(tapedelay_t *tapedelay, tapedelay_desc_t *desc)
     param_update(reverse);
     param_update(cutoff);
     param_update(drive);
+    param_update(drift);
 #undef param_update
 }
 
@@ -116,6 +122,8 @@ void tapedelay_set_delay(tapedelay_t *tapedelay, float delay)
     tapedelay->desc.delay = delay;
     tapedelay->target_speed =
         ((float)DELAYUNIT) / (delay * tapedelay->samplerate);
+
+    tapedelay_set_drift(tapedelay, tapedelay->desc.drift);
 }
 
 void tapedelay_set_reverse(tapedelay_t *tapedelay, float reverse)
@@ -145,6 +153,15 @@ void tapedelay_set_drive(tapedelay_t *tapedelay, float drive)
 
     tapedelay->predrive_gain  = db2gain(drive);
     tapedelay->postdrive_gain = 1.f / tapedelay->predrive_gain;
+}
+
+void tapedelay_set_drift(tapedelay_t *tapedelay, float drift)
+{
+    tapedelay->desc.drift = drift;
+
+    tapedelay->drift =
+        (uint64_t)(tapedelay->target_speed * SPEEDLFO_MAXDRIFT * drift) >>
+        (DELAYQ - SPEEDLFOQ);
 }
 
 inline size_t tapedelay_movetap(tapedelay_t *tapedelay, tap_t *tap,
@@ -273,26 +290,33 @@ void tapedelay_process(tapedelay_t *restrict tapedelay, float **restrict in,
     tap_t *tap = &tapedelay->tap[tapedelay->tap_id];
 
     for (int n = 0; n < count; ++n) {
+        /* smooth delay */
         tapedelay->speed +=
             DELAYSMOOTH *
             ((int64_t)(tapedelay->target_speed - tapedelay->speed) >>
              DELAYSMOOTHQ);
+        /* delay speed lfo */
+        uint64_t speed    = tapedelay->speed;
+        int64_t lfo_value = lfosc_process(&tapedelay->speed_lfo);
+        int64_t drift =
+            (lfo_value >> (SPEEDLFOQ + LFOQ - DELAYQ)) * tapedelay->drift;
+        speed += drift;
 
         size_t nwrite   = tapedelay->nwrite;
-        uint64_t xwrite = tapedelay->ringbuffer[nwrite].V + tapedelay->speed;
+        uint64_t xwrite = tapedelay->ringbuffer[nwrite].V + speed;
 
         if (tap->direction == FORWARDS) {
-            tap->xread += tapedelay->speed;
+            tap->xread += speed;
             size_t nread = tapedelay_movetap(tapedelay, tap, FORWARDS);
             tapedelay_tap(tapedelay, tap, nread, FORWARDS, y);
         } else if (tap->direction == BACKWARDS) {
-            uint64_t xread = tap->xread -= tapedelay->speed;
+            uint64_t xread = tap->xread -= speed;
             if (!tapedelay->fade && comparegt(tap->xrevstop, xread)) {
                 xread             = tap->xread + DELAYUNIT;
                 uint64_t xrevstop = tap->xrevstop + DELAYUNIT / 2;
 
                 // put back xread
-                tap->xread += tapedelay->speed;
+                tap->xread += speed;
 
                 tapedelay->tap_id ^= 1;
                 tap = &tapedelay->tap[tapedelay->tap_id];
@@ -315,13 +339,13 @@ void tapedelay_process(tapedelay_t *restrict tapedelay, float **restrict in,
             tap_t *tap = &tapedelay->tap[tapedelay->tap_id ^ 1];
             float yfade[NCHANNELS];
             if (tap->direction == FORWARDS) {
-                tap->xread += tapedelay->speed;
+                tap->xread += speed;
                 size_t nread = tapedelay_movetap(tapedelay, tap, FORWARDS);
                 tapedelay_tap(tapedelay, tap, nread, FORWARDS, yfade);
 
                 if (tapedelay_fade(tapedelay, y, yfade)) tapedelay->fade = 0;
             } else if (tap->direction == BACKWARDS) {
-                tap->xread -= tapedelay->speed;
+                tap->xread -= speed;
                 size_t nread = tapedelay_movetap(tapedelay, tap, BACKWARDS);
                 tapedelay_tap(tapedelay, tap, nread, BACKWARDS, yfade);
 

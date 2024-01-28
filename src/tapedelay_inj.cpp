@@ -98,6 +98,9 @@ class tapedelay : public dsp
         ui_interface->addHorizontalSlider("drive", &m_desc.drive,
                                           FAUSTFLOAT(-40.f), FAUSTFLOAT(-40.f),
                                           FAUSTFLOAT(20.f), FAUSTFLOAT(0.001));
+        ui_interface->addHorizontalSlider("drift", &m_desc.drift,
+                                          FAUSTFLOAT(0.f), FAUSTFLOAT(0.f),
+                                          FAUSTFLOAT(1.f), FAUSTFLOAT(0.001f));
         ui_interface->addHorizontalSlider("drywet", &m_tapedelay.desc.drywet,
                                           FAUSTFLOAT(0.1f), FAUSTFLOAT(0.f),
                                           FAUSTFLOAT(1.f), FAUSTFLOAT(0.001f));

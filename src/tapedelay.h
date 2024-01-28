@@ -6,6 +6,7 @@
 
 #include "filter.h"
 #define FILTER_VECSIZE 2
+#include "lfo.h"
 
 #ifndef STEREO
 #ifndef MONO
@@ -40,6 +41,7 @@ typedef struct {
     float drywet;
     float cutoff;
     float drive;
+    float drift;
 #if NCHANNELS == 2
     int pingpong;
 #endif
@@ -74,6 +76,8 @@ typedef struct {
 
     uint64_t target_speed;
     uint64_t speed;
+    struct lfosc speed_lfo;
+    uint64_t drift;
 
     filter(_t) lowpassfilter;
 } tapedelay_t;
@@ -90,6 +94,7 @@ void tapedelay_set_delay(tapedelay_t *tapedelay, float delay);
 void tapedelay_set_reverse(tapedelay_t *tapedelay, float reverse);
 void tapedelay_set_cutoff(tapedelay_t *tapedelay, float cutoff);
 void tapedelay_set_drive(tapedelay_t *tapedelay, float drive);
+void tapedelay_set_drift(tapedelay_t *tapedelay, float drift);
 void tapedelay_process(tapedelay_t *restrict tapedelay, float **restrict in,
                        float **restrict out, int count);
 

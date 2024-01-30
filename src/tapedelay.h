@@ -42,6 +42,7 @@ typedef struct {
     float cutoff;
     float drive;
     float drift;
+    float drift_freq;
 #if NCHANNELS == 2
     int pingpong;
 #endif
@@ -95,6 +96,7 @@ void tapedelay_set_reverse(tapedelay_t *tapedelay, float reverse);
 void tapedelay_set_cutoff(tapedelay_t *tapedelay, float cutoff);
 void tapedelay_set_drive(tapedelay_t *tapedelay, float drive);
 void tapedelay_set_drift(tapedelay_t *tapedelay, float drift);
+void tapedelay_set_drift_freq(tapedelay_t *tapedelay, float drift_freq);
 void tapedelay_process(tapedelay_t *restrict tapedelay, float **restrict in,
                        float **restrict out, int count);
 

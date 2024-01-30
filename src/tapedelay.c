@@ -56,7 +56,6 @@ void tapedelay_init(tapedelay_t *tapedelay, tapedelay_desc_t *desc,
 
     /* initial speed */
     tapedelay->speed = DELAYUNIT / (INIT_DELAY * samplerate);
-    lfosc_set_freq(&tapedelay->speed_lfo, SPEEDLFO_FREQ / samplerate);
 
     for (int i = 0; i < NTAPS; ++i) {
         tapedelay->tap[i].direction = FORWARDS;
@@ -114,6 +113,7 @@ void tapedelay_update(tapedelay_t *tapedelay, tapedelay_desc_t *desc)
     param_update(cutoff);
     param_update(drive);
     param_update(drift);
+    param_update(drift_freq);
 #undef param_update
 }
 
@@ -162,6 +162,13 @@ void tapedelay_set_drift(tapedelay_t *tapedelay, float drift)
     tapedelay->drift =
         (uint64_t)(tapedelay->target_speed * SPEEDLFO_MAXDRIFT * drift) >>
         (DELAYQ - SPEEDLFOQ);
+}
+
+void tapedelay_set_drift_freq(tapedelay_t *tapedelay, float drift_freq)
+{
+    tapedelay->desc.drift_freq = drift_freq;
+
+    lfosc_set_freq(&tapedelay->speed_lfo, drift_freq / tapedelay->samplerate);
 }
 
 inline size_t tapedelay_movetap(tapedelay_t *tapedelay, tap_t *tap,

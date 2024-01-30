@@ -77,7 +77,7 @@ typedef struct {
 
     uint64_t target_speed;
     uint64_t speed;
-    struct lfosc speed_lfo;
+    struct lftri speed_lfo;
     uint64_t drift;
 
     filter(_t) lowpassfilter;

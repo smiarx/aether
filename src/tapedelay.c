@@ -168,7 +168,7 @@ void tapedelay_set_drift_freq(tapedelay_t *tapedelay, float drift_freq)
 {
     tapedelay->desc.drift_freq = drift_freq;
 
-    lfosc_set_freq(&tapedelay->speed_lfo, drift_freq / tapedelay->samplerate);
+    lftri_set_freq(&tapedelay->speed_lfo, drift_freq / tapedelay->samplerate);
 }
 
 inline size_t tapedelay_movetap(tapedelay_t *tapedelay, tap_t *tap,
@@ -304,7 +304,7 @@ void tapedelay_process(tapedelay_t *restrict tapedelay, float **restrict in,
              DELAYSMOOTHQ);
         /* delay speed lfo */
         uint64_t speed    = tapedelay->speed;
-        int64_t lfo_value = lfosc_process(&tapedelay->speed_lfo);
+        int64_t lfo_value = lftri_process(&tapedelay->speed_lfo);
         int64_t drift =
             (lfo_value >> (SPEEDLFOQ + LFOQ - DELAYQ)) * tapedelay->drift;
         speed += drift;

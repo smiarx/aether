@@ -6,6 +6,7 @@
 #define LFOQ      (PHASEQ * 2)
 #define LFOUNIT   ((int64_t)1 << LFOQ)
 
+/* lf parabolic osc */
 struct lfosc {
     int64_t phase;
     uint64_t freq;
@@ -33,5 +34,30 @@ static inline int64_t lfosc_process(struct lfosc *lfo)
     lfo->phase += lfo->freq;
     return y;
 }
+
+/* lf triangle */
+struct lftri {
+    int64_t phase;
+    uint64_t freq;
+};
+
+static inline void lftri_set_freq(struct lftri *lfo, float freq)
+{
+    lfo->freq = 4 * LFOUNIT * freq;
+}
+
+static inline int64_t lftri_process(struct lftri *lfo)
+{
+    int64_t y;
+    if (lfo->phase < LFOUNIT) y = lfo->phase;
+    else if (lfo->phase < 3 * LFOUNIT)
+        y = 2 * LFOUNIT - lfo->phase;
+    else
+        y = lfo->phase -= 4 * LFOUNIT;
+    lfo->phase += lfo->freq;
+    return y;
+}
+
+/* lf noise */
 
 #endif

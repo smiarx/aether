@@ -69,19 +69,21 @@ void tapedelay_init(tapedelay_t *tapedelay, tapedelay_desc_t *desc,
 void tapedelay_inittaphermite(tapedelay_t *tapedelay, tap_t *tap)
 {
     const enum tape_direction direction = tap->direction;
+    const int bufid                     = tap->buffer_id;
 
     for (int c = 0; c < NCHANNELS; ++c)
         tap->ym1[c] =
-            tapedelay->ringbuffer[(tap->nread - direction) & DELAYMASK].y[c];
+            tapedelay->ringbuffer[(tap->nread - direction) & DELAYMASK]
+                .y[bufid][c];
     for (int c = 0; c < NCHANNELS; ++c)
-        tap->y0[c] = tapedelay->ringbuffer[tap->nread].y[c];
+        tap->y0[c] = tapedelay->ringbuffer[tap->nread].y[bufid][c];
     for (int c = 0; c < NCHANNELS; ++c)
-        tap->y1[c] =
-            tapedelay->ringbuffer[(tap->nread + direction) & DELAYMASK].y[c];
+        tap->y1[c] = tapedelay->ringbuffer[(tap->nread + direction) & DELAYMASK]
+                         .y[bufid][c];
     for (int c = 0; c < NCHANNELS; ++c)
         tap->y2[c] =
             tapedelay->ringbuffer[(tap->nread + 2 * direction) & DELAYMASK]
-                .y[c];
+                .y[bufid][c];
 }
 
 void tapedelay_inittap(tapedelay_t *tapedelay, tap_t *tap,
@@ -109,7 +111,7 @@ void tapedelay_update(tapedelay_t *tapedelay, tapedelay_desc_t *desc)
             tapedelay_set_##name(tapedelay, desc->name); \
     }
     param_update(delay);
-    param_update(reverse);
+    param_update(fmode);
     param_update(cutoff);
     param_update(drive);
     param_update(drift);
@@ -126,18 +128,48 @@ void tapedelay_set_delay(tapedelay_t *tapedelay, float delay)
     tapedelay_set_drift(tapedelay, tapedelay->desc.drift);
 }
 
-void tapedelay_set_reverse(tapedelay_t *tapedelay, float reverse)
+void tapedelay_set_fmode(tapedelay_t *tapedelay, float fmode)
 {
-    tapedelay->desc.reverse = reverse;
+    tapedelay->desc.fmode      = fmode;
+    const enum tape_mode tmode = (int)fmode;
+    tapedelay->desc.mode       = tmode;
 
     tapedelay->tap_id ^= 1;
 
-    tap_t *tap                          = &tapedelay->tap[tapedelay->tap_id];
-    const enum tape_direction direction = reverse == 0.f ? FORWARDS : BACKWARDS;
-    tapedelay_inittap(tapedelay, tap, direction);
+    tap_t *tap = &tapedelay->tap[tapedelay->tap_id];
+    enum tape_direction direction;
+    switch (tmode) {
+    case NORMAL:
+    default:
+        direction = FORWARDS;
+        break;
+    case BACK_FORTH:
+    case REVERSE:
+        direction = BACKWARDS;
+        break;
+    }
 
-    tapedelay->fade    = 1;
-    tapedelay->fadepos = 0;
+    tap_t *opttap = &tapedelay->tap[OPTTAP];
+    switch (tmode) {
+    case NORMAL:
+    case BACK_FORTH:
+        if (tapedelay->twobuffers) tap->buffer_id = opttap->buffer_id;
+        tapedelay->twobuffers = 0;
+        break;
+    case REVERSE:
+        if (!tapedelay->twobuffers) opttap->buffer_id = tap->buffer_id ^ 1;
+        tapedelay->twobuffers = 1;
+        tapedelay_inittap(tapedelay, opttap, FORWARDS);
+        break;
+    }
+
+    /* if we change direction */
+    if (tap->direction != direction) {
+        tapedelay_inittap(tapedelay, tap, direction);
+
+        tapedelay->fade    = 1;
+        tapedelay->fadepos = 0;
+    }
 }
 
 void tapedelay_set_cutoff(tapedelay_t *tapedelay, float cutoff)
@@ -223,6 +255,7 @@ inline void tapedelay_tap(tapedelay_t *tapedelay, tap_t *tap, size_t nread,
 
     if (direction == BACKWARDS) fnread = 1.f - fnread;
 
+    int bufid = tap->buffer_id;
     if (playbackspeed <= 1.01) {
         if (tap->nread != nread) {
             tap->nread = nread;
@@ -232,7 +265,7 @@ inline void tapedelay_tap(tapedelay_t *tapedelay, tap_t *tap, size_t nread,
                 tap->y2[c] =
                     tapedelay
                         ->ringbuffer[(tap->nread + 2 * direction) & DELAYMASK]
-                        .y[c];
+                        .y[bufid][c];
             }
         }
     } else {
@@ -251,7 +284,7 @@ inline void tapedelay_tap(tapedelay_t *tapedelay, tap_t *tap, size_t nread,
                     a * tapedelay
                             ->ringbuffer[(tap->nread + 2 * direction) &
                                          DELAYMASK]
-                            .y[c];
+                            .y[bufid][c];
             }
         } while (direction == FORWARDS ? comparegt(nread, tap->nread)
                                        : comparegt(tap->nread, nread));
@@ -266,10 +299,13 @@ inline void tapedelay_tap(tapedelay_t *tapedelay, tap_t *tap, size_t nread,
 #else
     tap->nread = nread;
     for (int c = 0; c < NCHANNELS; ++c) {
-        ym1[c] = tapedelay->ringbuffer[(nread - direction) & DELAYMASK].y[c];
-        y0[c]  = tapedelay->ringbuffer[nread].y[c];
-        y1[c]  = tapedelay->ringbuffer[(nread + direction) & DELAYMASK].y[c];
-        y2[c] = tapedelay->ringbuffer[(nread + 2 * direction) & DELAYMASK].y[c];
+        ym1[c] =
+            tapedelay->ringbuffer[(nread - direction) & DELAYMASK].y[bufid][c];
+        y0[c] = tapedelay->ringbuffer[nread].y[bufid][c];
+        y1[c] =
+            tapedelay->ringbuffer[(nread + direction) & DELAYMASK].y[bufid][c];
+        y2[c] = tapedelay->ringbuffer[(nread + 2 * direction) & DELAYMASK]
+                    .y[bufid][c];
     }
 #endif
 
@@ -360,6 +396,22 @@ void tapedelay_process(tapedelay_t *restrict tapedelay, float **restrict in,
             }
         }
 
+        /* use of second buffer */
+        if (tapedelay->twobuffers) {
+            float y2[NCHANNELS];
+
+            tap_t *tap = &tapedelay->tap[OPTTAP];
+            tap->xread += speed;
+            size_t nread = tapedelay_movetap(tapedelay, tap, FORWARDS);
+            tapedelay_tap(tapedelay, tap, nread, FORWARDS, y2);
+
+            for (int c = 0; c < NCHANNELS; ++c) {
+                tapedelay->ringbuffer[tapedelay->nwrite].y[tap->buffer_id][c] =
+                    y[c];
+                y[c] += y2[c];
+            }
+        }
+
         /* apply lowpass to tapeoutput */
         filter(_process)(&tapedelay->lowpassfilter, y, 1);
 
@@ -374,8 +426,17 @@ void tapedelay_process(tapedelay_t *restrict tapedelay, float **restrict in,
 #if NCHANNELS == 2
             if (tapedelay->desc.pingpong) c0 ^= 1;
 #endif
-            tapedelay->ringbuffer[tapedelay->nwrite].y[c0] =
-                in[c][n] + (tapedelay->desc.feedback * y[c]);
+            int bufid = tap->buffer_id;
+            if (tapedelay->twobuffers) {
+                tapedelay->ringbuffer[tapedelay->nwrite].y[bufid][c0] =
+                    in[c][n];
+                tapedelay->ringbuffer[tapedelay->nwrite].y[bufid ^ 1][c0] =
+                    (tapedelay->desc.feedback * y[c]);
+            } else {
+                tapedelay->ringbuffer[tapedelay->nwrite].y[bufid][c0] =
+                    in[c][n] + (tapedelay->desc.feedback * y[c]);
+                tapedelay->ringbuffer[tapedelay->nwrite].y[bufid ^ 1][c0] = 0.f;
+            }
 
             float drywet = tapedelay->desc.drywet;
             out[c][n]    = drywet * y[c] + (1.f - drywet) * in[c][n];

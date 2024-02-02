@@ -28,11 +28,19 @@
 #define DELAYQ    61
 #define DELAYUNIT (((uint64_t)1) << DELAYQ)
 
-#define NTAPS 2
+#define NTAPS    3
+#define NBUFFERS 2
+#define OPTTAP   2
 
 enum tape_direction {
     FORWARDS  = 1,
     BACKWARDS = -1,
+};
+
+enum tape_mode {
+    NORMAL,
+    BACK_FORTH,
+    REVERSE,
 };
 
 typedef struct {
@@ -46,7 +54,8 @@ typedef struct {
 #if NCHANNELS == 2
     int pingpong;
 #endif
-    float reverse;
+    float fmode;
+    enum tape_mode mode;
 } tapedelay_desc_t;
 
 typedef struct {
@@ -55,6 +64,7 @@ typedef struct {
     float prev_fnread;
     float ym1[NCHANNELS], y0[NCHANNELS], y1[NCHANNELS], y2[NCHANNELS];
 
+    int buffer_id;
     enum tape_direction direction;
 } tap_t;
 
@@ -63,7 +73,7 @@ typedef struct {
     tapedelay_desc_t desc;
     struct {
         uint64_t V;
-        float y[NCHANNELS];
+        float y[NBUFFERS][NCHANNELS];
     } ringbuffer[DELAYSIZE];
 
     size_t nwrite;
@@ -81,6 +91,8 @@ typedef struct {
     uint64_t drift;
 
     filter(_t) lowpassfilter;
+
+    int twobuffers;
 } tapedelay_t;
 
 #ifdef __cplusplus
@@ -92,7 +104,7 @@ void tapedelay_init(tapedelay_t *tapedelay, tapedelay_desc_t *desc,
                     float samplerate);
 void tapedelay_update(tapedelay_t *tapedelay, tapedelay_desc_t *desc);
 void tapedelay_set_delay(tapedelay_t *tapedelay, float delay);
-void tapedelay_set_reverse(tapedelay_t *tapedelay, float reverse);
+void tapedelay_set_fmode(tapedelay_t *tapedelay, float fmode);
 void tapedelay_set_cutoff(tapedelay_t *tapedelay, float cutoff);
 void tapedelay_set_drive(tapedelay_t *tapedelay, float drive);
 void tapedelay_set_drift(tapedelay_t *tapedelay, float drift);

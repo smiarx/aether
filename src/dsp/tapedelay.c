@@ -2,7 +2,7 @@
 #include "fastmath.h"
 
 #define DELAYSMOOTHQ 30
-#define DELAYSMOOTHF 0.9995f
+#define DELAYSMOOTHF 0.9999f
 #define DELAYSMOOTH                                        \
     ((uint64_t)(((uint64_t)1 << (DELAYQ - DELAYSMOOTHQ)) * \
                 (1.f - DELAYSMOOTHF)))
@@ -326,8 +326,8 @@ static inline int tapedelay_fade(tapedelay_t *tapedelay,
     return tapedelay->fadepos == FADESIZE;
 }
 
-void tapedelay_process(tapedelay_t *restrict tapedelay, float **restrict in,
-                       float **restrict out, int count)
+void tapedelay_process(tapedelay_t *restrict tapedelay, const float *const *in,
+                       float *const *out, int count)
 {
     float y[NCHANNELS];
     tap_t *tap = &tapedelay->tap[tapedelay->tap_id];

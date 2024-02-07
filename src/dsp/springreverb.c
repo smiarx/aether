@@ -504,8 +504,9 @@ void high_cascade_process(struct high_cascade *hc, float y[restrict MAXSPRINGS])
 
 // only flatten in clang, gcc seems to break vectorization
 __attribute__((flatten)) void springs_process(springs_t *restrict springs,
-                                              float **restrict in,
-                                              float **restrict out, int count)
+                                              const float *const *in,
+                                              float *const *restrict out,
+                                              int count)
 {
     /* springs */
     float(*y)[MAXSPRINGS]     = springs->ylow;

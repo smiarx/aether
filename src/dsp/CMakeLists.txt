@@ -6,9 +6,8 @@ set(dsp_sources
 add_library(dsp STATIC ${dsp_sources})
 
 target_compile_options(dsp PRIVATE
-       -Wall -Werror
+       -Wall -Werror -fopenmp-simd
        $<$<CONFIG:RELEASE>:-Ofast -march=native -mtune=native>
-       $<$<CONFIG:RELEASE>:-fopenmp-simd>
        $<$<CONFIG:DEBUG>:-O0>
        $<$<CONFIG:DEBUG>:-g>
    )

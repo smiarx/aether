@@ -226,7 +226,7 @@ void high_cascade_process(struct high_cascade *hc,
 void high_delayline_process(struct high_delayline *restrict dl,
                             struct rand *restrict rd,
                             float y[restrict MAXSPRINGS]);
-void springs_process(springs_t *restrict springs, float **restrict in,
-                     float **restrict out, int count);
+void springs_process(springs_t *restrict springs, const float *const *in,
+                     float *const *restrict out, int count);
 
 #endif

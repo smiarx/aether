@@ -109,8 +109,8 @@ void tapedelay_set_cutoff(tapedelay_t *tapedelay, float cutoff);
 void tapedelay_set_drive(tapedelay_t *tapedelay, float drive);
 void tapedelay_set_drift(tapedelay_t *tapedelay, float drift);
 void tapedelay_set_drift_freq(tapedelay_t *tapedelay, float drift_freq);
-void tapedelay_process(tapedelay_t *restrict tapedelay, float **restrict in,
-                       float **restrict out, int count);
+void tapedelay_process(tapedelay_t *restrict tapedelay, const float *const *in,
+                       float *const *out, int count);
 
 #undef restrict
 

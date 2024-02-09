@@ -27,6 +27,8 @@ PluginProcessor::PluginProcessor() :
             std::make_unique<juce::AudioParameterChoice>(
                 "mode", "Mode",
                 juce::StringArray{"Normal", "Back&Forth", "Reverse"}, 0),
+            std::make_unique<juce::AudioParameterFloat>(
+                "springs_drywet", "Springs:Dry/Wet", 0.0f, 1.f, 0.f),
         })
 {
     addListener("drywet");
@@ -37,6 +39,7 @@ PluginProcessor::PluginProcessor() :
     addListener("drift");
     addListener("driftfreq");
     addListener("mode");
+    addListener("springs_drywet");
 }
 
 PluginProcessor::~PluginProcessor() {}
@@ -162,6 +165,8 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
         case ParamId::DelayMode:
             tapedelay_set_fmode(&m_tapedelay, event.value);
             break;
+        case ParamId::SpringsDryWet:
+            m_springreverb.desc.drywet = event.value;
         }
     }
 

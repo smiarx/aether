@@ -623,7 +623,9 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
                     for (int j = 0; j < i; ++j)
                         y[n][offset + j] += y[n][offset + j + i];
                 }
-                out[c][nbase + n] = y[n][offset];
+                out[c][nbase + n] =
+                    in[c][nbase + n] +
+                    springs->desc.drywet * (y[n][offset] - in[c][nbase + n]);
             }
         }
 

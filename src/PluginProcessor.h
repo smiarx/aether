@@ -58,6 +58,7 @@ class PluginProcessor final : public juce::AudioProcessor,
         DelayDrift,
         DelayDriftFreq,
         DelayMode,
+        SpringsDryWet,
     };
 
     struct ParamEvent {

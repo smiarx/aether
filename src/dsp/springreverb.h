@@ -77,6 +77,7 @@ typedef struct {
     springparam(float, ghf);
     springparam(float, vol);
     springparam(float, hilomix);
+    float drywet;
 } springs_desc_t;
 
 /* low dc filter */

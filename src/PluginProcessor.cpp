@@ -7,42 +7,68 @@ PluginProcessor::PluginProcessor() :
         BusesProperties()
             .withInput("Input", juce::AudioChannelSet::stereo(), true)
             .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
-    m_parameters(
-        *this, nullptr, juce::Identifier("Echoes"),
-        {
-            std::make_unique<juce::AudioParameterFloat>("drywet", "Dry/Wet",
-                                                        0.f, 1.f, 0.2f),
-            std::make_unique<juce::AudioParameterFloat>("delay", "Delay", 0.01f,
-                                                        1.f, 0.12f),
-            std::make_unique<juce::AudioParameterFloat>("feedback", "Feedback",
-                                                        0.0f, 1.f, 0.8f),
-            std::make_unique<juce::AudioParameterFloat>("cutoff", "Cutoff",
-                                                        20.f, 13000.f, 2000.f),
-            std::make_unique<juce::AudioParameterFloat>("drive", "Drive", -40.f,
-                                                        20.f, -40.f),
-            std::make_unique<juce::AudioParameterFloat>("drift", "Drift", 0.f,
-                                                        1.f, 0.f),
-            std::make_unique<juce::AudioParameterFloat>(
-                "driftfreq", "Drift Freq", 0.1f, 10.f, 0.6f),
-            std::make_unique<juce::AudioParameterChoice>(
-                "mode", "Mode",
-                juce::StringArray{"Normal", "Back&Forth", "Reverse"}, 0),
-            std::make_unique<juce::AudioParameterFloat>(
-                "springs_drywet", "Springs:Dry/Wet", 0.0f, 1.f, 0.f),
-        })
+    m_parameters(*this, nullptr, juce::Identifier("Echoes"), createLayout())
 {
-    addListener("drywet");
-    addListener("delay");
-    addListener("feedback");
-    addListener("cutoff");
-    addListener("drive");
-    addListener("drift");
-    addListener("driftfreq");
-    addListener("mode");
+    addListener("delay_drywet");
+    addListener("delay_time");
+    addListener("delay_feedback");
+    addListener("delay_cutoff");
+    addListener("delay_drive");
+    addListener("delay_drift");
+    addListener("delay_driftfreq");
+    addListener("delay_mode");
     addListener("springs_drywet");
+    for (int i = 0; i < MAXSPRINGS; ++i) {
+        addListener(juce::String("spring") + juce::String(i) +
+                    juce::String("_vol"));
+    }
 }
 
 PluginProcessor::~PluginProcessor() {}
+
+//==============================================================================
+juce::AudioProcessorValueTreeState::ParameterLayout
+PluginProcessor::createLayout()
+{
+    juce::AudioProcessorValueTreeState::ParameterLayout layout;
+    layout.add(std::make_unique<juce::AudioProcessorParameterGroup>(
+        "delay", "Delay", "|",
+        std::make_unique<juce::AudioParameterFloat>("delay_drywet", "Dry/Wet",
+                                                    0.f, 1.f, 0.2f),
+        std::make_unique<juce::AudioParameterFloat>("delay_time", "Delay",
+                                                    0.01f, 1.f, 0.12f),
+        std::make_unique<juce::AudioParameterFloat>(
+            "delay_feedback", "Feedback", 0.0f, 1.f, 0.8f),
+        std::make_unique<juce::AudioParameterFloat>("delay_cutoff", "Cutoff",
+                                                    20.f, 13000.f, 2000.f),
+        std::make_unique<juce::AudioParameterFloat>("delay_drive", "Drive",
+                                                    -40.f, 20.f, -40.f),
+        std::make_unique<juce::AudioParameterFloat>("delay_drift", "Drift", 0.f,
+                                                    1.f, 0.f),
+        std::make_unique<juce::AudioParameterFloat>(
+            "delay_driftfreq", "Drift Freq", 0.1f, 10.f, 0.6f),
+        std::make_unique<juce::AudioParameterChoice>(
+            "delay_mode", "Mode",
+            juce::StringArray{"Normal", "Back&Forth", "Reverse"}, 0)));
+
+    auto springs = std::make_unique<juce::AudioProcessorParameterGroup>(
+        "springreverb", "Spring Reverb", "|");
+    springs->addChild(std::make_unique<juce::AudioParameterFloat>(
+        "springs_drywet", "Dry/Wet", 0.0f, 1.f, 0.f));
+
+    for (int i = 0; i < MAXSPRINGS; ++i) {
+        springs->addChild(std::make_unique<juce::AudioProcessorParameterGroup>(
+            juce::String("spring") + juce::String(i),
+            juce::String("Spring ") + juce::String(i), "|",
+            std::make_unique<juce::AudioParameterFloat>(
+                juce::String("spring") + juce::String(i) + "_vol", "Volume",
+                -60.f, 0.f, 0.f)));
+    }
+
+    layout.add(std::move(springs));
+
+    return layout;
+}
 
 //==============================================================================
 const juce::String PluginProcessor::getName() const { return JucePlugin_Name; }
@@ -140,6 +166,15 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
     while (!m_paramEvents.empty()) {
         auto event = m_paramEvents.front();
         m_paramEvents.pop_front();
+        int spring = 0;
+        if (event.id >= ParamId::SpringParamBegin) {
+            int id              = static_cast<int>(event.id);
+            constexpr int begin = static_cast<int>(ParamId::SpringParamBegin);
+            constexpr int end   = static_cast<int>(ParamId::SpringParamEnd);
+            spring              = (id - begin) / (end - begin - 1);
+            id                  = (id - begin) % (end - begin - 1) + begin + 1;
+            event.id            = static_cast<ParamId>(id);
+        }
         switch (event.id) {
         case ParamId::DelayDrywet:
             m_tapedelay.desc.drywet = event.value;
@@ -167,6 +202,11 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
             break;
         case ParamId::SpringsDryWet:
             m_springreverb.desc.drywet = event.value;
+            break;
+        case ParamId::SpringVolume:
+            m_springreverb.desc.vol[spring] = event.value;
+            springs_set_vol(&m_springreverb, m_springreverb.desc.vol);
+            break;
         }
     }
 
@@ -228,6 +268,7 @@ void PluginProcessor::parameterValueChanged(int id, float newValue)
 void PluginProcessor::addListener(const juce::String &stringId)
 {
     auto *param = m_parameters.getParameter(stringId);
-    if (param != nullptr) param->addListener(this);
+    jassert(param != nullptr);
+    param->addListener(this);
     parameterValueChanged(param->getParameterIndex(), param->getValue());
 }

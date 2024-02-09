@@ -59,6 +59,9 @@ class PluginProcessor final : public juce::AudioProcessor,
         DelayDriftFreq,
         DelayMode,
         SpringsDryWet,
+        SpringParamBegin,
+        SpringVolume,
+        SpringParamEnd,
     };
 
     struct ParamEvent {
@@ -70,6 +73,7 @@ class PluginProcessor final : public juce::AudioProcessor,
         float value;
     };
 
+    juce::AudioProcessorValueTreeState::ParameterLayout createLayout();
     void addListener(const juce::String &stringId);
     void parameterValueChanged(int id, float newValue);
     void parameterGestureChanged(int parameterIndex, bool gestureIsStarting) {}

@@ -77,6 +77,7 @@ typedef struct {
     springparam(float, ghf);
     springparam(float, vol);
     springparam(float, hilomix);
+    springparam(float, pan);
     float drywet;
 } springs_desc_t;
 
@@ -189,6 +190,7 @@ typedef struct {
     /* low and high gain */
     springparam(float, glow);
     springparam(float, ghigh);
+    springparam(float, gchannel[NCHANNELS]);
 
     float samplerate;
 } springs_t;
@@ -212,6 +214,7 @@ void springs_set_gecho(springs_t *springs, float gecho[restrict MAXSPRINGS]);
 void springs_set_glf(springs_t *springs, float glf[restrict MAXSPRINGS]);
 void springs_set_ghf(springs_t *springs, float ghf[restrict MAXSPRINGS]);
 void springs_set_vol(springs_t *springs, float vol[restrict MAXSPRINGS]);
+void springs_set_pan(springs_t *springs, float pan[restrict MAXSPRINGS]);
 void springs_set_hilomix(springs_t *springs,
                          float hilomix[restrict MAXSPRINGS]);
 

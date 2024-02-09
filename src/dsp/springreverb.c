@@ -35,6 +35,7 @@ void springs_init(springs_t *springs, springs_desc_t *desc, float samplerate)
     springs_set_glf(springs, springs->desc.glf);
     springs_set_ghf(springs, springs->desc.ghf);
     springs_set_vol(springs, springs->desc.vol);
+    springs_set_pan(springs, springs->desc.pan);
     springs_set_hilomix(springs, springs->desc.hilomix);
 
     float fcutoff[] = {20, 20, 20, 20, 20, 20, 20, 20};
@@ -266,6 +267,19 @@ void springs_set_hilomix(springs_t *springs, float hilomix[restrict MAXSPRINGS])
     }
 }
 #undef set_glow_ghigh
+
+void springs_set_pan(springs_t *springs, float pan[restrict MAXSPRINGS])
+{
+    loopsprings(i)
+    {
+        springs->desc.pan[i] = pan[i];
+#if NCHANNELS == 2
+        float theta             = (1.f + pan[i]) * M_PI / 4.f;
+        springs->gchannel[0][i] = cosf(theta);
+        springs->gchannel[1][i] = sinf(theta);
+#endif
+    }
+}
 
 #pragma omp declare simd linear(i) uniform(rd)
 static const float rand_get(struct rand *rd, int i)
@@ -618,17 +632,14 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
         loopsamples(n)
         {
             for (int c = 0; c < NCHANNELS; ++c) {
-                int offset = c * NSPRINGS / NCHANNELS;
-                for (int i = NSPRINGS / 2 / NCHANNELS; i > 0; i /= 2) {
-                    for (int j = 0; j < i; ++j)
-                        y[n][offset + j] += y[n][offset + j + i];
-                }
+                float ysum = 0.f;
+#pragma omp simd
+                loopsprings(i) { ysum += springs->gchannel[c][i] * y[n][i]; }
                 out[c][nbase + n] =
                     in[c][nbase + n] +
-                    springs->desc.drywet * (y[n][offset] - in[c][nbase + n]);
+                    springs->desc.drywet * (ysum - in[c][nbase + n]);
             }
         }
-
         nbase += blocksize;
         count -= blocksize;
     }

@@ -22,6 +22,8 @@ PluginProcessor::PluginProcessor() :
         addListener(juce::String("spring") + juce::String(i) +
                     juce::String("_vol"));
         addListener(juce::String("spring") + juce::String(i) +
+                    juce::String("_source"));
+        addListener(juce::String("spring") + juce::String(i) +
                     juce::String("_pan"));
     }
 }
@@ -65,6 +67,9 @@ PluginProcessor::createLayout()
             std::make_unique<juce::AudioParameterFloat>(
                 juce::String("spring") + juce::String(i) + "_vol", "Volume",
                 -60.f, 0.f, 0.f),
+            std::make_unique<juce::AudioParameterChoice>(
+                juce::String("spring") + juce::String(i) + "_source", "Source",
+                juce::StringArray{"Left", "Right", "Mono"}, 2),
             std::make_unique<juce::AudioParameterFloat>(
                 juce::String("spring") + juce::String(i) + "_pan", "Pan", -1.f,
                 1.f, 0.f)));
@@ -211,6 +216,9 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
         case ParamId::SpringVolume:
             m_springreverb.desc.vol[spring] = event.value;
             springs_set_vol(&m_springreverb, m_springreverb.desc.vol);
+            break;
+        case ParamId::SpringSource:
+            m_springreverb.desc.source[spring] = static_cast<int>(event.value);
             break;
         case ParamId::SpringPan:
             m_springreverb.desc.pan[spring] = event.value;

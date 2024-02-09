@@ -77,6 +77,7 @@ typedef struct {
     springparam(float, ghf);
     springparam(float, vol);
     springparam(float, hilomix);
+    springparam(int, source);
     springparam(float, pan);
     float drywet;
 } springs_desc_t;

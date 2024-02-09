@@ -541,10 +541,18 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
         if (springs->downsampleM > 1) {
             loopsamples(n)
             {
+                /* compute sources (left,right,mono)*/
+                float sources[NCHANNELS + 1];
+                sources[NCHANNELS] = 0.f;
+                for (int c = 0; c < NCHANNELS; ++c) {
+                    sources[c] = in[c][nbase+n];
+                    sources[NCHANNELS] += in[c][nbase+n] / NCHANNELS;
+                }
+
                 float ylowin[MAXSPRINGS];
 #pragma omp simd
                 loopsprings(i) ylowin[i] = yhigh[n][i] =
-                    in[i * NCHANNELS / NSPRINGS][n];
+                    sources[springs->desc.source[i]];
                 // aa filter
                 filter(_process)(springs->aafilter, ylowin, NAASOS);
 
@@ -562,9 +570,16 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
         } else {
             loopsamples(n)
             {
+                /* compute sources (left,right,mono)*/
+                float sources[NCHANNELS + 1];
+                sources[NCHANNELS] = 0.f;
+                for (int c = 0; c < NCHANNELS; ++c) {
+                    sources[c] = in[c][nbase+n];
+                    sources[NCHANNELS] += in[c][nbase+n] / NCHANNELS;
+                }
 #pragma omp simd
                 loopsprings(i) ylow[n][i] = yhigh[n][i] =
-                    in[i * NCHANNELS / NSPRINGS][n];
+                    sources[springs->desc.source[i]];
             }
         }
 

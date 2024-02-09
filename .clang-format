@@ -1,0 +1,15 @@
+﻿---
+IndentWidth: 4
+AlignAfterOpenBracket: Align
+AlignConsecutiveMacros: 'true'
+AlignConsecutiveAssignments: 'true'
+AlignEscapedNewlines: Left
+AlignOperands: 'true'
+AlignTrailingComments: 'true'
+AllowShortIfStatementsOnASingleLine: Always
+AllowShortLambdasOnASingleLine: Inline
+AllowShortLoopsOnASingleLine: 'true'
+BreakBeforeBraces: Linux
+BreakConstructorInitializers: AfterColon
+
+...

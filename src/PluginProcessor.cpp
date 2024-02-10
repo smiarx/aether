@@ -224,7 +224,7 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
             break;
         case ParamId::SpringPan:
             m_springreverb.desc.pan[spring] = event.value;
-            springs_set_pan(&m_springreverb, m_springreverb.desc.pan);
+            springs_set_pan(&m_springreverb, m_springreverb.desc.pan, count);
             break;
         }
     }

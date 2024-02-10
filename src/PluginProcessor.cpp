@@ -160,8 +160,7 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
         /* fcutoff */ {20.f, 20.f, 20.f, 20.f, 20.f, 20.f, 20.f, 20.f},
         /* gripple */ {0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f},
         /* gecho */ {0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f},
-        /* glf */ {0.95f, 0.95f, 0.95f, 0.95f, 0.95f, 0.95f, 0.95f, 0.95f},
-        /* ghf */ {0.85f, 0.85f, 0.85f, 0.85f, 0.85f, 0.85f, 0.85f, 0.85f},
+        /* t60 */ {2.5f, 2.5f, 2.5f, 2.5f, 2.5f, 2.5f, 2.5f, 2.5f},
         /* vol */ {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f},
         /* hilomix */ {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f},
     };

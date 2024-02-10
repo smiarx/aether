@@ -79,7 +79,6 @@ typedef struct {
     springvec(float, fcutoff);
     springvec(float, gripple);
     springvec(float, gecho);
-    springvec(float, ghf);
     springvec(float, t60);
     springvec(float, vol);
     springvec(float, hilomix);
@@ -158,11 +157,11 @@ struct low_delayline {
 struct high_delayline {
     springvec(float, modstate);
 
-    springvec(float, L);
+    struct springparam L;
     struct delay_tap tap;
     springvec(float, buffer[HIGHDELAYSIZE]);
 
-    springvec(float, ghf);
+    struct springparam ghf;
 };
 
 typedef struct {
@@ -230,7 +229,6 @@ void springs_set_gripple(springs_t *springs,
 void springs_set_gecho(springs_t *springs, float gecho[restrict MAXSPRINGS]);
 void springs_set_t60(springs_t *springs, float t60[restrict MAXSPRINGS],
                      int count);
-void springs_set_ghf(springs_t *springs, float ghf[restrict MAXSPRINGS]);
 void springs_set_vol(springs_t *springs, float vol[restrict MAXSPRINGS],
                      int count);
 void springs_set_pan(springs_t *springs, float pan[restrict MAXSPRINGS],
@@ -251,7 +249,8 @@ void high_cascade_process(struct high_cascade *hc,
                           float y[restrict MAXSPRINGS]);
 void high_delayline_process(struct high_delayline *restrict dl,
                             struct rand *restrict rd,
-                            float y[restrict MAXSPRINGS]);
+                            float y[restrict MAXSPRINGS], doinc_t inc_delaytime,
+                            doinc_t inc_t60);
 void springs_process(springs_t *restrict springs, const float *const *in,
                      float *const *out, int count);
 

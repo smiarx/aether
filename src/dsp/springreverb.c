@@ -8,6 +8,7 @@
 #include "springreverb.h"
 
 #define NRIPPLE 0.5f
+#define T60_HILO_RATIO 0.8f
 
 #define loopsprings(i) for (int i = 0; i < NSPRINGS; ++i)
 
@@ -39,7 +40,6 @@ void springs_init(springs_t *springs, springs_desc_t *desc, float samplerate)
     springs_set_a1(springs, springs->desc.a1);
     springs_set_length(springs, springs->desc.length, 1);
     springs_set_t60(springs, springs->desc.t60, 1);
-    springs_set_ghf(springs, springs->desc.ghf);
     springs_set_vol(springs, springs->desc.vol, 1);
     springs_set_pan(springs, springs->desc.pan, 1);
     springs_set_drywet(springs, springs->desc.drywet, 1);
@@ -66,7 +66,6 @@ void springs_update(springs_t *springs, springs_desc_t *desc)
     param_update(ahigh);
     param_update(gripple);
     param_update(gecho);
-    param_update(ghf);
 
 #undef param_update
 }
@@ -193,6 +192,8 @@ void springs_set_ahigh(springs_t *springs, float ahigh[restrict MAXSPRINGS])
 void springs_set_length(springs_t *springs, float length[restrict MAXSPRINGS],
                         int count)
 {
+    float Lhigh[MAXSPRINGS];
+
     float samplerate = springs->samplerate / (float)springs->downsampleM;
     loopsprings(i)
     {
@@ -213,8 +214,8 @@ void springs_set_length(springs_t *springs, float length[restrict MAXSPRINGS],
         setinc(ldl->Lripple, Lripple, i);
 
         struct high_delayline *hdl = &springs->high_delayline;
-        float Lhigh                = L / 1.8f * (float)springs->downsampleM;
-        hdl->L[i]                  = Lhigh;
+        Lhigh[i]                   = L / 1.8f * (float)springs->downsampleM;
+        setinc(hdl->L, Lhigh[i], i);
     }
 
     springs->increment_delaytime = 1;
@@ -224,8 +225,7 @@ void springs_set_length(springs_t *springs, float length[restrict MAXSPRINGS],
 
     /* find block size */
     int blocksize = MAXBLOCKSIZE;
-    loopsprings(i) if (springs->high_delayline.L[i] < blocksize) blocksize =
-        (int)springs->high_delayline.L[i];
+    loopsprings(i) if (Lhigh[i] < blocksize) blocksize = (int)Lhigh[i];
     springs->blocksize = blocksize;
 }
 
@@ -237,20 +237,25 @@ void springs_set_length(springs_t *springs, float length[restrict MAXSPRINGS],
             springs->part##_delayline.gname[i] = gname[i];     \
     }
 
-gfunc(gripple, low) gfunc(gecho, low) gfunc(ghf, high)
+gfunc(gripple, low) gfunc(gecho, low)
 #undef gfunc
 
     void springs_set_t60(springs_t *springs, float t60[restrict MAXSPRINGS],
                          int count)
 {
-    struct low_delayline *dl = &springs->low_delayline;
+    struct low_delayline *ldl  = &springs->low_delayline;
+    struct high_delayline *hdl = &springs->high_delayline;
     loopsprings(i)
     {
+        /* get delay length values */
+        float L1             = ldl->L1.val[i] + ldl->L1.inc[i] * count;
+        float Lhigh          = hdl->L.val[i] + hdl->L.inc[i] * count;
         springs->desc.t60[i] = t60[i];
-        float L1             = dl->L1.val[i] + dl->L1.inc[i] * count;
         float t60samples     = t60[i] * springs->samplerate;
         float glf            = -powf(0.001, L1 / t60samples);
-        setinc(dl->glf, glf, i);
+        float ghf = -powf(0.001, Lhigh / (t60samples * T60_HILO_RATIO));
+        setinc(ldl->glf, glf, i);
+        setinc(hdl->ghf, ghf, i);
     }
 
     springs->increment_t60 = 1;
@@ -404,7 +409,8 @@ void low_delayline_process(struct low_delayline *restrict dl,
 
 void high_delayline_process(struct high_delayline *restrict dl,
                             struct rand *restrict rd,
-                            float y[restrict MAXSPRINGS])
+                            float y[restrict MAXSPRINGS], doinc_t inc_delaytime,
+                            doinc_t inc_t60)
 {
     y = __builtin_assume_aligned(y, sizeof(float) * MAXSPRINGS);
 
@@ -415,15 +421,17 @@ void high_delayline_process(struct high_delayline *restrict dl,
         float mod       = rand_get(rd, i);
         dl->modstate[i] = mod += amod * (dl->modstate[i] - mod);
 
+        if (inc_delaytime) addinc(dl->L, i);
         // todo gmod should be divised by downsampleM
-        tap_set_delay(&dl->tap, dl->L[i] + mod * gmod, i);
+        tap_set_delay(&dl->tap, dl->L.val[i] + mod * gmod, i);
     }
 #pragma omp simd
     loopsprings(i)
     {
         float tap = tap_linear(&dl->tap, dl->buffer, HIGHDELAYMASK, i);
 
-        y[i] += tap * dl->ghf[i];
+        if (inc_t60) addinc(dl->ghf, i);
+        y[i] += tap * dl->ghf.val[i];
     }
 
     /* increment buffer ids */
@@ -635,11 +643,15 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
 
         // get delay tap
         int highdelayid = springs->high_delayline.tap.id;
-        loopsamples(n)
-        {
-            high_delayline_process(&springs->high_delayline, &springs->rand,
-                                   yhigh[n]);
-        }
+        if (springs->increment_delaytime)
+            loopsamples(n) high_delayline_process(
+                &springs->high_delayline, &springs->rand, yhigh[n], 1, 1);
+        else if (springs->increment_t60)
+            loopsamples(n) high_delayline_process(
+                &springs->high_delayline, &springs->rand, yhigh[n], 0, 1);
+        else
+            loopsamples(n) high_delayline_process(
+                &springs->high_delayline, &springs->rand, yhigh[n], 0, 0);
         springs->high_delayline.tap.id = highdelayid;
 
         // dc filter
@@ -756,9 +768,11 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
         resetinc(springs->low_delayline.L1);
         resetinc(springs->low_delayline.Lecho);
         resetinc(springs->low_delayline.Lripple);
+        resetinc(springs->high_delayline.L);
     }
     if (springs->increment_t60) {
         springs->increment_t60 = 0;
         resetinc(springs->low_delayline.glf);
+        resetinc(springs->high_delayline.ghf);
     }
 }

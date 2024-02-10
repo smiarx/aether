@@ -234,8 +234,6 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
 
     tapedelay_process(&m_tapedelay, ins, outs, count);
     springs_process(&m_springreverb, ins, outs, count);
-
-    springs_clear_incs(&m_springreverb);
 }
 
 //==============================================================================

@@ -70,15 +70,6 @@ void springs_update(springs_t *springs, springs_desc_t *desc)
 #undef param_update
 }
 
-/* clear incremental values */
-void springs_clear_incs(springs_t *springs)
-{
-    if (springs->out_doinc) {
-        springs->drywet_inc = 0;
-        springs->out_doinc  = 0;
-    }
-}
-
 void springs_set_dccutoff(springs_t *springs,
                           float fcutoff[restrict MAXSPRINGS])
 {
@@ -296,7 +287,6 @@ void springs_set_drywet(springs_t *springs, float drywet, int count)
     springs->desc.drywet = drywet;
     if (springs->drywet != springs->desc.drywet) {
         springs->drywet_inc = (springs->desc.drywet - springs->drywet) / count;
-        springs->out_doinc  = 1;
     }
 }
 
@@ -664,23 +654,36 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
 
         /* sum springs */
         float drywet;
-        for (int c = 0; c < NCHANNELS; ++c) {
-            drywet = springs->drywet;
-            loopsamples(n)
-            {
-                float ysum = 0.f;
-#pragma omp simd
-                loopsprings(i) { ysum += springs->gchannel[c][i] * y[n][i]; }
-                out[c][nbase + n] =
-                    in[c][nbase + n] + drywet * (ysum - in[c][nbase + n]);
+        const float drywet_inc = springs->drywet_inc;
 
-                /* hopefully this is unswitched of the loop */
-                if (springs->out_doinc) drywet += springs->drywet_inc;
-            }
+#define sumloop(inc_drywet)                                            \
+    for (int c = 0; c < NCHANNELS; ++c) {                              \
+        drywet = springs->drywet;                                      \
+        loopsamples(n)                                                 \
+        {                                                              \
+            float ysum = 0.f;                                          \
+            _Pragma("omp simd") loopsprings(i)                         \
+            {                                                          \
+                ysum += springs->gchannel[c][i] * y[n][i];             \
+            }                                                          \
+                                                                       \
+            if (inc_drywet) drywet += drywet_inc;                      \
+            out[c][nbase + n] =                                        \
+                in[c][nbase + n] + drywet * (ysum - in[c][nbase + n]); \
+        }                                                              \
+    }                                                                  \
+    if (inc_drywet) springs->drywet = drywet;
+
+        if (drywet_inc != 0) {
+            sumloop(1);
+        } else {
+            sumloop(0);
         }
-        if (springs->out_doinc) springs->drywet = drywet;
+#undef sumloop
 
         nbase += blocksize;
         count -= blocksize;
     }
+
+    springs->drywet_inc = 0.f;
 }

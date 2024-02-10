@@ -195,7 +195,6 @@ typedef struct {
 
     float drywet;
     float drywet_inc;
-    int out_doinc;
 
     float samplerate;
 } springs_t;
@@ -206,7 +205,6 @@ typedef struct {
 
 void springs_init(springs_t *springs, springs_desc_t *desc, float samplerate);
 void springs_update(springs_t *springs, springs_desc_t *desc);
-void springs_clear_incs(springs_t *springs);
 void springs_set_dccutoff(springs_t *springs,
                           float fcutoff[restrict MAXSPRINGS]);
 void springs_set_ftr(springs_t *springs, float ftr[restrict MAXSPRINGS]);
@@ -238,6 +236,6 @@ void high_delayline_process(struct high_delayline *restrict dl,
                             struct rand *restrict rd,
                             float y[restrict MAXSPRINGS]);
 void springs_process(springs_t *restrict springs, const float *const *in,
-                     float *const *restrict out, int count);
+                     float *const *out, int count);
 
 #endif

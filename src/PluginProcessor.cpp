@@ -25,6 +25,8 @@ PluginProcessor::PluginProcessor() :
                     juce::String("_source"));
         addListener(juce::String("spring") + juce::String(i) +
                     juce::String("_pan"));
+        addListener(juce::String("spring") + juce::String(i) +
+                    juce::String("_hilo"));
     }
 }
 
@@ -72,7 +74,10 @@ PluginProcessor::createLayout()
                 juce::StringArray{"Left", "Right", "Mono"}, 2),
             std::make_unique<juce::AudioParameterFloat>(
                 juce::String("spring") + juce::String(i) + "_pan", "Pan", -1.f,
-                1.f, 0.f)));
+                1.f, 0.f),
+            std::make_unique<juce::AudioParameterFloat>(
+                juce::String("spring") + juce::String(i) + "_hilo",
+                "Direct/Rattle Mix", 0.f, 1.f, 0.f)));
     }
 
     layout.add(std::move(springs));
@@ -217,7 +222,7 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
             break;
         case ParamId::SpringVolume:
             m_springreverb.desc.vol[spring] = event.value;
-            springs_set_vol(&m_springreverb, m_springreverb.desc.vol);
+            springs_set_vol(&m_springreverb, m_springreverb.desc.vol, count);
             break;
         case ParamId::SpringSource:
             m_springreverb.desc.source[spring] = static_cast<int>(event.value);
@@ -225,6 +230,11 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
         case ParamId::SpringPan:
             m_springreverb.desc.pan[spring] = event.value;
             springs_set_pan(&m_springreverb, m_springreverb.desc.pan, count);
+            break;
+        case ParamId::SpringHiLo:
+            m_springreverb.desc.hilomix[spring] = event.value;
+            springs_set_hilomix(&m_springreverb, m_springreverb.desc.hilomix,
+                                count);
             break;
         }
     }

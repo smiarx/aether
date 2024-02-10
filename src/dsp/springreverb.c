@@ -39,10 +39,10 @@ void springs_init(springs_t *springs, springs_desc_t *desc, float samplerate)
     springs_set_Td(springs, springs->desc.Td);
     springs_set_glf(springs, springs->desc.glf);
     springs_set_ghf(springs, springs->desc.ghf);
-    springs_set_vol(springs, springs->desc.vol);
+    springs_set_vol(springs, springs->desc.vol, 1);
     springs_set_pan(springs, springs->desc.pan, 1);
     springs_set_drywet(springs, springs->desc.drywet, 1);
-    springs_set_hilomix(springs, springs->desc.hilomix);
+    springs_set_hilomix(springs, springs->desc.hilomix, 1);
 
     float fcutoff[] = {20, 20, 20, 20, 20, 20, 20, 20};
     springs_set_dccutoff(springs, fcutoff);
@@ -69,8 +69,6 @@ void springs_update(springs_t *springs, springs_desc_t *desc)
     param_update(gecho);
     param_update(glf);
     param_update(ghf);
-    param_update(vol);
-    param_update(hilomix);
 
 #undef param_update
 }
@@ -243,36 +241,30 @@ void springs_set_Nripple(springs_t *springs, float Nripple)
 gfunc(gripple, low) gfunc(gecho, low) gfunc(glf, low) gfunc(ghf, high)
 #undef gfunc
 
-#define set_glow_ghigh(db, ratio)                                                \
-    {                                                                            \
-        float gain        = powf(10.f, db / 20.f);                               \
-        float ghigh       = atanf(5.f * (ratio - 0.5)) / atanf(5.f) / 2.f + .5f; \
-        float glow        = 1.f - ghigh;                                         \
-        springs->glow[i]  = glow * gain;                                         \
-        springs->ghigh[i] = ghigh * gain;                                        \
-    }
-
-    void springs_set_vol(springs_t *springs, float vol[restrict MAXSPRINGS])
+    void springs_set_vol(springs_t *springs, float vol[restrict MAXSPRINGS],
+                         int count)
 {
     loopsprings(i)
     {
-        springs->desc.vol[i] = vol[i];
-        float db             = vol[i];
+        float db = springs->desc.vol[i] = vol[i];
         float ratio          = springs->desc.hilomix[i];
-        set_glow_ghigh(db, ratio);
+        float gain                      = powf(10.f, db / 20.f);
+        float ghigh =
+            atanf(5.f * (ratio - 0.5)) / atanf(5.f) / 2.f + .5f; // TODO change
+        float glow = 1.f - ghigh;
+        ghigh *= gain;
+        glow *= gain;
+        setinc(springs->glow, glow, i);
+        setinc(springs->ghigh, ghigh, i);
     }
+    springs->increment_glowhigh = 1;
 }
-void springs_set_hilomix(springs_t *springs, float hilomix[restrict MAXSPRINGS])
+void springs_set_hilomix(springs_t *springs, float hilomix[restrict MAXSPRINGS],
+                         int count)
 {
-    loopsprings(i)
-    {
-        springs->desc.hilomix[i] = hilomix[i];
-        float db                 = springs->desc.vol[i];
-        float ratio              = hilomix[i];
-        set_glow_ghigh(db, ratio);
-    }
+    loopsprings(i) { springs->desc.hilomix[i] = hilomix[i]; }
+    springs_set_vol(springs, springs->desc.vol, count);
 }
-#undef set_glow_ghigh
 
 void springs_set_pan(springs_t *springs, float pan[restrict MAXSPRINGS],
                      int count)
@@ -657,10 +649,29 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
         }
 
         // sum high and low
-        loopsamples(n)
-#pragma omp simd
-            loopsprings(i) y[n][i] =
-                springs->glow[i] * ylow[n][i] + springs->ghigh[i] * yhigh[n][i];
+#define sum_hilo(inc)                                                        \
+    {                                                                        \
+        struct springparam glow  = springs->glow;                            \
+        struct springparam ghigh = springs->ghigh;                           \
+        loopsamples(n) _Pragma("omp simd") loopsprings(i)                    \
+        {                                                                    \
+            if (inc) {                                                       \
+                addinc(glow, i);                                             \
+                addinc(ghigh, i);                                            \
+            }                                                                \
+            y[n][i] = glow.val[i] * ylow[n][i] + ghigh.val[i] * yhigh[n][i]; \
+        }                                                                    \
+        if (inc) {                                                           \
+            springs->glow  = glow;                                           \
+            springs->ghigh = ghigh;                                          \
+        }                                                                    \
+    }
+
+        if (springs->increment_glowhigh) {
+            sum_hilo(1);
+        } else {
+            sum_hilo(0);
+        }
 
         /* sum springs */
         float drywet;
@@ -703,4 +714,8 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
     springs->drywet_inc = 0.f;
     if (springs->increment_gchannel)
         for (int c = 0; c < NCHANNELS; ++c) resetinc(springs->gchannel[c]);
+    if (springs->increment_glowhigh) {
+        resetinc(springs->glow);
+        resetinc(springs->ghigh);
+    }
 }

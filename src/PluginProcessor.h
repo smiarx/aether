@@ -63,6 +63,7 @@ class PluginProcessor final : public juce::AudioProcessor,
         SpringVolume,
         SpringSource,
         SpringPan,
+        SpringHiLo,
         SpringParamEnd,
     };
 

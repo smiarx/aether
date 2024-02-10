@@ -68,6 +68,7 @@ struct springparam {
     springvec(float, val);
     springvec(float, inc);
 };
+typedef int doinc_t;
 
 /* spring parameters */
 typedef struct {
@@ -194,11 +195,12 @@ typedef struct {
     struct high_cascade high_cascade;
 
     /* low and high gain */
-    springvec(float, glow);
-    springvec(float, ghigh);
+    struct springparam glow;
+    struct springparam ghigh;
+    doinc_t increment_glowhigh;
 
     struct springparam gchannel[NCHANNELS];
-    int increment_gchannel;
+    doinc_t increment_gchannel;
 
     float drywet;
     float drywet_inc;
@@ -224,12 +226,13 @@ void springs_set_gripple(springs_t *springs,
 void springs_set_gecho(springs_t *springs, float gecho[restrict MAXSPRINGS]);
 void springs_set_glf(springs_t *springs, float glf[restrict MAXSPRINGS]);
 void springs_set_ghf(springs_t *springs, float ghf[restrict MAXSPRINGS]);
-void springs_set_vol(springs_t *springs, float vol[restrict MAXSPRINGS]);
+void springs_set_vol(springs_t *springs, float vol[restrict MAXSPRINGS],
+                     int count);
 void springs_set_pan(springs_t *springs, float pan[restrict MAXSPRINGS],
                      int count);
 void springs_set_drywet(springs_t *springs, float drywet, int count);
-void springs_set_hilomix(springs_t *springs,
-                         float hilomix[restrict MAXSPRINGS]);
+void springs_set_hilomix(springs_t *springs, float hilomix[restrict MAXSPRINGS],
+                         int count);
 
 void low_delayline_process(struct low_delayline *restrict dl,
                            struct rand *restrict rd,

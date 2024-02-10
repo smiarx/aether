@@ -9,7 +9,10 @@
 
 #define loopsprings(i) for (int i = 0; i < NSPRINGS; ++i)
 
-#define setinc(inc, orig, new) inc = (new - orig) / count
+// inc macros
+#define setinc(param, new, i) (param).inc[i] = (new - (param).val[i]) / count
+#define addinc(param, i)      (param).val[i] += (param).inc[i]
+#define resetinc(param)       loopsprings(i)(param).inc[i] = 0.f
 
 /* set int & frac delay values */
 #pragma omp declare simd linear(i) uniform(tap)
@@ -282,19 +285,18 @@ void springs_set_pan(springs_t *springs, float pan[restrict MAXSPRINGS],
         float gleft             = cosf(theta);
         float gright            = sinf(theta);
 
-        setinc(springs->gchannel_inc[0][i], springs->gchannel[0][i], gleft);
-        setinc(springs->gchannel_inc[1][i], springs->gchannel[1][i], gright);
-
-        springs->increment_gchannel = 1;
+        setinc(springs->gchannel[0], gleft, i);
+        setinc(springs->gchannel[1], gright, i);
 #endif
     }
+    springs->increment_gchannel = 1;
 }
 
 void springs_set_drywet(springs_t *springs, float drywet, int count)
 {
     springs->desc.drywet = drywet;
     if (springs->drywet != springs->desc.drywet) {
-        setinc(springs->drywet_inc, springs->drywet, springs->desc.drywet);
+        springs->drywet_inc = (springs->desc.drywet - springs->drywet) / count;
     }
 }
 
@@ -673,10 +675,8 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
                 float ysum = 0.f;                                          \
                 _Pragma("omp simd") loopsprings(i)                         \
                 {                                                          \
-                    if (inc_gchannel)                                      \
-                        springs->gchannel[c][i] +=                         \
-                            springs->gchannel_inc[c][i];                   \
-                    ysum += springs->gchannel[c][i] * y[n][i];             \
+                    if (inc_gchannel) addinc(springs->gchannel[c], i);     \
+                    ysum += springs->gchannel[c].val[i] * y[n][i];         \
                 }                                                          \
                                                                            \
                 if (inc_drywet) drywet += drywet_inc;                      \
@@ -702,6 +702,5 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
 
     springs->drywet_inc = 0.f;
     if (springs->increment_gchannel)
-        for (int c = 0; c < NCHANNELS; ++c)
-            loopsprings(i) springs->gchannel_inc[c][i] = 0;
+        for (int c = 0; c < NCHANNELS; ++c) resetinc(springs->gchannel[c]);
 }

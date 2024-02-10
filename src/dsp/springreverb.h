@@ -64,6 +64,11 @@
 #define springvec(type, name) \
     type name[MAXSPRINGS] __attribute__((aligned(sizeof(type) * MAXSPRINGS)))
 
+struct springparam {
+    springvec(float, val);
+    springvec(float, inc);
+};
+
 /* spring parameters */
 typedef struct {
     springvec(float, ftr);
@@ -192,8 +197,7 @@ typedef struct {
     springvec(float, glow);
     springvec(float, ghigh);
 
-    springvec(float, gchannel[NCHANNELS]);
-    springvec(float, gchannel_inc[NCHANNELS]);
+    struct springparam gchannel[NCHANNELS];
     int increment_gchannel;
 
     float drywet;

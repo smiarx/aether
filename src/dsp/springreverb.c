@@ -13,7 +13,8 @@
 #define loopsprings(i) for (int i = 0; i < NSPRINGS; ++i)
 
 // inc macros
-#define setinc(param, new, i) (param).inc[i] = (new - (param).val[i]) / count
+#define setinc(param, new, count, i) \
+    (param).inc[i] = (new - (param).val[i]) / count
 #define addinc(param, i)      (param).val[i] += (param).inc[i]
 #define resetinc(param)       loopsprings(i)(param).inc[i] = 0.f
 
@@ -209,13 +210,18 @@ void springs_set_length(springs_t *springs, float length[restrict MAXSPRINGS],
         float Lripple             = 2.f * springs->K[i] * NRIPPLE;
         float L1      = L - Lecho - Lripple;
 
-        setinc(ldl->L1, L1, i);
-        setinc(ldl->Lecho, Lecho, i);
-        setinc(ldl->Lripple, Lripple, i);
-
         struct high_delayline *hdl = &springs->high_delayline;
         Lhigh[i]                   = L / 1.8f * (float)springs->downsampleM;
-        setinc(hdl->L, Lhigh[i], i);
+        setinc(hdl->L, Lhigh[i], count, i);
+
+        /* low delay line is downsampled */
+        {
+            int countM = count / springs->downsampleM;
+            countM     = countM < 1 ? 1 : countM;
+            setinc(ldl->L1, L1, countM, i);
+            setinc(ldl->Lecho, Lecho, countM, i);
+            setinc(ldl->Lripple, Lripple, countM, i);
+        }
     }
 
     springs->increment_delaytime = 1;
@@ -248,14 +254,22 @@ gfunc(gripple, low) gfunc(gecho, low)
     loopsprings(i)
     {
         /* get delay length values */
-        float L1             = ldl->L1.val[i] + ldl->L1.inc[i] * count;
+        float L1 =
+            ldl->L1.val[i] + ldl->L1.inc[i] * count / springs->downsampleM;
         float Lhigh          = hdl->L.val[i] + hdl->L.inc[i] * count;
         springs->desc.t60[i] = t60[i];
         float t60samples     = t60[i] * springs->samplerate;
-        float glf            = -powf(0.001, L1 / t60samples);
+
         float ghf = -powf(0.001, Lhigh / (t60samples * T60_HILO_RATIO));
-        setinc(ldl->glf, glf, i);
-        setinc(hdl->ghf, ghf, i);
+        setinc(hdl->ghf, ghf, count, i);
+
+        float glf = -powf(0.001, L1 / t60samples / springs->downsampleM);
+        // low delay line is downsampled
+        {
+            int countM = count / springs->downsampleM;
+            countM     = countM < 1 ? 1 : countM;
+            setinc(ldl->glf, glf, countM, i);
+        }
     }
 
     springs->increment_t60 = 1;
@@ -274,8 +288,8 @@ gfunc(gripple, low) gfunc(gecho, low)
         float glow = 1.f - ghigh;
         ghigh *= gain;
         glow *= gain;
-        setinc(springs->glow, glow, i);
-        setinc(springs->ghigh, ghigh, i);
+        setinc(springs->glow, glow, count, i);
+        setinc(springs->ghigh, ghigh, count, i);
     }
     springs->increment_glowhigh = 1;
 }
@@ -297,8 +311,8 @@ void springs_set_pan(springs_t *springs, float pan[restrict MAXSPRINGS],
         float gleft             = cosf(theta);
         float gright            = sinf(theta);
 
-        setinc(springs->gchannel[0], gleft, i);
-        setinc(springs->gchannel[1], gright, i);
+        setinc(springs->gchannel[0], gleft, count, i);
+        setinc(springs->gchannel[1], gright, count, i);
 #endif
     }
     springs->increment_gchannel = 1;

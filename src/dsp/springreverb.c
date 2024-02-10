@@ -7,6 +7,8 @@
 #include "fastmath.h"
 #include "springreverb.h"
 
+#define NRIPPLE 0.5f
+
 #define loopsprings(i) for (int i = 0; i < NSPRINGS; ++i)
 
 // inc macros
@@ -33,10 +35,9 @@ void springs_init(springs_t *springs, springs_desc_t *desc, float samplerate)
     springs->desc                        = *desc;
     springs->samplerate                  = samplerate;
 
-    springs_set_ftr(springs, springs->desc.ftr);
+    springs_set_ftr(springs, springs->desc.ftr, 1);
     springs_set_a1(springs, springs->desc.a1);
-    springs_set_Nripple(springs, 0.5);
-    springs_set_Td(springs, springs->desc.Td);
+    springs_set_length(springs, springs->desc.length, 1);
     springs_set_glf(springs, springs->desc.glf);
     springs_set_ghf(springs, springs->desc.ghf);
     springs_set_vol(springs, springs->desc.vol, 1);
@@ -61,8 +62,6 @@ void springs_update(springs_t *springs, springs_desc_t *desc)
         if (test) springs_set_##name(springs, desc->name);             \
     }
 
-    param_update(ftr);
-    param_update(Td);
     param_update(a1);
     param_update(ahigh);
     param_update(gripple);
@@ -85,7 +84,8 @@ void springs_set_dccutoff(springs_t *springs,
     }
 }
 
-void springs_set_ftr(springs_t *springs, float ftr[restrict MAXSPRINGS])
+void springs_set_ftr(springs_t *springs, float ftr[restrict MAXSPRINGS],
+                     int count)
 {
     loopsprings(i) springs->desc.ftr[i] = ftr[i];
 
@@ -125,7 +125,7 @@ void springs_set_ftr(springs_t *springs, float ftr[restrict MAXSPRINGS])
 
         /* other parameters are dependent of downsample M */
         springs_set_dccutoff(springs, springs->desc.fcutoff);
-        springs_set_Td(springs, springs->desc.Td);
+        springs_set_length(springs, springs->desc.length, count);
         springs_set_a1(springs, springs->desc.a1);
     }
 
@@ -190,44 +190,41 @@ void springs_set_ahigh(springs_t *springs, float ahigh[restrict MAXSPRINGS])
         ahigh[i];
 }
 
-void springs_set_Td(springs_t *springs, float Td[restrict MAXSPRINGS])
+/* set spring length (changes time delay) */
+void springs_set_length(springs_t *springs, float length[restrict MAXSPRINGS],
+                        int count)
 {
     float samplerate = springs->samplerate / (float)springs->downsampleM;
     loopsprings(i)
     {
-        springs->desc.Td[i] = Td[i];
+        springs->desc.length[i] = length[i];
+        float time_delay        = length[i];
         float a1            = springs->low_cascade.a1[i];
         float L =
-            fmaxf(0.f, Td[i] * samplerate -
+            fmaxf(0.f, time_delay * samplerate -
                            springs->K[i] * LOW_CASCADE_N * (1 - a1) / (1 + a1));
 
         struct low_delayline *ldl = &springs->low_delayline;
         float Lecho               = L / 5.f;
-        float Lripple = ldl->tap_ripple.idelay[i] + ldl->tap_ripple.fdelay[i];
+        float Lripple             = 2.f * springs->K[i] * NRIPPLE;
         float L1      = L - Lecho - Lripple;
 
-        tap_set_delay(&ldl->tap_echo, L / 5, i);
-        ldl->L1[i] = L1;
+        setinc(ldl->L1, L1, i);
+        setinc(ldl->Lecho, Lecho, i);
+        setinc(ldl->Lripple, Lripple, i);
 
         struct high_delayline *hdl = &springs->high_delayline;
         float Lhigh                = L / 1.8f * (float)springs->downsampleM;
         hdl->L[i]                  = Lhigh;
     }
 
+    springs->increment_lowdelayline = 1;
+
     /* find block size */
     int blocksize = MAXBLOCKSIZE;
     loopsprings(i) if (springs->high_delayline.L[i] < blocksize) blocksize =
         (int)springs->high_delayline.L[i];
     springs->blocksize = blocksize;
-}
-
-void springs_set_Nripple(springs_t *springs, float Nripple)
-{
-    loopsprings(i)
-    {
-        float Lripple = 2.f * springs->K[i] * Nripple;
-        tap_set_delay(&springs->low_delayline.tap_ripple, Lripple, i);
-    }
 }
 
 #define gfunc(gname, part)                                     \
@@ -338,7 +335,7 @@ static inline float tap_cubic(struct delay_tap *tap, float buffer[][MAXSPRINGS],
 
 void low_delayline_process(struct low_delayline *restrict dl,
                            struct rand *restrict rd,
-                           float y[restrict MAXSPRINGS])
+                           float y[restrict MAXSPRINGS], doinc_t inc)
 {
     y = __builtin_assume_aligned(y, sizeof(float) * MAXSPRINGS);
 
@@ -350,7 +347,15 @@ void low_delayline_process(struct low_delayline *restrict dl,
         dl->modstate[i] = mod += amod * (dl->modstate[i] - mod);
 
         // todo gmod should be divised by downsampleM
-        tap_set_delay(&dl->tap1, dl->L1[i] + mod * gmod, i);
+        if (inc) {
+            addinc(dl->L1, i);
+            addinc(dl->Lecho, i);
+            addinc(dl->Lripple, i);
+
+            tap_set_delay(&dl->tap_echo, dl->Lecho.val[i], i);
+            tap_set_delay(&dl->tap_ripple, dl->Lripple.val[i], i);
+        }
+        tap_set_delay(&dl->tap1, dl->L1.val[i] + mod * gmod, i);
     }
 #pragma omp simd
     loopsprings(i)
@@ -597,12 +602,14 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
         /* low chirps */
         // get delay tap
         int lowdelay1id = springs->low_delayline.tap1.id;
-        loopdownsamples(n)
-        {
-            low_delayline_process(&springs->low_delayline, &springs->rand,
-                                  ylow[n]);
-        }
+        if (springs->increment_lowdelayline)
+            loopdownsamples(n) low_delayline_process(
+                &springs->low_delayline, &springs->rand, ylow[n], 1);
+        else
+            loopdownsamples(n) low_delayline_process(
+                &springs->low_delayline, &springs->rand, ylow[n], 0);
         springs->low_delayline.tap1.id = lowdelay1id;
+
         // get delay tap
         int highdelayid = springs->high_delayline.tap.id;
         loopsamples(n)
@@ -717,5 +724,10 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
     if (springs->increment_glowhigh) {
         resetinc(springs->glow);
         resetinc(springs->ghigh);
+    }
+    if (springs->increment_lowdelayline) {
+        resetinc(springs->low_delayline.L1);
+        resetinc(springs->low_delayline.Lecho);
+        resetinc(springs->low_delayline.Lripple);
     }
 }

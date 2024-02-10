@@ -34,11 +34,11 @@
 #define LOW_EQ_STATE_SIZE (LOW_CASCADE_STATE_SIZE * 2)
 #define LOW_EQ_STATE_MASK (LOW_EQ_STATE_SIZE - 1)
 
-#define LOWDELAY1SIZE      (2048 << 1)
+#define LOWDELAY1SIZE      (2048 << 2)
 #define LOWDELAY1MASK      (LOWDELAY1SIZE - 1)
-#define LOWDELAYECHOSIZE   (512 << 1)
+#define LOWDELAYECHOSIZE   (512 << 2)
 #define LOWDELAYECHOMASK   (LOWDELAYECHOSIZE - 1)
-#define LOWDELAYRIPPLESIZE (128 << 1)
+#define LOWDELAYRIPPLESIZE (128 << 2)
 #define LOWDELAYRIPPLEMASK (LOWDELAYRIPPLESIZE - 1)
 
 #define gmod 10.f
@@ -75,7 +75,7 @@ typedef struct {
     springvec(float, ftr);
     springvec(float, a1);
     springvec(float, ahigh);
-    springvec(float, Td);
+    springvec(float, length);
     springvec(float, fcutoff);
     springvec(float, gripple);
     springvec(float, gecho);
@@ -138,14 +138,16 @@ struct delay_tap {
 struct low_delayline {
     springvec(float, modstate);
 
-    springvec(float, L1);
+    struct springparam L1;
     struct delay_tap tap1;
     springvec(float, buffer1[LOWDELAY1SIZE]);
 
+    struct springparam Lecho;
     struct delay_tap tap_echo;
     springvec(float, buffer_echo[LOWDELAYECHOSIZE]);
     springvec(float, gecho);
 
+    struct springparam Lripple;
     struct delay_tap tap_ripple;
     springvec(float, buffer_ripple[LOWDELAYRIPPLESIZE]);
     springvec(float, gripple);
@@ -186,6 +188,7 @@ typedef struct {
     struct low_cascade low_cascade;
 
     struct low_delayline low_delayline;
+    doinc_t increment_lowdelayline;
     struct high_delayline high_delayline;
 
     struct low_eq low_eq;
@@ -216,10 +219,11 @@ void springs_init(springs_t *springs, springs_desc_t *desc, float samplerate);
 void springs_update(springs_t *springs, springs_desc_t *desc);
 void springs_set_dccutoff(springs_t *springs,
                           float fcutoff[restrict MAXSPRINGS]);
-void springs_set_ftr(springs_t *springs, float ftr[restrict MAXSPRINGS]);
+void springs_set_ftr(springs_t *springs, float ftr[restrict MAXSPRINGS],
+                     int count);
 void springs_set_a1(springs_t *springs, float a1[restrict MAXSPRINGS]);
-void springs_set_Td(springs_t *springs, float Td[restrict MAXSPRINGS]);
-void springs_set_Nripple(springs_t *springs, float Nripple);
+void springs_set_length(springs_t *springs, float length[restrict MAXSPRINGS],
+                        int count);
 void springs_set_ahigh(springs_t *springs, float a1[restrict MAXSPRINGS]);
 void springs_set_gripple(springs_t *springs,
                          float gripple[restrict MAXSPRINGS]);
@@ -236,7 +240,7 @@ void springs_set_hilomix(springs_t *springs, float hilomix[restrict MAXSPRINGS],
 
 void low_delayline_process(struct low_delayline *restrict dl,
                            struct rand *restrict rd,
-                           float y[restrict MAXSPRINGS]);
+                           float y[restrict MAXSPRINGS], doinc_t inc);
 void low_dc_process(struct low_dc *dc, float y[restrict MAXSPRINGS]);
 void low_cascade_process(struct low_cascade *lc, float y[restrict MAXSPRINGS]);
 void springs_lowlpf(springs_t *restrict springs, float y[restrict MAXSPRINGS]);

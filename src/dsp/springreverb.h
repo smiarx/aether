@@ -79,8 +79,8 @@ typedef struct {
     springvec(float, fcutoff);
     springvec(float, gripple);
     springvec(float, gecho);
-    springvec(float, glf);
     springvec(float, ghf);
+    springvec(float, t60);
     springvec(float, vol);
     springvec(float, hilomix);
     springvec(int, source);
@@ -152,7 +152,7 @@ struct low_delayline {
     springvec(float, buffer_ripple[LOWDELAYRIPPLESIZE]);
     springvec(float, gripple);
 
-    springvec(float, glf);
+    struct springparam glf;
 };
 
 struct high_delayline {
@@ -188,7 +188,7 @@ typedef struct {
     struct low_cascade low_cascade;
 
     struct low_delayline low_delayline;
-    doinc_t increment_lowdelayline;
+    doinc_t increment_delaytime, increment_t60;
     struct high_delayline high_delayline;
 
     struct low_eq low_eq;
@@ -228,7 +228,8 @@ void springs_set_ahigh(springs_t *springs, float a1[restrict MAXSPRINGS]);
 void springs_set_gripple(springs_t *springs,
                          float gripple[restrict MAXSPRINGS]);
 void springs_set_gecho(springs_t *springs, float gecho[restrict MAXSPRINGS]);
-void springs_set_glf(springs_t *springs, float glf[restrict MAXSPRINGS]);
+void springs_set_t60(springs_t *springs, float t60[restrict MAXSPRINGS],
+                     int count);
 void springs_set_ghf(springs_t *springs, float ghf[restrict MAXSPRINGS]);
 void springs_set_vol(springs_t *springs, float vol[restrict MAXSPRINGS],
                      int count);
@@ -240,7 +241,8 @@ void springs_set_hilomix(springs_t *springs, float hilomix[restrict MAXSPRINGS],
 
 void low_delayline_process(struct low_delayline *restrict dl,
                            struct rand *restrict rd,
-                           float y[restrict MAXSPRINGS], doinc_t inc);
+                           float y[restrict MAXSPRINGS], doinc_t inc_delaytime,
+                           doinc_t inc_t60);
 void low_dc_process(struct low_dc *dc, float y[restrict MAXSPRINGS]);
 void low_cascade_process(struct low_cascade *lc, float y[restrict MAXSPRINGS]);
 void springs_lowlpf(springs_t *restrict springs, float y[restrict MAXSPRINGS]);

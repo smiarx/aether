@@ -29,6 +29,8 @@ PluginProcessor::PluginProcessor() :
                     juce::String("_hilo"));
         addListener(juce::String("spring") + juce::String(i) +
                     juce::String("_length"));
+        addListener(juce::String("spring") + juce::String(i) +
+                    juce::String("_decay"));
     }
 }
 
@@ -82,7 +84,10 @@ PluginProcessor::createLayout()
                 "Direct/Rattle Mix", 0.f, 1.f, 0.f),
             std::make_unique<juce::AudioParameterFloat>(
                 juce::String("spring") + juce::String(i) + "_length", "Length",
-                juce::NormalisableRange<float>(0.02, 0.2, 0.0001f), 0.045f)));
+                juce::NormalisableRange<float>(0.02, 0.2, 0.0001f), 0.045f),
+            std::make_unique<juce::AudioParameterFloat>(
+                juce::String("spring") + juce::String(i) + "_decay", "Decay",
+                0.2f, 6.f, 2.5f)));
     }
 
     layout.add(std::move(springs));
@@ -245,6 +250,10 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
             m_springreverb.desc.length[spring] = event.value;
             springs_set_length(&m_springreverb, m_springreverb.desc.length,
                                count);
+            break;
+        case ParamId::SpringDecay:
+            m_springreverb.desc.t60[spring] = event.value;
+            springs_set_t60(&m_springreverb, m_springreverb.desc.t60, count);
             break;
         }
     }

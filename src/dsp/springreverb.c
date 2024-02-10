@@ -38,7 +38,7 @@ void springs_init(springs_t *springs, springs_desc_t *desc, float samplerate)
     springs_set_ftr(springs, springs->desc.ftr, 1);
     springs_set_a1(springs, springs->desc.a1);
     springs_set_length(springs, springs->desc.length, 1);
-    springs_set_glf(springs, springs->desc.glf);
+    springs_set_t60(springs, springs->desc.t60, 1);
     springs_set_ghf(springs, springs->desc.ghf);
     springs_set_vol(springs, springs->desc.vol, 1);
     springs_set_pan(springs, springs->desc.pan, 1);
@@ -66,7 +66,6 @@ void springs_update(springs_t *springs, springs_desc_t *desc)
     param_update(ahigh);
     param_update(gripple);
     param_update(gecho);
-    param_update(glf);
     param_update(ghf);
 
 #undef param_update
@@ -218,7 +217,10 @@ void springs_set_length(springs_t *springs, float length[restrict MAXSPRINGS],
         hdl->L[i]                  = Lhigh;
     }
 
-    springs->increment_lowdelayline = 1;
+    springs->increment_delaytime = 1;
+
+    /* update t60 */
+    springs_set_t60(springs, springs->desc.t60, count);
 
     /* find block size */
     int blocksize = MAXBLOCKSIZE;
@@ -235,8 +237,24 @@ void springs_set_length(springs_t *springs, float length[restrict MAXSPRINGS],
             springs->part##_delayline.gname[i] = gname[i];     \
     }
 
-gfunc(gripple, low) gfunc(gecho, low) gfunc(glf, low) gfunc(ghf, high)
+gfunc(gripple, low) gfunc(gecho, low) gfunc(ghf, high)
 #undef gfunc
+
+    void springs_set_t60(springs_t *springs, float t60[restrict MAXSPRINGS],
+                         int count)
+{
+    struct low_delayline *dl = &springs->low_delayline;
+    loopsprings(i)
+    {
+        springs->desc.t60[i] = t60[i];
+        float L1             = dl->L1.val[i] + dl->L1.inc[i] * count;
+        float t60samples     = t60[i] * springs->samplerate;
+        float glf            = -powf(0.001, L1 / t60samples);
+        setinc(dl->glf, glf, i);
+    }
+
+    springs->increment_t60 = 1;
+}
 
     void springs_set_vol(springs_t *springs, float vol[restrict MAXSPRINGS],
                          int count)
@@ -335,7 +353,8 @@ static inline float tap_cubic(struct delay_tap *tap, float buffer[][MAXSPRINGS],
 
 void low_delayline_process(struct low_delayline *restrict dl,
                            struct rand *restrict rd,
-                           float y[restrict MAXSPRINGS], doinc_t inc)
+                           float y[restrict MAXSPRINGS], doinc_t inc_delaytime,
+                           doinc_t inc_t60)
 {
     y = __builtin_assume_aligned(y, sizeof(float) * MAXSPRINGS);
 
@@ -347,7 +366,7 @@ void low_delayline_process(struct low_delayline *restrict dl,
         dl->modstate[i] = mod += amod * (dl->modstate[i] - mod);
 
         // todo gmod should be divised by downsampleM
-        if (inc) {
+        if (inc_delaytime) {
             addinc(dl->L1, i);
             addinc(dl->Lecho, i);
             addinc(dl->Lripple, i);
@@ -373,7 +392,8 @@ void low_delayline_process(struct low_delayline *restrict dl,
                                       LOWDELAYRIPPLEMASK, i);
         tap_ripple += tap_echo * dl->gripple[i];
 
-        y[i] += tap_ripple * dl->glf[i];
+        if (inc_t60) addinc(dl->glf, i);
+        y[i] += tap_ripple * dl->glf.val[i];
     }
 
     /* increment buffer ids */
@@ -602,12 +622,15 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
         /* low chirps */
         // get delay tap
         int lowdelay1id = springs->low_delayline.tap1.id;
-        if (springs->increment_lowdelayline)
+        if (springs->increment_delaytime)
             loopdownsamples(n) low_delayline_process(
-                &springs->low_delayline, &springs->rand, ylow[n], 1);
+                &springs->low_delayline, &springs->rand, ylow[n], 1, 1);
+        else if (springs->increment_t60)
+            loopdownsamples(n) low_delayline_process(
+                &springs->low_delayline, &springs->rand, ylow[n], 0, 1);
         else
             loopdownsamples(n) low_delayline_process(
-                &springs->low_delayline, &springs->rand, ylow[n], 0);
+                &springs->low_delayline, &springs->rand, ylow[n], 0, 0);
         springs->low_delayline.tap1.id = lowdelay1id;
 
         // get delay tap
@@ -719,15 +742,23 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
     }
 
     springs->drywet_inc = 0.f;
-    if (springs->increment_gchannel)
+    if (springs->increment_gchannel) {
+        springs->increment_gchannel = 0;
         for (int c = 0; c < NCHANNELS; ++c) resetinc(springs->gchannel[c]);
+    }
     if (springs->increment_glowhigh) {
+        springs->increment_glowhigh = 0;
         resetinc(springs->glow);
         resetinc(springs->ghigh);
     }
-    if (springs->increment_lowdelayline) {
+    if (springs->increment_delaytime) {
+        springs->increment_delaytime = 0;
         resetinc(springs->low_delayline.L1);
         resetinc(springs->low_delayline.Lecho);
         resetinc(springs->low_delayline.Lripple);
+    }
+    if (springs->increment_t60) {
+        springs->increment_t60 = 0;
+        resetinc(springs->low_delayline.glf);
     }
 }

@@ -193,6 +193,10 @@ typedef struct {
     springparam(float, ghigh);
     springparam(float, gchannel[NCHANNELS]);
 
+    float drywet;
+    float drywet_inc;
+    int out_doinc;
+
     float samplerate;
 } springs_t;
 
@@ -202,6 +206,7 @@ typedef struct {
 
 void springs_init(springs_t *springs, springs_desc_t *desc, float samplerate);
 void springs_update(springs_t *springs, springs_desc_t *desc);
+void springs_clear_incs(springs_t *springs);
 void springs_set_dccutoff(springs_t *springs,
                           float fcutoff[restrict MAXSPRINGS]);
 void springs_set_ftr(springs_t *springs, float ftr[restrict MAXSPRINGS]);
@@ -216,6 +221,7 @@ void springs_set_glf(springs_t *springs, float glf[restrict MAXSPRINGS]);
 void springs_set_ghf(springs_t *springs, float ghf[restrict MAXSPRINGS]);
 void springs_set_vol(springs_t *springs, float vol[restrict MAXSPRINGS]);
 void springs_set_pan(springs_t *springs, float pan[restrict MAXSPRINGS]);
+void springs_set_drywet(springs_t *springs, float drywet, int count);
 void springs_set_hilomix(springs_t *springs,
                          float hilomix[restrict MAXSPRINGS]);
 

@@ -173,6 +173,8 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
 {
     juce::ignoreUnused(midiMessages);
 
+    int count = buffer.getNumSamples();
+
     while (!m_paramEvents.empty()) {
         auto event = m_paramEvents.front();
         m_paramEvents.pop_front();
@@ -211,7 +213,7 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
             tapedelay_set_fmode(&m_tapedelay, event.value);
             break;
         case ParamId::SpringsDryWet:
-            m_springreverb.desc.drywet = event.value;
+            springs_set_drywet(&m_springreverb, event.value, count);
             break;
         case ParamId::SpringVolume:
             m_springreverb.desc.vol[spring] = event.value;
@@ -230,8 +232,10 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
     const float *const *ins = buffer.getArrayOfReadPointers();
     float *const *outs      = buffer.getArrayOfWritePointers();
 
-    tapedelay_process(&m_tapedelay, ins, outs, buffer.getNumSamples());
-    springs_process(&m_springreverb, ins, outs, buffer.getNumSamples());
+    tapedelay_process(&m_tapedelay, ins, outs, count);
+    springs_process(&m_springreverb, ins, outs, count);
+
+    springs_clear_incs(&m_springreverb);
 }
 
 //==============================================================================

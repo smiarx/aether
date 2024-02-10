@@ -36,6 +36,7 @@ void springs_init(springs_t *springs, springs_desc_t *desc, float samplerate)
     springs_set_ghf(springs, springs->desc.ghf);
     springs_set_vol(springs, springs->desc.vol);
     springs_set_pan(springs, springs->desc.pan);
+    springs_set_drywet(springs, springs->desc.drywet, 1);
     springs_set_hilomix(springs, springs->desc.hilomix);
 
     float fcutoff[] = {20, 20, 20, 20, 20, 20, 20, 20};
@@ -67,6 +68,15 @@ void springs_update(springs_t *springs, springs_desc_t *desc)
     param_update(hilomix);
 
 #undef param_update
+}
+
+/* clear incremental values */
+void springs_clear_incs(springs_t *springs)
+{
+    if (springs->out_doinc) {
+        springs->drywet_inc = 0;
+        springs->out_doinc  = 0;
+    }
 }
 
 void springs_set_dccutoff(springs_t *springs,
@@ -278,6 +288,15 @@ void springs_set_pan(springs_t *springs, float pan[restrict MAXSPRINGS])
         springs->gchannel[0][i] = cosf(theta);
         springs->gchannel[1][i] = sinf(theta);
 #endif
+    }
+}
+
+void springs_set_drywet(springs_t *springs, float drywet, int count)
+{
+    springs->desc.drywet = drywet;
+    if (springs->drywet != springs->desc.drywet) {
+        springs->drywet_inc = (springs->desc.drywet - springs->drywet) / count;
+        springs->out_doinc  = 1;
     }
 }
 
@@ -644,17 +663,23 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
                 springs->glow[i] * ylow[n][i] + springs->ghigh[i] * yhigh[n][i];
 
         /* sum springs */
-        loopsamples(n)
-        {
-            for (int c = 0; c < NCHANNELS; ++c) {
+        float drywet;
+        for (int c = 0; c < NCHANNELS; ++c) {
+            drywet = springs->drywet;
+            loopsamples(n)
+            {
                 float ysum = 0.f;
 #pragma omp simd
                 loopsprings(i) { ysum += springs->gchannel[c][i] * y[n][i]; }
                 out[c][nbase + n] =
-                    in[c][nbase + n] +
-                    springs->desc.drywet * (ysum - in[c][nbase + n]);
+                    in[c][nbase + n] + drywet * (ysum - in[c][nbase + n]);
+
+                /* hopefully this is unswitched of the loop */
+                if (springs->out_doinc) drywet += springs->drywet_inc;
             }
         }
+        if (springs->out_doinc) springs->drywet = drywet;
+
         nbase += blocksize;
         count -= blocksize;
     }

@@ -70,10 +70,9 @@ int main(int argc, char **argv)
 
     time = 0, dtime = 0;
     struct low_delayline *ldl = &springs.low_delayline;
-    struct rand *rand         = &springs.rand;
     for (int i = 0; i < n * r; i++) {
         dtime = -omp_get_wtime();
-        low_delayline_process(ldl, rand, y, 0, 0);
+        low_delayline_process(ldl, y, 0, 0);
         dtime += omp_get_wtime();
         time += dtime;
     }
@@ -124,7 +123,7 @@ int main(int argc, char **argv)
     struct high_delayline *hdl = &springs.high_delayline;
     for (int i = 0; i < n * r; i++) {
         dtime = -omp_get_wtime();
-        high_delayline_process(hdl, rand, y);
+        high_delayline_process(hdl, y);
         dtime += omp_get_wtime();
         time += dtime;
     }

@@ -31,6 +31,8 @@ PluginProcessor::PluginProcessor() :
                     juce::String("_length"));
         addListener(juce::String("spring") + juce::String(i) +
                     juce::String("_decay"));
+        addListener(juce::String("spring") + juce::String(i) +
+                    juce::String("_chaos"));
     }
 }
 
@@ -87,7 +89,10 @@ PluginProcessor::createLayout()
                 juce::NormalisableRange<float>(0.02, 0.2, 0.0001f), 0.045f),
             std::make_unique<juce::AudioParameterFloat>(
                 juce::String("spring") + juce::String(i) + "_decay", "Decay",
-                0.2f, 6.f, 2.5f)));
+                0.2f, 6.f, 2.5f),
+            std::make_unique<juce::AudioParameterFloat>(
+                juce::String("spring") + juce::String(i) + "_chaos", "Chaos",
+                juce::NormalisableRange{0.0f, 0.05f, 0.001f}, 0.f)));
     }
 
     layout.add(std::move(springs));
@@ -161,6 +166,8 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
         /* gripple */ {0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f},
         /* gecho */ {0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f},
         /* t60 */ {2.5f, 2.5f, 2.5f, 2.5f, 2.5f, 2.5f, 2.5f, 2.5f},
+        /* chaos */
+        {0.001f, 0.001f, 0.001f, 0.001f, 0.001f, 0.001f, 0.001f, 0.001f},
         /* vol */ {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f},
         /* hilomix */ {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f},
     };
@@ -253,6 +260,11 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
         case ParamId::SpringDecay:
             m_springreverb.desc.t60[spring] = event.value;
             springs_set_t60(&m_springreverb, m_springreverb.desc.t60, count);
+            break;
+        case ParamId::SpringChaos:
+            m_springreverb.desc.chaos[spring] = event.value;
+            springs_set_chaos(&m_springreverb, m_springreverb.desc.chaos,
+                              count);
             break;
         }
     }

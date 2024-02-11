@@ -58,6 +58,4 @@ static inline int64_t lftri_process(struct lftri *lfo)
     return y;
 }
 
-/* lf noise */
-
 #endif

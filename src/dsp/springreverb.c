@@ -9,6 +9,7 @@
 
 #define NRIPPLE 0.5f
 #define T60_HILO_RATIO 0.8f
+#define NOISE_FREQ     400.f
 
 #define loopsprings(i) for (int i = 0; i < NSPRINGS; ++i)
 
@@ -33,7 +34,8 @@ static inline void tap_set_delay(struct delay_tap *tap, float delay, int i)
 void springs_init(springs_t *springs, springs_desc_t *desc, float samplerate)
 {
     memset(springs, 0, sizeof(springs_t));
-    loopsprings(i) springs->rand.seed[i] = rand();
+    loopsprings(i) springs->low_delayline.noise.seed[i]  = rand();
+    loopsprings(i) springs->high_delayline.noise.seed[i] = rand();
     springs->desc                        = *desc;
     springs->samplerate                  = samplerate;
 
@@ -41,6 +43,7 @@ void springs_init(springs_t *springs, springs_desc_t *desc, float samplerate)
     springs_set_a1(springs, springs->desc.a1);
     springs_set_length(springs, springs->desc.length, 1);
     springs_set_t60(springs, springs->desc.t60, 1);
+    springs_set_chaos(springs, springs->desc.chaos, 1);
     springs_set_vol(springs, springs->desc.vol, 1);
     springs_set_pan(springs, springs->desc.pan, 1);
     springs_set_drywet(springs, springs->desc.drywet, 1);
@@ -52,6 +55,11 @@ void springs_init(springs_t *springs, springs_desc_t *desc, float samplerate)
     springs_set_gripple(springs, gripple);
     float gecho[] = {0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01};
     springs_set_gecho(springs, gecho);
+
+    loopsprings(i)
+    {
+        springs->high_delayline.noise.freq = NOISE_FREQ / samplerate;
+    }
 }
 
 void springs_update(springs_t *springs, springs_desc_t *desc)
@@ -126,6 +134,10 @@ void springs_set_ftr(springs_t *springs, float ftr[restrict MAXSPRINGS],
         springs_set_dccutoff(springs, springs->desc.fcutoff);
         springs_set_length(springs, springs->desc.length, count);
         springs_set_a1(springs, springs->desc.a1);
+
+        /* low delayline noise freq */
+        springs->low_delayline.noise.freq =
+            NOISE_FREQ / springs->samplerate * M;
     }
 
     float samplerate = springs->samplerate / (float)M;
@@ -228,6 +240,7 @@ void springs_set_length(springs_t *springs, float length[restrict MAXSPRINGS],
 
     /* update t60 */
     springs_set_t60(springs, springs->desc.t60, count);
+    springs_set_chaos(springs, springs->desc.chaos, count);
 
     /* find block size */
     int blocksize = MAXBLOCKSIZE;
@@ -273,6 +286,25 @@ gfunc(gripple, low) gfunc(gecho, low)
     }
 
     springs->increment_t60 = 1;
+}
+
+void springs_set_chaos(springs_t *springs, float chaos[restrict MAXSPRINGS],
+                       int count)
+{
+    struct low_delayline *ldl  = &springs->low_delayline;
+    struct high_delayline *hdl = &springs->high_delayline;
+
+    loopsprings(i)
+    {
+        springs->desc.chaos[i] = chaos[i];
+        /* get delay length values */
+        float L1 =
+            ldl->L1.val[i] + ldl->L1.inc[i] * count / springs->downsampleM;
+        float Lhigh = hdl->L.val[i] + hdl->L.inc[i] * count;
+
+        springs->low_delayline.noise.amount[i]  = L1 * chaos[i];
+        springs->high_delayline.noise.amount[i] = Lhigh * chaos[i];
+    }
 }
 
     void springs_set_vol(springs_t *springs, float vol[restrict MAXSPRINGS],
@@ -326,11 +358,48 @@ void springs_set_drywet(springs_t *springs, float drywet, int count)
     }
 }
 
-#pragma omp declare simd linear(i) uniform(rd)
-static const float rand_get(struct rand *rd, int i)
+static void noise_process(struct noise *ns, float y[restrict MAXSPRINGS])
 {
-    rd->state[i] = rd->seed[i] + rd->state[i] * 1103515245;
-    return rd->state[i] / ((float)INT_MAX);
+    if (ns->phase > 1.f) {
+        ns->phase -= 1.f;
+#pragma omp simd
+        loopsprings(i)
+        {
+            ns->state[i]    = ns->seed[i] + ns->state[i] * 1103515245;
+            float nextpoint = ns->state[i] / ((float)INT_MAX) * ns->amount[i];
+            float ym1       = ns->y[0][i];
+            float y0        = ns->y[1][i];
+            float y1        = ns->y[2][i];
+            float y2        = nextpoint;
+
+            float c0 = y0;
+            float c1 = .5 * (y1 - ym1);
+            float c2 = ym1 - 2.5 * y0 + 2. * y1 - .5 * y2;
+            float c3 = .5 * (y2 - ym1) + 1.5 * (y0 - y1);
+
+            ns->c[0][i] = c0;
+            ns->c[1][i] = c1;
+            ns->c[2][i] = c2;
+            ns->c[3][i] = c3;
+
+            ns->y[0][i] = y0;
+            ns->y[1][i] = y1;
+            ns->y[2][i] = y2;
+        }
+    }
+
+    float x = ns->phase;
+#pragma omp simd
+    loopsprings(i)
+    {
+        float c0 = ns->c[0][i];
+        float c1 = ns->c[1][i];
+        float c2 = ns->c[2][i];
+        float c3 = ns->c[3][i];
+        y[i]     = c0 + (x * (c1 + x * (c2 + x * c3)));
+    }
+
+    ns->phase += ns->freq;
 }
 
 /* delay line */
@@ -371,20 +440,18 @@ static inline float tap_cubic(struct delay_tap *tap, float buffer[][MAXSPRINGS],
 }
 
 void low_delayline_process(struct low_delayline *restrict dl,
-                           struct rand *restrict rd,
                            float y[restrict MAXSPRINGS], doinc_t inc_delaytime,
                            doinc_t inc_t60)
 {
     y = __builtin_assume_aligned(y, sizeof(float) * MAXSPRINGS);
 
+    float mod[MAXSPRINGS];
+    /* modulation */
+    noise_process(&dl->noise, mod);
+
 #pragma omp simd
     loopsprings(i)
     {
-        /* modulation */
-        float mod       = rand_get(rd, i);
-        dl->modstate[i] = mod += amod * (dl->modstate[i] - mod);
-
-        // todo gmod should be divised by downsampleM
         if (inc_delaytime) {
             addinc(dl->L1, i);
             addinc(dl->Lecho, i);
@@ -393,7 +460,7 @@ void low_delayline_process(struct low_delayline *restrict dl,
             tap_set_delay(&dl->tap_echo, dl->Lecho.val[i], i);
             tap_set_delay(&dl->tap_ripple, dl->Lripple.val[i], i);
         }
-        tap_set_delay(&dl->tap1, dl->L1.val[i] + mod * gmod, i);
+        tap_set_delay(&dl->tap1, dl->L1.val[i] + mod[i], i);
     }
 #pragma omp simd
     loopsprings(i)
@@ -422,22 +489,21 @@ void low_delayline_process(struct low_delayline *restrict dl,
 }
 
 void high_delayline_process(struct high_delayline *restrict dl,
-                            struct rand *restrict rd,
                             float y[restrict MAXSPRINGS], doinc_t inc_delaytime,
                             doinc_t inc_t60)
 {
     y = __builtin_assume_aligned(y, sizeof(float) * MAXSPRINGS);
 
+    float mod[MAXSPRINGS];
+    /* modulation */
+    noise_process(&dl->noise, mod);
+
 #pragma omp simd
     loopsprings(i)
     {
-        /* modulation */
-        float mod       = rand_get(rd, i);
-        dl->modstate[i] = mod += amod * (dl->modstate[i] - mod);
-
         if (inc_delaytime) addinc(dl->L, i);
         // todo gmod should be divised by downsampleM
-        tap_set_delay(&dl->tap, dl->L.val[i] + mod * gmod, i);
+        tap_set_delay(&dl->tap, dl->L.val[i] + mod[i], i);
     }
 #pragma omp simd
     loopsprings(i)
@@ -645,27 +711,27 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
         // get delay tap
         int lowdelay1id = springs->low_delayline.tap1.id;
         if (springs->increment_delaytime)
-            loopdownsamples(n) low_delayline_process(
-                &springs->low_delayline, &springs->rand, ylow[n], 1, 1);
+            loopdownsamples(n)
+                low_delayline_process(&springs->low_delayline, ylow[n], 1, 1);
         else if (springs->increment_t60)
-            loopdownsamples(n) low_delayline_process(
-                &springs->low_delayline, &springs->rand, ylow[n], 0, 1);
+            loopdownsamples(n)
+                low_delayline_process(&springs->low_delayline, ylow[n], 0, 1);
         else
-            loopdownsamples(n) low_delayline_process(
-                &springs->low_delayline, &springs->rand, ylow[n], 0, 0);
+            loopdownsamples(n)
+                low_delayline_process(&springs->low_delayline, ylow[n], 0, 0);
         springs->low_delayline.tap1.id = lowdelay1id;
 
         // get delay tap
         int highdelayid = springs->high_delayline.tap.id;
         if (springs->increment_delaytime)
-            loopsamples(n) high_delayline_process(
-                &springs->high_delayline, &springs->rand, yhigh[n], 1, 1);
+            loopsamples(n) high_delayline_process(&springs->high_delayline,
+                                                  yhigh[n], 1, 1);
         else if (springs->increment_t60)
-            loopsamples(n) high_delayline_process(
-                &springs->high_delayline, &springs->rand, yhigh[n], 0, 1);
+            loopsamples(n) high_delayline_process(&springs->high_delayline,
+                                                  yhigh[n], 0, 1);
         else
-            loopsamples(n) high_delayline_process(
-                &springs->high_delayline, &springs->rand, yhigh[n], 0, 0);
+            loopsamples(n) high_delayline_process(&springs->high_delayline,
+                                                  yhigh[n], 0, 0);
         springs->high_delayline.tap.id = highdelayid;
 
         // dc filter

@@ -80,6 +80,7 @@ typedef struct {
     springvec(float, gripple);
     springvec(float, gecho);
     springvec(float, t60);
+    springvec(float, chaos);
     springvec(float, vol);
     springvec(float, hilomix);
     springvec(int, source);
@@ -122,10 +123,15 @@ struct high_cascade {
     springvec(float, state[HIGH_CASCADE_N][HIGH_CASCADE_STRETCH]);
 };
 
-/* random values */
-struct rand {
+/* perlin noise */
+struct noise {
     springvec(int, seed);
     springvec(int, state);
+    springvec(float, amount);
+    springvec(float, y[3]);
+    springvec(float, c[4]);
+    float phase;
+    float freq;
 };
 /* delay line */
 struct delay_tap {
@@ -135,7 +141,7 @@ struct delay_tap {
 };
 
 struct low_delayline {
-    springvec(float, modstate);
+    struct noise noise;
 
     struct springparam L1;
     struct delay_tap tap1;
@@ -155,7 +161,7 @@ struct low_delayline {
 };
 
 struct high_delayline {
-    springvec(float, modstate);
+    struct noise noise;
 
     struct springparam L;
     struct delay_tap tap;
@@ -171,8 +177,6 @@ typedef struct {
     int blocksize;
     springvec(float, ylow[MAXBLOCKSIZE]);
     springvec(float, yhigh[MAXBLOCKSIZE]);
-
-    struct rand rand;
 
     /* down sampling */
     int downsampleM;
@@ -229,6 +233,8 @@ void springs_set_gripple(springs_t *springs,
 void springs_set_gecho(springs_t *springs, float gecho[restrict MAXSPRINGS]);
 void springs_set_t60(springs_t *springs, float t60[restrict MAXSPRINGS],
                      int count);
+void springs_set_chaos(springs_t *springs, float chaos[restrict MAXSPRINGS],
+                       int count);
 void springs_set_vol(springs_t *springs, float vol[restrict MAXSPRINGS],
                      int count);
 void springs_set_pan(springs_t *springs, float pan[restrict MAXSPRINGS],
@@ -238,7 +244,6 @@ void springs_set_hilomix(springs_t *springs, float hilomix[restrict MAXSPRINGS],
                          int count);
 
 void low_delayline_process(struct low_delayline *restrict dl,
-                           struct rand *restrict rd,
                            float y[restrict MAXSPRINGS], doinc_t inc_delaytime,
                            doinc_t inc_t60);
 void low_dc_process(struct low_dc *dc, float y[restrict MAXSPRINGS]);
@@ -248,7 +253,6 @@ void low_eq_process(struct low_eq *le, float y[restrict MAXSPRINGS]);
 void high_cascade_process(struct high_cascade *hc,
                           float y[restrict MAXSPRINGS]);
 void high_delayline_process(struct high_delayline *restrict dl,
-                            struct rand *restrict rd,
                             float y[restrict MAXSPRINGS], doinc_t inc_delaytime,
                             doinc_t inc_t60);
 void springs_process(springs_t *restrict springs, const float *const *in,

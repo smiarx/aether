@@ -80,7 +80,7 @@ class PluginProcessor final : public juce::AudioProcessor,
     };
 
     juce::AudioProcessorValueTreeState::ParameterLayout createLayout();
-    void addListener(const juce::String &stringId);
+    void addListener(juce::AudioProcessorParameter* param);
     void parameterValueChanged(int id, float newValue);
     void parameterGestureChanged(int parameterIndex, bool gestureIsStarting) {}
 

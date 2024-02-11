@@ -9,31 +9,8 @@ PluginProcessor::PluginProcessor() :
             .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
     m_parameters(*this, nullptr, juce::Identifier("Echoes"), createLayout())
 {
-    addListener("delay_drywet");
-    addListener("delay_time");
-    addListener("delay_feedback");
-    addListener("delay_cutoff");
-    addListener("delay_drive");
-    addListener("delay_drift");
-    addListener("delay_driftfreq");
-    addListener("delay_mode");
-    addListener("springs_drywet");
-    for (int i = 0; i < MAXSPRINGS; ++i) {
-        addListener(juce::String("spring") + juce::String(i) +
-                    juce::String("_vol"));
-        addListener(juce::String("spring") + juce::String(i) +
-                    juce::String("_source"));
-        addListener(juce::String("spring") + juce::String(i) +
-                    juce::String("_pan"));
-        addListener(juce::String("spring") + juce::String(i) +
-                    juce::String("_hilo"));
-        addListener(juce::String("spring") + juce::String(i) +
-                    juce::String("_length"));
-        addListener(juce::String("spring") + juce::String(i) +
-                    juce::String("_decay"));
-        addListener(juce::String("spring") + juce::String(i) +
-                    juce::String("_chaos"));
-    }
+    for(auto* param: getParameters())
+        addListener(param);
 }
 
 PluginProcessor::~PluginProcessor() {}
@@ -324,9 +301,8 @@ void PluginProcessor::parameterValueChanged(int id, float newValue)
     m_paramEvents.emplace_back(id, value);
 }
 
-void PluginProcessor::addListener(const juce::String &stringId)
+void PluginProcessor::addListener(juce::AudioProcessorParameter* param)
 {
-    auto *param = m_parameters.getParameter(stringId);
     jassert(param != nullptr);
     param->addListener(this);
     parameterValueChanged(param->getParameterIndex(), param->getValue());

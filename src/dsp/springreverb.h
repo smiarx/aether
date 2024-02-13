@@ -214,48 +214,34 @@ typedef struct {
     float samplerate;
 } springs_t;
 
-#ifdef __cplusplus
-#define restrict
-#endif
-
 void springs_init(springs_t *springs, springs_desc_t *desc, float samplerate);
 void springs_update(springs_t *springs, springs_desc_t *desc);
-void springs_set_dccutoff(springs_t *springs,
-                          float fcutoff[restrict MAXSPRINGS]);
-void springs_set_ftr(springs_t *springs, float ftr[restrict MAXSPRINGS],
-                     int count);
-void springs_set_a1(springs_t *springs, float a1[restrict MAXSPRINGS]);
-void springs_set_length(springs_t *springs, float length[restrict MAXSPRINGS],
+void springs_set_dccutoff(springs_t *springs, float fcutoff[MAXSPRINGS]);
+void springs_set_ftr(springs_t *springs, float ftr[MAXSPRINGS], int count);
+void springs_set_a1(springs_t *springs, float a1[MAXSPRINGS]);
+void springs_set_length(springs_t *springs, float length[MAXSPRINGS],
                         int count);
-void springs_set_ahigh(springs_t *springs, float a1[restrict MAXSPRINGS]);
-void springs_set_gripple(springs_t *springs,
-                         float gripple[restrict MAXSPRINGS]);
-void springs_set_gecho(springs_t *springs, float gecho[restrict MAXSPRINGS]);
-void springs_set_t60(springs_t *springs, float t60[restrict MAXSPRINGS],
-                     int count);
-void springs_set_chaos(springs_t *springs, float chaos[restrict MAXSPRINGS],
-                       int count);
-void springs_set_vol(springs_t *springs, float vol[restrict MAXSPRINGS],
-                     int count);
-void springs_set_pan(springs_t *springs, float pan[restrict MAXSPRINGS],
-                     int count);
+void springs_set_ahigh(springs_t *springs, float a1[MAXSPRINGS]);
+void springs_set_gripple(springs_t *springs, float gripple[MAXSPRINGS]);
+void springs_set_gecho(springs_t *springs, float gecho[MAXSPRINGS]);
+void springs_set_t60(springs_t *springs, float t60[MAXSPRINGS], int count);
+void springs_set_chaos(springs_t *springs, float chaos[MAXSPRINGS], int count);
+void springs_set_vol(springs_t *springs, float vol[MAXSPRINGS], int count);
+void springs_set_pan(springs_t *springs, float pan[MAXSPRINGS], int count);
 void springs_set_drywet(springs_t *springs, float drywet, int count);
-void springs_set_hilomix(springs_t *springs, float hilomix[restrict MAXSPRINGS],
+void springs_set_hilomix(springs_t *springs, float hilomix[MAXSPRINGS],
                          int count);
 
-void low_delayline_process(struct low_delayline *restrict dl,
-                           float y[restrict MAXSPRINGS], doinc_t inc_delaytime,
-                           doinc_t inc_t60);
-void low_dc_process(struct low_dc *dc, float y[restrict MAXSPRINGS]);
-void low_cascade_process(struct low_cascade *lc, float y[restrict MAXSPRINGS]);
-void springs_lowlpf(springs_t *restrict springs, float y[restrict MAXSPRINGS]);
-void low_eq_process(struct low_eq *le, float y[restrict MAXSPRINGS]);
-void high_cascade_process(struct high_cascade *hc,
-                          float y[restrict MAXSPRINGS]);
-void high_delayline_process(struct high_delayline *restrict dl,
-                            float y[restrict MAXSPRINGS], doinc_t inc_delaytime,
-                            doinc_t inc_t60);
-void springs_process(springs_t *restrict springs, const float *const *in,
+void low_delayline_process(struct low_delayline *dl, float y[MAXSPRINGS],
+                           doinc_t inc_delaytime, doinc_t inc_t60);
+void low_dc_process(struct low_dc *dc, float y[MAXSPRINGS]);
+void low_cascade_process(struct low_cascade *lc, float y[MAXSPRINGS]);
+void springs_lowlpf(springs_t *springs, float y[MAXSPRINGS]);
+void low_eq_process(struct low_eq *le, float y[MAXSPRINGS]);
+void high_cascade_process(struct high_cascade *hc, float y[MAXSPRINGS]);
+void high_delayline_process(struct high_delayline *dl, float y[MAXSPRINGS],
+                            doinc_t inc_delaytime, doinc_t inc_t60);
+void springs_process(springs_t *springs, const float *const *in,
                      float *const *out, int count);
 
 #endif

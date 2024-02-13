@@ -358,7 +358,7 @@ void springs_set_drywet(springs_t *springs, float drywet, int count)
     }
 }
 
-static void noise_process(struct noise *ns, float y[restrict MAXSPRINGS])
+static void noise_process(struct noise *restrict ns, float y[MAXSPRINGS])
 {
     if (ns->phase > 1.f) {
         ns->phase -= 1.f;
@@ -440,7 +440,7 @@ static inline float tap_cubic(struct delay_tap *tap, float buffer[][MAXSPRINGS],
 }
 
 void low_delayline_process(struct low_delayline *restrict dl,
-                           float y[restrict MAXSPRINGS], doinc_t inc_delaytime,
+                           float y[MAXSPRINGS], doinc_t inc_delaytime,
                            doinc_t inc_t60)
 {
     y = __builtin_assume_aligned(y, sizeof(float) * MAXSPRINGS);
@@ -489,7 +489,7 @@ void low_delayline_process(struct low_delayline *restrict dl,
 }
 
 void high_delayline_process(struct high_delayline *restrict dl,
-                            float y[restrict MAXSPRINGS], doinc_t inc_delaytime,
+                            float y[MAXSPRINGS], doinc_t inc_delaytime,
                             doinc_t inc_t60)
 {
     y = __builtin_assume_aligned(y, sizeof(float) * MAXSPRINGS);
@@ -518,7 +518,7 @@ void high_delayline_process(struct high_delayline *restrict dl,
     dl->tap.id = (dl->tap.id + 1) & HIGHDELAYMASK;
 }
 
-void low_dc_process(struct low_dc *dc, float y[restrict MAXSPRINGS])
+void low_dc_process(struct low_dc *restrict dc, float y[MAXSPRINGS])
 {
     y = __builtin_assume_aligned(y, sizeof(float) * MAXSPRINGS);
 
@@ -536,7 +536,7 @@ void low_dc_process(struct low_dc *dc, float y[restrict MAXSPRINGS])
 }
 
 /* compute low all pass chain */
-void low_cascade_process(struct low_cascade *lc, float y[restrict MAXSPRINGS])
+void low_cascade_process(struct low_cascade *restrict lc, float y[MAXSPRINGS])
 {
     y = __builtin_assume_aligned(y, sizeof(float) * MAXSPRINGS);
 
@@ -573,12 +573,12 @@ void low_cascade_process(struct low_cascade *lc, float y[restrict MAXSPRINGS])
 }
 
 __attribute__((flatten)) void springs_lowlpf(springs_t *restrict springs,
-                                             float y[restrict MAXSPRINGS])
+                                             float y[MAXSPRINGS])
 {
     filter(_process)(springs->lowpassfilter, y, NLOWPASSSOS);
 }
 
-void low_eq_process(struct low_eq *le, float y[restrict MAXSPRINGS])
+void low_eq_process(struct low_eq *restrict le, float y[MAXSPRINGS])
 {
     y = __builtin_assume_aligned(y, sizeof(float) * MAXSPRINGS);
 
@@ -610,7 +610,7 @@ void low_eq_process(struct low_eq *le, float y[restrict MAXSPRINGS])
     le->id = (le->id + 1) & LOW_EQ_STATE_MASK;
 }
 
-void high_cascade_process(struct high_cascade *hc, float y[restrict MAXSPRINGS])
+void high_cascade_process(struct high_cascade *restrict hc, float y[MAXSPRINGS])
 {
     y = __builtin_assume_aligned(y, sizeof(float) * MAXSPRINGS);
     /* high chirp allpass chain is stretched by a factor of two,
@@ -643,8 +643,7 @@ void high_cascade_process(struct high_cascade *hc, float y[restrict MAXSPRINGS])
 // only flatten in clang, gcc seems to break vectorization
 __attribute__((flatten)) void springs_process(springs_t *restrict springs,
                                               const float *const *in,
-                                              float *const *restrict out,
-                                              int count)
+                                              float *const *out, int count)
 {
     /* springs */
     float(*y)[MAXSPRINGS]     = springs->ylow;

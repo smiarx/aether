@@ -38,7 +38,6 @@ int main(int argc, char **argv)
         .gripple = {0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01},
         .gecho   = {0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01},
         .t60     = {2.5f, 2.5f, 2.5f, 2.5f, 2.5f, 2.5f, 2.5f, 2.5f},
-        .ghf     = {-0.98, -0.98, -0.98, -0.98, -0.98, -0.98, -0.986, -0.98},
     };
 
     float ins[NCHANNELS][8192];
@@ -123,7 +122,7 @@ int main(int argc, char **argv)
     struct high_delayline *hdl = &springs.high_delayline;
     for (int i = 0; i < n * r; i++) {
         dtime = -omp_get_wtime();
-        high_delayline_process(hdl, y);
+        high_delayline_process(hdl, y, 0, 0);
         dtime += omp_get_wtime();
         time += dtime;
     }

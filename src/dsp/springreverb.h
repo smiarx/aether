@@ -61,82 +61,84 @@
 
 #define MAXBLOCKSIZE 512
 
-#define springvec(type, name) \
-    type name[MAXSPRINGS] __attribute__((aligned(sizeof(type) * MAXSPRINGS)))
+typedef float springsfloat[MAXSPRINGS]
+    __attribute__((aligned(sizeof(float) * MAXSPRINGS)));
+typedef int springsint[MAXSPRINGS]
+    __attribute__((aligned(sizeof(int) * MAXSPRINGS)));
 
 struct springparam {
-    springvec(float, val);
-    springvec(float, inc);
+    springsfloat val;
+    springsfloat inc;
 };
 typedef int doinc_t;
 
 /* spring parameters */
 typedef struct {
-    springvec(float, ftr);
-    springvec(float, a1);
-    springvec(float, ahigh);
-    springvec(float, length);
-    springvec(float, fcutoff);
-    springvec(float, gripple);
-    springvec(float, gecho);
-    springvec(float, t60);
-    springvec(float, chaos);
-    springvec(float, vol);
-    springvec(float, hilomix);
-    springvec(int, source);
-    springvec(float, pan);
+    springsfloat ftr;
+    springsfloat a1;
+    springsfloat ahigh;
+    springsfloat length;
+    springsfloat fcutoff;
+    springsfloat gripple;
+    springsfloat gecho;
+    springsfloat t60;
+    springsfloat chaos;
+    springsfloat vol;
+    springsfloat hilomix;
+    springsint source;
+    springsfloat pan;
     float drywet;
 } springs_desc_t;
 
 /* low dc filter */
 struct low_dc {
-    springvec(float, b);
-    springvec(float, a);
-    springvec(float, state);
+    springsfloat b;
+    springsfloat a;
+    springsfloat state;
 };
 
 /* low allpass cascade */
 struct low_cascade {
-    springvec(int, iK);
-    springvec(float, a1);
-    springvec(float, a2);
+    springsint iK;
+    springsfloat a1;
+    springsfloat a2;
     struct {
-        springvec(float, s2);
-        springvec(float, s1[LOW_CASCADE_STATE_SIZE]);
+        springsfloat s2;
+        springsfloat s1[LOW_CASCADE_STATE_SIZE];
     } state[LOW_CASCADE_N];
     int id;
 };
 
 /* low equalizer */
 struct low_eq {
-    springvec(int, Keq);
-    springvec(float, b0);
-    springvec(float, ak);
-    springvec(float, a2k);
-    springvec(float, state[LOW_EQ_STATE_SIZE]);
+    springsint Keq;
+    springsfloat b0;
+    springsfloat ak;
+    springsfloat a2k;
+    springsfloat state[LOW_EQ_STATE_SIZE];
     int id;
 };
 
 /* high cascade */
 struct high_cascade {
-    springvec(float, a);
-    springvec(float, state[HIGH_CASCADE_N][HIGH_CASCADE_STRETCH]);
+    springsfloat a;
+    springsfloat state[HIGH_CASCADE_N][HIGH_CASCADE_STRETCH];
 };
 
 /* perlin noise */
 struct noise {
-    springvec(int, seed);
-    springvec(int, state);
-    springvec(float, amount);
-    springvec(float, y[3]);
-    springvec(float, c[4]);
+    springsint seed;
+    springsint state;
+    springsfloat amount;
+    springsfloat y[3];
+    springsfloat c[4];
     float phase;
     float freq;
 };
 /* delay line */
 struct delay_tap {
-    springvec(int, idelay);
-    springvec(float, fdelay);
+    springsint idelay;
+    springsfloat fdelay;
     int id;
 };
 
@@ -145,17 +147,17 @@ struct low_delayline {
 
     struct springparam L1;
     struct delay_tap tap1;
-    springvec(float, buffer1[LOWDELAY1SIZE]);
+    springsfloat buffer1[LOWDELAY1SIZE];
 
     struct springparam Lecho;
     struct delay_tap tap_echo;
-    springvec(float, buffer_echo[LOWDELAYECHOSIZE]);
-    springvec(float, gecho);
+    springsfloat buffer_echo[LOWDELAYECHOSIZE];
+    springsfloat gecho;
 
     struct springparam Lripple;
     struct delay_tap tap_ripple;
-    springvec(float, buffer_ripple[LOWDELAYRIPPLESIZE]);
-    springvec(float, gripple);
+    springsfloat buffer_ripple[LOWDELAYRIPPLESIZE];
+    springsfloat gripple;
 
     struct springparam glf;
 };
@@ -165,7 +167,7 @@ struct high_delayline {
 
     struct springparam L;
     struct delay_tap tap;
-    springvec(float, buffer[HIGHDELAYSIZE]);
+    springsfloat buffer[HIGHDELAYSIZE];
 
     struct springparam ghf;
 };
@@ -175,8 +177,8 @@ typedef struct {
 
     /* block compute */
     int blocksize;
-    springvec(float, ylow[MAXBLOCKSIZE]);
-    springvec(float, yhigh[MAXBLOCKSIZE]);
+    springsfloat ylow[MAXBLOCKSIZE];
+    springsfloat yhigh[MAXBLOCKSIZE];
 
     /* down sampling */
     int downsampleM;
@@ -184,7 +186,7 @@ typedef struct {
     filter(_t) aafilter[NAASOS];
 
     /* set with ftr */
-    springvec(float, K);
+    springsfloat K;
     /*--------*/
 
     struct low_dc low_dc;

@@ -405,7 +405,7 @@ static void noise_process(struct noise *restrict ns, float y[MAXSPRINGS])
 /* delay line */
 #pragma omp declare simd linear(i) uniform(tap, buffer, mask)
 static inline float tap_linear(struct delay_tap *tap,
-                               float buffer[][MAXSPRINGS], int mask, int i)
+                               springsfloat buffer[], int mask, int i)
 {
     int id  = (tap->id - tap->idelay[i]) & mask;
     int id1 = (id - 1) & mask;
@@ -419,7 +419,7 @@ static inline float tap_linear(struct delay_tap *tap,
 }
 
 #pragma omp declare simd linear(i) uniform(tap, buffer, mask)
-static inline float tap_cubic(struct delay_tap *tap, float buffer[][MAXSPRINGS],
+static inline float tap_cubic(struct delay_tap *tap, springsfloat buffer[],
                               int mask, int i)
 {
     int id   = (tap->id - tap->idelay[i]) & mask;
@@ -443,7 +443,7 @@ void low_delayline_process(struct low_delayline *restrict dl,
                            float y[MAXSPRINGS], doinc_t inc_delaytime,
                            doinc_t inc_t60)
 {
-    y = __builtin_assume_aligned(y, sizeof(float) * MAXSPRINGS);
+    y = __builtin_assume_aligned(y, sizeof(springsfloat));
 
     float mod[MAXSPRINGS];
     /* modulation */
@@ -492,7 +492,7 @@ void high_delayline_process(struct high_delayline *restrict dl,
                             float y[MAXSPRINGS], doinc_t inc_delaytime,
                             doinc_t inc_t60)
 {
-    y = __builtin_assume_aligned(y, sizeof(float) * MAXSPRINGS);
+    y = __builtin_assume_aligned(y, sizeof(springsfloat));
 
     float mod[MAXSPRINGS];
     /* modulation */
@@ -520,7 +520,7 @@ void high_delayline_process(struct high_delayline *restrict dl,
 
 void low_dc_process(struct low_dc *restrict dc, float y[MAXSPRINGS])
 {
-    y = __builtin_assume_aligned(y, sizeof(float) * MAXSPRINGS);
+    y = __builtin_assume_aligned(y, sizeof(springsfloat));
 
 #pragma omp simd
     loopsprings(i)
@@ -538,15 +538,15 @@ void low_dc_process(struct low_dc *restrict dc, float y[MAXSPRINGS])
 /* compute low all pass chain */
 void low_cascade_process(struct low_cascade *restrict lc, float y[MAXSPRINGS])
 {
-    y = __builtin_assume_aligned(y, sizeof(float) * MAXSPRINGS);
+    y = __builtin_assume_aligned(y, sizeof(springsfloat));
 
     // load mem id
-    int idx[MAXSPRINGS];
+    springsint idx;
 #pragma omp simd
     loopsprings(i) idx[i] = (lc->id - lc->iK[i]) & LOW_CASCADE_STATE_MASK;
 
     // load parameters
-    float a1[MAXSPRINGS], a2[MAXSPRINGS];
+    springsfloat a1, a2;
 #pragma omp simd
     loopsprings(i) a1[i] = lc->a1[i], a2[i] = lc->a2[i];
 
@@ -580,10 +580,10 @@ __attribute__((flatten)) void springs_lowlpf(springs_t *restrict springs,
 
 void low_eq_process(struct low_eq *restrict le, float y[MAXSPRINGS])
 {
-    y = __builtin_assume_aligned(y, sizeof(float) * MAXSPRINGS);
+    y = __builtin_assume_aligned(y, sizeof(springsfloat));
 
-    int idk[MAXSPRINGS];
-    int id2k[MAXSPRINGS];
+    springsint idk;
+    springsint id2k;
 #pragma omp simd
     loopsprings(i)
     {
@@ -612,12 +612,12 @@ void low_eq_process(struct low_eq *restrict le, float y[MAXSPRINGS])
 
 void high_cascade_process(struct high_cascade *restrict hc, float y[MAXSPRINGS])
 {
-    y = __builtin_assume_aligned(y, sizeof(float) * MAXSPRINGS);
+    y = __builtin_assume_aligned(y, sizeof(springsfloat));
     /* high chirp allpass chain is stretched by a factor of two,
      * this isn't the way it's supposed to be but it sounds better so ehh..
      */
 
-    float a[MAXSPRINGS];
+    springsfloat a;
     loopsprings(i) a[i] = hc->a[i];
 
     for (int j = 0; j < HIGH_CASCADE_N; ++j) {
@@ -646,9 +646,9 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
                                               float *const *out, int count)
 {
     /* springs */
-    float(*y)[MAXSPRINGS]     = springs->ylow;
-    float(*ylow)[MAXSPRINGS]  = springs->ylow;
-    float(*yhigh)[MAXSPRINGS] = springs->yhigh;
+    springsfloat *y     = springs->ylow;
+    springsfloat *ylow  = springs->ylow;
+    springsfloat *yhigh = springs->yhigh;
 
     int nbase = 0;
 

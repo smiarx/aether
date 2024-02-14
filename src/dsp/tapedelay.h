@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <string.h>
 
+#undef FILTER_VECSIZE
 #include "filter.h"
 #define FILTER_VECSIZE 2
 #include "lfo.h"

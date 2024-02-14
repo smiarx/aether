@@ -9,7 +9,7 @@
 /* lf parabolic osc */
 struct lfosc {
     int64_t phase;
-    uint64_t freq;
+    int64_t freq;
 };
 
 static inline void lfosc_set_freq(struct lfosc *lfo, float freq)
@@ -38,7 +38,7 @@ static inline int64_t lfosc_process(struct lfosc *lfo)
 /* lf triangle */
 struct lftri {
     int64_t phase;
-    uint64_t freq;
+    int64_t freq;
 };
 
 static inline void lftri_set_freq(struct lftri *lfo, float freq)

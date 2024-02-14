@@ -9,8 +9,7 @@ PluginProcessor::PluginProcessor() :
             .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
     m_parameters(*this, nullptr, juce::Identifier("Echoes"), createLayout())
 {
-    for(auto* param: getParameters())
-        addListener(param);
+    for (auto *param : getParameters()) addProcessorAsListener(param);
 }
 
 PluginProcessor::~PluginProcessor() {}
@@ -111,6 +110,7 @@ void PluginProcessor::changeProgramName(int index, const juce::String &newName)
 //==============================================================================
 void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
+    (void)samplesPerBlock;
     tapedelay_desc_t desc = {
         /* delay */ 0.125f,
         /* feedback */ 0.8f,
@@ -147,6 +147,9 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
         {0.001f, 0.001f, 0.001f, 0.001f, 0.001f, 0.001f, 0.001f, 0.001f},
         /* vol */ {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f},
         /* hilomix */ {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f},
+        /* source */ {2, 2, 2, 2, 2, 2, 2, 2},
+        /* pan */ {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f},
+        /* drywet */ 0.2f,
     };
 
     springs_init(&m_springreverb, &sdesc, sampleRate);
@@ -243,6 +246,10 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
             springs_set_chaos(&m_springreverb, m_springreverb.desc.chaos,
                               count);
             break;
+        case ParamId::SpringParamBegin:
+        case ParamId::SpringParamEnd:
+        default:
+            break;
         }
     }
 
@@ -301,7 +308,8 @@ void PluginProcessor::parameterValueChanged(int id, float newValue)
     m_paramEvents.emplace_back(id, value);
 }
 
-void PluginProcessor::addListener(juce::AudioProcessorParameter* param)
+void PluginProcessor::addProcessorAsListener(
+    juce::AudioProcessorParameter *param)
 {
     jassert(param != nullptr);
     param->addListener(this);

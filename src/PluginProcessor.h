@@ -80,9 +80,12 @@ class PluginProcessor final : public juce::AudioProcessor,
     };
 
     juce::AudioProcessorValueTreeState::ParameterLayout createLayout();
-    void addListener(juce::AudioProcessorParameter* param);
+    void addProcessorAsListener(juce::AudioProcessorParameter *param);
     void parameterValueChanged(int id, float newValue);
-    void parameterGestureChanged(int parameterIndex, bool gestureIsStarting) {}
+    void parameterGestureChanged(int /*parameterIndex*/,
+                                 bool /*gestureIsStarting*/)
+    {
+    }
 
   private:
     juce::AudioProcessorValueTreeState m_parameters;

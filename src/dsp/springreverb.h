@@ -10,6 +10,7 @@
 #endif
 
 /* include filter functions */
+#undef FILTER_VECSIZE
 #include "filter.h"
 #define FILTER_VECSIZE NSPRINGS
 

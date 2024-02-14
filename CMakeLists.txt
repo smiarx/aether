@@ -33,6 +33,10 @@ target_compile_definitions(Echoes
         JUCE_USE_CURL=0     # If you remove this, add `NEEDS_CURL TRUE` to the `juce_add_plugin` call
         JUCE_VST3_CAN_REPLACE_VST2=0)
 
+target_compile_options(Echoes PRIVATE
+       -fopenmp-simd
+   )
+
 add_subdirectory(src/dsp/)
 
 target_link_libraries(Echoes

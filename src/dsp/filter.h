@@ -6,6 +6,8 @@
 #define filterN(N, name)   gluename(filter, N, name)
 #define filter(name)       filterN(FILTER_VECSIZE, name)
 
+#undef FILTER_VECSIZE
+
 #define FILTER_VECSIZE 1
 #include "filter.c"
 #undef FILTER_VECSIZE

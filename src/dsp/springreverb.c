@@ -709,28 +709,14 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
         /* low chirps */
         // get delay tap
         int lowdelay1id = springs->low_delayline.tap1.id;
-        if (springs->increment_delaytime)
             loopdownsamples(n) low_delayline_process(
-                &springs->low_delayline, ylow[n], INCREMENT, INCREMENT);
-        else if (springs->increment_t60)
-            loopdownsamples(n) low_delayline_process(
-                &springs->low_delayline, ylow[n], NO_INCREMENT, INCREMENT);
-        else
-            loopdownsamples(n) low_delayline_process(
-                &springs->low_delayline, ylow[n], NO_INCREMENT, NO_INCREMENT);
+                &springs->low_delayline, ylow[n], springs->increment_delaytime, springs->increment_t60);
         springs->low_delayline.tap1.id = lowdelay1id;
 
         // get delay tap
         int highdelayid = springs->high_delayline.tap.id;
-        if (springs->increment_delaytime)
-            loopsamples(n) high_delayline_process(
-                &springs->high_delayline, yhigh[n], INCREMENT, INCREMENT);
-        else if (springs->increment_t60)
-            loopsamples(n) high_delayline_process(
-                &springs->high_delayline, yhigh[n], NO_INCREMENT, INCREMENT);
-        else
-            loopsamples(n) high_delayline_process(
-                &springs->high_delayline, yhigh[n], NO_INCREMENT, NO_INCREMENT);
+        loopsamples(n) high_delayline_process(
+            &springs->high_delayline, yhigh[n], springs->increment_delaytime, springs->increment_t60);
         springs->high_delayline.tap.id = highdelayid;
 
         // dc filter
@@ -788,11 +774,7 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
         }                                                                    \
     }
 
-        if (springs->increment_glowhigh) {
-            sum_hilo(INCREMENT);
-        } else {
-            sum_hilo(NO_INCREMENT);
-        }
+        sum_hilo(springs->increment_glowhigh);
 
         /* sum springs */
         float drywet;
@@ -819,15 +801,7 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
         if (inc_drywet) springs->drywet = drywet;                          \
     }
 
-        if (drywet_inc != 0.f) {
-            if (springs->increment_gchannel)
-                sum_springs(INCREMENT, INCREMENT) else sum_springs(INCREMENT,
-                                                                   NO_INCREMENT)
-        } else {
-            if (springs->increment_gchannel)
-                sum_springs(NO_INCREMENT, INCREMENT) else sum_springs(
-                    NO_INCREMENT, NO_INCREMENT)
-        }
+        sum_springs(drywet_inc != 0.f, springs->increment_gchannel)
 #undef sum_springs
 
         nbase += blocksize;

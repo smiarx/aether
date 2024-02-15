@@ -236,7 +236,7 @@ void springs_set_length(springs_t *springs, float length[restrict MAXSPRINGS],
         }
     }
 
-    springs->increment_delaytime = 1;
+    springs->increment_delaytime = INCREMENT;
 
     /* update t60 */
     springs_set_t60(springs, springs->desc.t60, count);
@@ -285,7 +285,7 @@ gfunc(gripple, low) gfunc(gecho, low)
         }
     }
 
-    springs->increment_t60 = 1;
+    springs->increment_t60 = INCREMENT;
 }
 
 void springs_set_chaos(springs_t *springs, float chaos[restrict MAXSPRINGS],
@@ -323,7 +323,7 @@ void springs_set_chaos(springs_t *springs, float chaos[restrict MAXSPRINGS],
         setinc(springs->glow, glow, count, i);
         setinc(springs->ghigh, ghigh, count, i);
     }
-    springs->increment_glowhigh = 1;
+    springs->increment_glowhigh = INCREMENT;
 }
 void springs_set_hilomix(springs_t *springs, float hilomix[restrict MAXSPRINGS],
                          int count)
@@ -347,7 +347,7 @@ void springs_set_pan(springs_t *springs, float pan[restrict MAXSPRINGS],
         setinc(springs->gchannel[1], gright, count, i);
 #endif
     }
-    springs->increment_gchannel = 1;
+    springs->increment_gchannel = INCREMENT;
 }
 
 void springs_set_drywet(springs_t *springs, float drywet, int count)
@@ -440,8 +440,8 @@ static inline float tap_cubic(struct delay_tap *tap, springsfloat buffer[],
 }
 
 void low_delayline_process(struct low_delayline *restrict dl,
-                           float y[MAXSPRINGS], doinc_t inc_delaytime,
-                           doinc_t inc_t60)
+                           float y[MAXSPRINGS], enum inc inc_delaytime,
+                           enum inc inc_t60)
 {
     y = __builtin_assume_aligned(y, sizeof(springsfloat));
 
@@ -489,8 +489,8 @@ void low_delayline_process(struct low_delayline *restrict dl,
 }
 
 void high_delayline_process(struct high_delayline *restrict dl,
-                            float y[MAXSPRINGS], doinc_t inc_delaytime,
-                            doinc_t inc_t60)
+                            float y[MAXSPRINGS], enum inc inc_delaytime,
+                            enum inc inc_t60)
 {
     y = __builtin_assume_aligned(y, sizeof(springsfloat));
 
@@ -710,27 +710,27 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
         // get delay tap
         int lowdelay1id = springs->low_delayline.tap1.id;
         if (springs->increment_delaytime)
-            loopdownsamples(n)
-                low_delayline_process(&springs->low_delayline, ylow[n], 1, 1);
+            loopdownsamples(n) low_delayline_process(
+                &springs->low_delayline, ylow[n], INCREMENT, INCREMENT);
         else if (springs->increment_t60)
-            loopdownsamples(n)
-                low_delayline_process(&springs->low_delayline, ylow[n], 0, 1);
+            loopdownsamples(n) low_delayline_process(
+                &springs->low_delayline, ylow[n], NO_INCREMENT, INCREMENT);
         else
-            loopdownsamples(n)
-                low_delayline_process(&springs->low_delayline, ylow[n], 0, 0);
+            loopdownsamples(n) low_delayline_process(
+                &springs->low_delayline, ylow[n], NO_INCREMENT, NO_INCREMENT);
         springs->low_delayline.tap1.id = lowdelay1id;
 
         // get delay tap
         int highdelayid = springs->high_delayline.tap.id;
         if (springs->increment_delaytime)
-            loopsamples(n) high_delayline_process(&springs->high_delayline,
-                                                  yhigh[n], 1, 1);
+            loopsamples(n) high_delayline_process(
+                &springs->high_delayline, yhigh[n], INCREMENT, INCREMENT);
         else if (springs->increment_t60)
-            loopsamples(n) high_delayline_process(&springs->high_delayline,
-                                                  yhigh[n], 0, 1);
+            loopsamples(n) high_delayline_process(
+                &springs->high_delayline, yhigh[n], NO_INCREMENT, INCREMENT);
         else
-            loopsamples(n) high_delayline_process(&springs->high_delayline,
-                                                  yhigh[n], 0, 0);
+            loopsamples(n) high_delayline_process(
+                &springs->high_delayline, yhigh[n], NO_INCREMENT, NO_INCREMENT);
         springs->high_delayline.tap.id = highdelayid;
 
         // dc filter
@@ -789,9 +789,9 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
     }
 
         if (springs->increment_glowhigh) {
-            sum_hilo(1);
+            sum_hilo(INCREMENT);
         } else {
-            sum_hilo(0);
+            sum_hilo(NO_INCREMENT);
         }
 
         /* sum springs */
@@ -821,10 +821,12 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
 
         if (drywet_inc != 0.f) {
             if (springs->increment_gchannel)
-                sum_springs(1, 1) else sum_springs(1, 0)
+                sum_springs(INCREMENT, INCREMENT) else sum_springs(INCREMENT,
+                                                                   NO_INCREMENT)
         } else {
             if (springs->increment_gchannel)
-                sum_springs(0, 1) else sum_springs(0, 0)
+                sum_springs(NO_INCREMENT, INCREMENT) else sum_springs(
+                    NO_INCREMENT, NO_INCREMENT)
         }
 #undef sum_springs
 
@@ -834,23 +836,23 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
 
     springs->drywet_inc = 0.f;
     if (springs->increment_gchannel) {
-        springs->increment_gchannel = 0;
+        springs->increment_gchannel = NO_INCREMENT;
         for (int c = 0; c < NCHANNELS; ++c) resetinc(springs->gchannel[c]);
     }
     if (springs->increment_glowhigh) {
-        springs->increment_glowhigh = 0;
+        springs->increment_glowhigh = NO_INCREMENT;
         resetinc(springs->glow);
         resetinc(springs->ghigh);
     }
     if (springs->increment_delaytime) {
-        springs->increment_delaytime = 0;
+        springs->increment_delaytime = NO_INCREMENT;
         resetinc(springs->low_delayline.L1);
         resetinc(springs->low_delayline.Lecho);
         resetinc(springs->low_delayline.Lripple);
         resetinc(springs->high_delayline.L);
     }
     if (springs->increment_t60) {
-        springs->increment_t60 = 0;
+        springs->increment_t60 = NO_INCREMENT;
         resetinc(springs->low_delayline.glf);
         resetinc(springs->high_delayline.ghf);
     }

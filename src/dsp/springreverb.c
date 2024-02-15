@@ -41,7 +41,8 @@ void springs_init(springs_t *springs, springs_desc_t *desc, float samplerate,
     springs->samplerate                  = samplerate;
 
     springs_set_ftr(springs, springs->desc.ftr, count);
-    springs_set_a1(springs, springs->desc.a1);
+    springs_set_a1(springs, springs->desc.a1, count);
+    springs_set_ahigh(springs, springs->desc.ahigh, count);
     springs_set_length(springs, springs->desc.length, count);
     springs_set_t60(springs, springs->desc.t60, count);
     springs_set_chaos(springs, springs->desc.chaos, count);
@@ -72,8 +73,6 @@ void springs_update(springs_t *springs, springs_desc_t *desc)
         if (test) springs_set_##name(springs, desc->name);             \
     }
 
-    param_update(a1);
-    param_update(ahigh);
     param_update(gripple);
     param_update(gecho);
 
@@ -134,7 +133,7 @@ void springs_set_ftr(springs_t *springs, float ftr[restrict MAXSPRINGS],
         /* other parameters are dependent of downsample M */
         springs_set_dccutoff(springs, springs->desc.fcutoff);
         springs_set_length(springs, springs->desc.length, count);
-        springs_set_a1(springs, springs->desc.a1);
+        springs_set_a1(springs, springs->desc.a1, count);
 
         /* low delayline noise freq */
         springs->low_delayline.noise.freq =
@@ -181,7 +180,8 @@ void springs_set_ftr(springs_t *springs, float ftr[restrict MAXSPRINGS],
                         springs->samplerate, NLOWPASSSOS);
 }
 
-void springs_set_a1(springs_t *springs, float a1[restrict MAXSPRINGS])
+void springs_set_a1(springs_t *springs, float a1[restrict MAXSPRINGS],
+                    int count)
 {
     loopsprings(i)
     {
@@ -192,14 +192,20 @@ void springs_set_a1(springs_t *springs, float a1[restrict MAXSPRINGS])
             springs->low_cascade.a2[i] =
                 -2.f * sqrtf(a1[i]) * cosf(M_PI / springs->K[i]) / (1 + a1[i]);
         }
-        springs->low_cascade.a1[i] = a1[i];
+        setinc(springs->low_cascade.a1, a1[i], count, i);
     }
+    springs->increment_a1 = INCREMENT;
 }
 
-void springs_set_ahigh(springs_t *springs, float ahigh[restrict MAXSPRINGS])
+void springs_set_ahigh(springs_t *springs, float ahigh[restrict MAXSPRINGS],
+                       int count)
 {
-    loopsprings(i) springs->desc.ahigh[i] = springs->high_cascade.a[i] =
-        ahigh[i];
+    loopsprings(i)
+    {
+        springs->desc.ahigh[i] = ahigh[i];
+        setinc(springs->high_cascade.a, ahigh[i], count, i);
+    }
+    springs->increment_ahigh = INCREMENT;
 }
 
 /* set spring length (changes time delay) */
@@ -213,7 +219,7 @@ void springs_set_length(springs_t *springs, float length[restrict MAXSPRINGS],
     {
         springs->desc.length[i] = length[i];
         float time_delay        = length[i];
-        float a1            = springs->low_cascade.a1[i];
+        float a1                = springs->low_cascade.a1.val[i];
         float L =
             fmaxf(0.f, time_delay * samplerate -
                            springs->K[i] * LOW_CASCADE_N * (1 - a1) / (1 + a1));
@@ -537,7 +543,8 @@ void low_dc_process(struct low_dc *restrict dc, float y[MAXSPRINGS])
 }
 
 /* compute low all pass chain */
-void low_cascade_process(struct low_cascade *restrict lc, float y[MAXSPRINGS])
+void low_cascade_process(struct low_cascade *restrict lc, float y[MAXSPRINGS],
+                         enum inc inc_a1)
 {
     y = __builtin_assume_aligned(y, sizeof(springsfloat));
 
@@ -549,7 +556,11 @@ void low_cascade_process(struct low_cascade *restrict lc, float y[MAXSPRINGS])
     // load parameters
     springsfloat a1, a2;
 #pragma omp simd
-    loopsprings(i) a1[i] = lc->a1[i], a2[i] = lc->a2[i];
+    loopsprings(i)
+    {
+        if (inc_a1) addinc(lc->a1, i);
+        a1[i] = lc->a1.val[i], a2[i] = lc->a2[i];
+    }
 
     for (int j = 0; j < LOW_CASCADE_N; ++j) {
         float s1mem[MAXSPRINGS];
@@ -611,7 +622,8 @@ void low_eq_process(struct low_eq *restrict le, float y[MAXSPRINGS])
     le->id = (le->id + 1) & LOW_EQ_STATE_MASK;
 }
 
-void high_cascade_process(struct high_cascade *restrict hc, float y[MAXSPRINGS])
+void high_cascade_process(struct high_cascade *restrict hc, float y[MAXSPRINGS],
+                          enum inc inc_ahigh)
 {
     y = __builtin_assume_aligned(y, sizeof(springsfloat));
     /* high chirp allpass chain is stretched by a factor of two,
@@ -619,14 +631,18 @@ void high_cascade_process(struct high_cascade *restrict hc, float y[MAXSPRINGS])
      */
 
     springsfloat a;
-    loopsprings(i) a[i] = hc->a[i];
+    loopsprings(i)
+    {
+        if (inc_ahigh) addinc(hc->a, i);
+        a[i] = hc->a.val[i];
+    }
 
     for (int j = 0; j < HIGH_CASCADE_N; ++j) {
 #pragma omp simd
         loopsprings(i)
         {
             float sk = hc->state[j][HIGH_CASCADE_STRETCH - 1][i];
-            float s0 = y[i] - hc->a[i] * sk;
+            float s0 = y[i] - a[i] * sk;
 
             y[i] = a[i] * s0 + sk;
 
@@ -723,7 +739,8 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
         // dc filter
         loopdownsamples(n) low_dc_process(&springs->low_dc, ylow[n]);
         // allpass cascade
-        loopdownsamples(n) low_cascade_process(&springs->low_cascade, ylow[n]);
+        loopdownsamples(n) low_cascade_process(&springs->low_cascade, ylow[n],
+                                               springs->increment_a1);
 
         // feed delayline
         loopdownsamples(n)
@@ -744,7 +761,8 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
         /* high chirps */
 
         // allpass cascade
-        loopsamples(n) high_cascade_process(&springs->high_cascade, yhigh[n]);
+        loopsamples(n) high_cascade_process(&springs->high_cascade, yhigh[n],
+                                            springs->increment_ahigh);
 
         // feed delayline
         loopsamples(n)
@@ -830,5 +848,13 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
         springs->increment_t60 = NO_INCREMENT;
         resetinc(springs->low_delayline.glf);
         resetinc(springs->high_delayline.ghf);
+    }
+    if (springs->increment_a1) {
+        springs->increment_a1 = NO_INCREMENT;
+        resetinc(springs->low_cascade.a1);
+    }
+    if (springs->increment_ahigh) {
+        springs->increment_ahigh = NO_INCREMENT;
+        resetinc(springs->high_cascade.a);
     }
 }

@@ -105,7 +105,7 @@ struct low_dc {
 /* low allpass cascade */
 struct low_cascade {
     springsint iK;
-    springsfloat a1;
+    struct springparam a1;
     springsfloat a2;
     struct {
         springsfloat s2;
@@ -126,7 +126,7 @@ struct low_eq {
 
 /* high cascade */
 struct high_cascade {
-    springsfloat a;
+    struct springparam a;
     springsfloat state[HIGH_CASCADE_N][HIGH_CASCADE_STRETCH];
 };
 
@@ -196,6 +196,7 @@ typedef struct {
 
     struct low_dc low_dc;
     struct low_cascade low_cascade;
+    enum inc increment_a1;
 
     struct low_delayline low_delayline;
     enum inc increment_delaytime, increment_t60;
@@ -206,6 +207,7 @@ typedef struct {
     filter(_t) lowpassfilter[NLOWPASSSOS];
 
     struct high_cascade high_cascade;
+    enum inc increment_ahigh;
 
     /* low and high gain */
     struct springparam glow;
@@ -226,10 +228,10 @@ void springs_init(springs_t *springs, springs_desc_t *desc, float samplerate,
 void springs_update(springs_t *springs, springs_desc_t *desc);
 void springs_set_dccutoff(springs_t *springs, float fcutoff[MAXSPRINGS]);
 void springs_set_ftr(springs_t *springs, float ftr[MAXSPRINGS], int count);
-void springs_set_a1(springs_t *springs, float a1[MAXSPRINGS]);
+void springs_set_a1(springs_t *springs, float a1[MAXSPRINGS], int count);
 void springs_set_length(springs_t *springs, float length[MAXSPRINGS],
                         int count);
-void springs_set_ahigh(springs_t *springs, float a1[MAXSPRINGS]);
+void springs_set_ahigh(springs_t *springs, float a1[MAXSPRINGS], int count);
 void springs_set_gripple(springs_t *springs, float gripple[MAXSPRINGS]);
 void springs_set_gecho(springs_t *springs, float gecho[MAXSPRINGS]);
 void springs_set_t60(springs_t *springs, float t60[MAXSPRINGS], int count);
@@ -243,10 +245,12 @@ void springs_set_hilomix(springs_t *springs, float hilomix[MAXSPRINGS],
 void low_delayline_process(struct low_delayline *dl, float y[MAXSPRINGS],
                            enum inc inc_delaytime, enum inc inc_t60);
 void low_dc_process(struct low_dc *dc, float y[MAXSPRINGS]);
-void low_cascade_process(struct low_cascade *lc, float y[MAXSPRINGS]);
+void low_cascade_process(struct low_cascade *lc, float y[MAXSPRINGS],
+                         enum inc inc_a1);
 void springs_lowlpf(springs_t *springs, float y[MAXSPRINGS]);
 void low_eq_process(struct low_eq *le, float y[MAXSPRINGS]);
-void high_cascade_process(struct high_cascade *hc, float y[MAXSPRINGS]);
+void high_cascade_process(struct high_cascade *hc, float y[MAXSPRINGS],
+                          enum inc inc_ahigh);
 void high_delayline_process(struct high_delayline *dl, float y[MAXSPRINGS],
                             enum inc inc_delaytime, enum inc inc_t60);
 void springs_process(springs_t *springs, const float *const *in,

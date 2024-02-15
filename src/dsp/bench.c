@@ -61,7 +61,7 @@ int main(int argc, char **argv)
     struct low_cascade *lc = &springs.low_cascade;
     for (int i = 0; i < n * r; i++) {
         dtime = -omp_get_wtime();
-        low_cascade_process(lc, y);
+        low_cascade_process(lc, y, NO_INCREMENT);
         dtime += omp_get_wtime();
         time += dtime;
     }
@@ -111,7 +111,7 @@ int main(int argc, char **argv)
     struct high_cascade *hc = &springs.high_cascade;
     for (int i = 0; i < n * r; i++) {
         dtime = -omp_get_wtime();
-        high_cascade_process(hc, y);
+        high_cascade_process(hc, y, NO_INCREMENT);
         dtime += omp_get_wtime();
         time += dtime;
     }

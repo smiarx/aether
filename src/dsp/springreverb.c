@@ -31,7 +31,8 @@ static inline void tap_set_delay(struct delay_tap *tap, float delay, int i)
 
 /* springs */
 
-void springs_init(springs_t *springs, springs_desc_t *desc, float samplerate)
+void springs_init(springs_t *springs, springs_desc_t *desc, float samplerate,
+                  int count)
 {
     memset(springs, 0, sizeof(springs_t));
     loopsprings(i) springs->low_delayline.noise.seed[i]  = rand();
@@ -39,15 +40,15 @@ void springs_init(springs_t *springs, springs_desc_t *desc, float samplerate)
     springs->desc                        = *desc;
     springs->samplerate                  = samplerate;
 
-    springs_set_ftr(springs, springs->desc.ftr, 1);
+    springs_set_ftr(springs, springs->desc.ftr, count);
     springs_set_a1(springs, springs->desc.a1);
-    springs_set_length(springs, springs->desc.length, 1);
-    springs_set_t60(springs, springs->desc.t60, 1);
-    springs_set_chaos(springs, springs->desc.chaos, 1);
-    springs_set_vol(springs, springs->desc.vol, 1);
-    springs_set_pan(springs, springs->desc.pan, 1);
-    springs_set_drywet(springs, springs->desc.drywet, 1);
-    springs_set_hilomix(springs, springs->desc.hilomix, 1);
+    springs_set_length(springs, springs->desc.length, count);
+    springs_set_t60(springs, springs->desc.t60, count);
+    springs_set_chaos(springs, springs->desc.chaos, count);
+    springs_set_vol(springs, springs->desc.vol, count);
+    springs_set_pan(springs, springs->desc.pan, count);
+    springs_set_drywet(springs, springs->desc.drywet, count);
+    springs_set_hilomix(springs, springs->desc.hilomix, count);
 
     float fcutoff[] = {20, 20, 20, 20, 20, 20, 20, 20};
     springs_set_dccutoff(springs, fcutoff);

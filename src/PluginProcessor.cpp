@@ -110,7 +110,6 @@ void PluginProcessor::changeProgramName(int index, const juce::String &newName)
 //==============================================================================
 void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
-    (void)samplesPerBlock;
     tapedelay_desc_t desc = {
         /* delay */ 0.125f,
         /* feedback */ 0.8f,
@@ -152,7 +151,7 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
         /* drywet */ 0.2f,
     };
 
-    springs_init(&m_springreverb, &sdesc, sampleRate);
+    springs_init(&m_springreverb, &sdesc, sampleRate, samplesPerBlock);
 }
 
 void PluginProcessor::releaseResources() {}

@@ -283,7 +283,7 @@ gfunc(gripple, low) gfunc(gecho, low)
         float ghf = -powf(0.001, Lhigh / (t60samples * T60_HILO_RATIO));
         setinc(hdl->ghf, ghf, count, i);
 
-        float glf = -powf(0.001, L1 / t60samples);
+        float glf = -powf(0.001, L1 / (t60samples / springs->downsampleM));
         // low delay line is downsampled
         {
             int countM = count / springs->downsampleM;

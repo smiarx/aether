@@ -68,7 +68,11 @@ PluginProcessor::createLayout()
                 0.2f, 6.f, 2.5f),
             std::make_unique<juce::AudioParameterFloat>(
                 juce::String("spring") + juce::String(i) + "_chaos", "Chaos",
-                juce::NormalisableRange{0.0f, 0.05f, 0.001f}, 0.f)));
+                juce::NormalisableRange{0.0f, 0.05f, 0.001f}, 0.f),
+            std::make_unique<juce::AudioParameterFloat>(
+                juce::String("spring") + juce::String(i) + "_springness",
+                "Springness", juce::NormalisableRange{0.0f, 1.f, 0.001f},
+                0.5f)));
     }
 
     layout.add(std::move(springs));
@@ -245,6 +249,12 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
             springs_set_chaos(&m_springreverb, m_springreverb.desc.chaos,
                               count);
             break;
+        case ParamId::SpringSpringness:
+            m_springreverb.desc.a1[spring]    = event.value;
+            m_springreverb.desc.ahigh[spring] = event.value;
+            springs_set_a1(&m_springreverb, m_springreverb.desc.a1, count);
+            springs_set_ahigh(&m_springreverb, m_springreverb.desc.ahigh,
+                              count);
         case ParamId::SpringParamBegin:
         case ParamId::SpringParamEnd:
         default:

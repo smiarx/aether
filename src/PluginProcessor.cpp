@@ -67,6 +67,9 @@ PluginProcessor::createLayout()
                 juce::String("spring") + juce::String(i) + "_decay", "Decay",
                 0.2f, 6.f, 2.5f),
             std::make_unique<juce::AudioParameterFloat>(
+                juce::String("spring") + juce::String(i) + "_damp", "Damp",
+                200.f, 12000.f, 4400.f),
+            std::make_unique<juce::AudioParameterFloat>(
                 juce::String("spring") + juce::String(i) + "_chaos", "Chaos",
                 juce::NormalisableRange{0.0f, 0.05f, 0.001f}, 0.f),
             std::make_unique<juce::AudioParameterFloat>(
@@ -243,6 +246,10 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
         case ParamId::SpringDecay:
             m_springreverb.desc.t60[spring] = event.value;
             springs_set_t60(&m_springreverb, m_springreverb.desc.t60, count);
+            break;
+        case ParamId::SpringDamp:
+            m_springreverb.desc.ftr[spring] = event.value;
+            springs_set_ftr(&m_springreverb, m_springreverb.desc.ftr, count);
             break;
         case ParamId::SpringChaos:
             m_springreverb.desc.chaos[spring] = event.value;

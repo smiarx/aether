@@ -141,6 +141,9 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     springs_desc_t sdesc = {
         /* ftr */ {4303.f, 4296.f, 4299.f, 4308.f, 4320.f, 4290.f, 4281.f,
                    4322.f},
+        /* stages */
+        {LOW_CASCADE_N, LOW_CASCADE_N, LOW_CASCADE_N, LOW_CASCADE_N,
+         LOW_CASCADE_N, LOW_CASCADE_N, LOW_CASCADE_N, LOW_CASCADE_N},
         /* a1 */ {0.51f, 0.49f, 0.52f, 0.48f, 0.53f, 0.49f, 0.46f, 0.54f},
         /* ahigh */ {0.50f, 0.51f, 0.49f, 0.52f, 0.48f, 0.53f, 0.49f, 0.46f},
         /* Td */

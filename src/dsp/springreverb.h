@@ -66,6 +66,8 @@ typedef float springsfloat[MAXSPRINGS]
     __attribute__((aligned(sizeof(float) * MAXSPRINGS)));
 typedef int springsint[MAXSPRINGS]
     __attribute__((aligned(sizeof(int) * MAXSPRINGS)));
+typedef unsigned int springsuint[MAXSPRINGS]
+    __attribute__((aligned(sizeof(unsigned int) * MAXSPRINGS)));
 
 struct springparam {
     springsfloat val;
@@ -80,6 +82,7 @@ enum inc {
 /* spring parameters */
 typedef struct {
     springsfloat ftr;
+    springsuint stages;
     springsfloat a1;
     springsfloat ahigh;
     springsfloat length;
@@ -104,6 +107,9 @@ struct low_dc {
 
 /* low allpass cascade */
 struct low_cascade {
+    springsuint stages;
+    unsigned int max_stages;
+    int min_stages;
     springsint iK;
     struct springparam a1;
     springsfloat a2;
@@ -228,6 +234,8 @@ void springs_init(springs_t *springs, springs_desc_t *desc, float samplerate,
 void springs_update(springs_t *springs, springs_desc_t *desc);
 void springs_set_dccutoff(springs_t *springs, float fcutoff[MAXSPRINGS]);
 void springs_set_ftr(springs_t *springs, float ftr[MAXSPRINGS], int count);
+void springs_set_stages(springs_t *restrict springs,
+                        unsigned int stages[MAXSPRINGS]);
 void springs_set_a1(springs_t *springs, float a1[MAXSPRINGS], int count);
 void springs_set_length(springs_t *springs, float length[MAXSPRINGS],
                         int count);

@@ -28,9 +28,11 @@ int main(int argc, char **argv)
 
     float samplerate    = 48000;
     springs_desc_t desc = {
-        .ftr   = {4210, 4106, 4200, 4300, 4330, 4118, 4190, 4310},
-        .a1    = {0.18, 0.21, 0.312, 0.32, 0.32, 0.23, 0.21, 0.2},
-        .ahigh = {-0.63, -0.56, -0.83, -0.37, -0.67, -0.48, -0.76, -0.32},
+        .ftr    = {4210, 4106, 4200, 4300, 4330, 4118, 4190, 4310},
+        .stages = {LOW_CASCADE_N, LOW_CASCADE_N, LOW_CASCADE_N, LOW_CASCADE_N,
+                   LOW_CASCADE_N, LOW_CASCADE_N, LOW_CASCADE_N, LOW_CASCADE_N},
+        .a1     = {0.18, 0.21, 0.312, 0.32, 0.32, 0.23, 0.21, 0.2},
+        .ahigh  = {-0.63, -0.56, -0.83, -0.37, -0.67, -0.48, -0.76, -0.32},
         //.Td = {0.0552,0.04366,0.04340,0.04370,.0552,0.04423,0.04367,0.0432},
         .length  = {0.052, 0.054, 0.046, 0.048, 0.050, 0.05612, 0.04983,
                     0.051291},
@@ -53,7 +55,7 @@ int main(int argc, char **argv)
     memset(ins, 0, sizeof(ins));
 
     springs_t springs;
-    springs_init(&springs, &desc, samplerate);
+    springs_init(&springs, &desc, samplerate, n);
 
     printf("%d tests of %d samples\n", r, n);
 

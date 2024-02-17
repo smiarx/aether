@@ -40,6 +40,7 @@ void springs_init(springs_t *springs, springs_desc_t *desc, float samplerate,
     springs->desc                        = *desc;
     springs->samplerate                  = samplerate;
 
+    springs_set_stages(springs, springs->desc.stages);
     springs_set_ftr(springs, springs->desc.ftr, count);
     springs_set_a1(springs, springs->desc.a1, count);
     springs_set_ahigh(springs, springs->desc.ahigh, count);
@@ -178,6 +179,28 @@ void springs_set_ftr(springs_t *springs, float ftr[restrict MAXSPRINGS],
          {1.00000000e+00, 9.05107247e-03, 9.99553018e-01}}};
     filter(_sos_analog)(springs->lowpassfilter, analoglowpasssos, ftr,
                         springs->samplerate, NLOWPASSSOS);
+}
+
+void springs_set_stages(springs_t *restrict springs,
+                        unsigned int stages[MAXSPRINGS])
+{
+    loopsprings(i)
+    {
+        springs->desc.stages[i] = stages[i];
+        springs->low_cascade.stages[i] =
+            stages[i] > LOW_CASCADE_N ? LOW_CASCADE_N : stages[i];
+    }
+
+    unsigned int max = 0;
+    unsigned int min = UINT_MAX;
+    loopsprings(i)
+    {
+        unsigned int stage = springs->low_cascade.stages[i];
+        if (max < stage) max = stage;
+        if (min > stage) min = stage;
+    }
+    springs->low_cascade.max_stages = max;
+    springs->low_cascade.min_stages = min - 1;
 }
 
 void springs_set_a1(springs_t *springs, float a1[restrict MAXSPRINGS],
@@ -562,7 +585,7 @@ void low_cascade_process(struct low_cascade *restrict lc, float y[MAXSPRINGS],
         a1[i] = lc->a1.val[i], a2[i] = lc->a2[i];
     }
 
-    for (int j = 0; j < LOW_CASCADE_N; ++j) {
+    for (int j = 0; j < lc->max_stages; ++j) {
         float s1mem[MAXSPRINGS];
         loopsprings(i) s1mem[i] = lc->state[j].s1[idx[i]][i];
 #pragma omp simd
@@ -570,7 +593,11 @@ void low_cascade_process(struct low_cascade *restrict lc, float y[MAXSPRINGS],
         {
             /* compute internal allpass1 */
             float s1 = y[i] - a1[i] * s1mem[i];
-            y[i]     = a1[i] * s1 + s1mem[i];
+            float y1 = a1[i] * s1 + s1mem[i];
+            /* output value if spring has corresponding number of stages */
+            if (j < lc->min_stages) y[i] = y1;
+            else
+                y[i] = j < lc->stages[i] ? y1 : y[i];
 
             /* compute allpass2 */
             float s2mem = lc->state[j].s2[i];

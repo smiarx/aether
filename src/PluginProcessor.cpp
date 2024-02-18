@@ -213,12 +213,12 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
         auto event = m_paramEvents.front();
         m_paramEvents.pop_front();
         int spring = 0;
-        if (event.id >= ParamId::SpringParamBegin) {
+        if (event.id >= springParamBegin) {
             int id              = static_cast<int>(event.id);
-            constexpr int begin = static_cast<int>(ParamId::SpringParamBegin);
-            constexpr int end   = static_cast<int>(ParamId::SpringParamEnd);
-            spring              = (id - begin) / (end - begin - 1);
-            id                  = (id - begin) % (end - begin - 1) + begin + 1;
+            constexpr int begin = static_cast<int>(springParamBegin);
+            constexpr int end   = static_cast<int>(springParamEnd);
+            spring              = (id - begin) / (end - begin);
+            id                  = (id - begin) % (end - begin) + begin;
             event.id            = static_cast<ParamId>(id);
         }
         switch (event.id) {
@@ -283,7 +283,8 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
             springs_set_t60(&m_springreverb, m_springreverb.desc.t60, count);
             break;
         case ParamId::SpringDispersion:
-            m_springreverb.desc.stages[spring] = (int)event.value;
+            m_springreverb.desc.stages[spring] =
+                static_cast<unsigned int>(event.value);
             springs_set_stages(&m_springreverb, m_springreverb.desc.stages);
             break;
         case ParamId::SpringDamp:
@@ -301,8 +302,7 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
             springs_set_a1(&m_springreverb, m_springreverb.desc.a1, count);
             springs_set_ahigh(&m_springreverb, m_springreverb.desc.ahigh,
                               count);
-        case ParamId::SpringParamBegin:
-        case ParamId::SpringParamEnd:
+        case ParamId::_SpringParamEnd:
         default:
             break;
         }
@@ -351,16 +351,13 @@ juce::AudioProcessor *JUCE_CALLTYPE createPluginFilter()
 //==============================================================================
 void PluginProcessor::parameterValueChanged(int id, float newValue)
 {
-    constexpr auto springs_begin = ParamId::SpringsHiLo;
-    constexpr auto spring_begin  = ParamId::SpringHiLo;
-    if (id >= static_cast<int>(springs_begin) &&
-        id < static_cast<int>(ParamId::SpringParamBegin)) {
-        int springid = id + static_cast<int>(spring_begin) -
-                       static_cast<int>(springs_begin);
+    if (id >= static_cast<int>(macroBegin) && id < static_cast<int>(macroEnd)) {
+        int springid = id + static_cast<int>(macroSpringBegin) -
+                       static_cast<int>(macroBegin);
         for (int i = 0; i < MAXSPRINGS; ++i) {
-            constexpr int begin = static_cast<int>(ParamId::SpringParamBegin);
-            constexpr int end   = static_cast<int>(ParamId::SpringParamEnd);
-            id                  = springid - 1 + (end - begin - 1) * i;
+            constexpr auto begin = static_cast<int>(springParamBegin);
+            constexpr auto end   = static_cast<int>(springParamEnd);
+            id                   = springid + (end - begin) * i;
             getParameters()[id]->setValueNotifyingHost(newValue);
         }
         return;

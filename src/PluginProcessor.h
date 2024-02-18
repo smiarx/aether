@@ -59,6 +59,7 @@ class PluginProcessor final : public juce::AudioProcessor,
         DelayDriftFreq,
         DelayMode,
         SpringsDryWet,
+        /* springs macro */
         SpringsHiLo,
         SpringsLength,
         SpringsDecay,
@@ -66,12 +67,13 @@ class PluginProcessor final : public juce::AudioProcessor,
         SpringsDamp,
         SpringsChaos,
         SpringsSpringness,
-        SpringParamBegin,
+        /* spring individual params */
         SpringVolume,
         SpringSolo,
         SpringMute,
         SpringSource,
         SpringPan,
+        /* spring param controlled by macro */
         SpringHiLo,
         SpringLength,
         SpringDecay,
@@ -79,8 +81,20 @@ class PluginProcessor final : public juce::AudioProcessor,
         SpringDamp,
         SpringChaos,
         SpringSpringness,
-        SpringParamEnd,
+        _SpringParamEnd,
     };
+    static constexpr auto macroBegin       = ParamId::SpringsHiLo;
+    static constexpr auto springParamBegin = ParamId::SpringVolume;
+    static constexpr auto macroEnd         = springParamBegin;
+    static constexpr auto springParamEnd   = ParamId::_SpringParamEnd;
+    static constexpr auto macroSpringBegin = ParamId::SpringHiLo;
+    static constexpr auto macroSpringEnd   = springParamEnd;
+
+    static_assert(static_cast<int>(macroEnd) - static_cast<int>(macroBegin) ==
+                  static_cast<int>(macroSpringEnd) -
+                      static_cast<int>(macroSpringBegin));
+    static constexpr auto numMacros =
+        static_cast<int>(macroEnd) - static_cast<int>(macroBegin);
 
     struct ParamEvent {
         ParamEvent(int t_id, float t_value) :

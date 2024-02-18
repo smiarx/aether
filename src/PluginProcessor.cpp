@@ -51,6 +51,9 @@ PluginProcessor::createLayout()
     springs->addChild(std::make_unique<juce::AudioParameterFloat>(
         "springs_decay", "Decay", 0.2f, 6.f, 2.5f));
     springs->addChild(std::make_unique<juce::AudioParameterFloat>(
+                "springs_dispersion", "Dispersion",
+                0, LOW_CASCADE_N, LOW_CASCADE_N));
+    springs->addChild(std::make_unique<juce::AudioParameterFloat>(
         "springs_damp", "Damp", 200.f, 12000.f, 4400.f));
     springs->addChild(std::make_unique<juce::AudioParameterFloat>(
         "springs_chaos", "Chaos", juce::NormalisableRange{0.0f, 0.01f, 0.0001f},
@@ -83,6 +86,9 @@ PluginProcessor::createLayout()
                 juce::NormalisableRange<float>(0.02, 0.2, 0.0001f), 0.045f),
             std::make_unique<juce::AudioParameterFloat>(
                 paramname("decay"), "Decay", 0.2f, 6.f, 2.5f),
+            std::make_unique<juce::AudioParameterFloat>(
+                paramname("dispersion"), "Dispersion",
+                0, LOW_CASCADE_N, LOW_CASCADE_N),
             std::make_unique<juce::AudioParameterFloat>(
                 paramname("damp"), "Damp", 200.f, 12000.f, 4400.f),
             std::make_unique<juce::AudioParameterFloat>(
@@ -275,6 +281,10 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
         case ParamId::SpringDecay:
             m_springreverb.desc.t60[spring] = event.value;
             springs_set_t60(&m_springreverb, m_springreverb.desc.t60, count);
+            break;
+        case ParamId::SpringDispersion:
+            m_springreverb.desc.stages[spring] = (int)event.value;
+            springs_set_stages(&m_springreverb, m_springreverb.desc.stages);
             break;
         case ParamId::SpringDamp:
             m_springreverb.desc.ftr[spring] = event.value;

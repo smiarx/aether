@@ -10,6 +10,7 @@
 #define NRIPPLE 0.5f
 #define T60_HILO_RATIO 0.8f
 #define NOISE_FREQ     400.f
+#define LENGTH_HILO_RATIO (1.f / 1.8f)
 
 #define loopsprings(i) for (int i = 0; i < NSPRINGS; ++i)
 
@@ -253,7 +254,7 @@ void springs_set_length(springs_t *springs, float length[restrict MAXSPRINGS],
         float L1      = L - Lecho - Lripple;
 
         struct high_delayline *hdl = &springs->high_delayline;
-        Lhigh[i]                   = L / 1.8f * (float)springs->downsampleM;
+        Lhigh[i] = L * LENGTH_HILO_RATIO * (float)springs->downsampleM;
         setinc(hdl->L, Lhigh[i], count, i);
 
         /* low delay line is downsampled */
@@ -297,16 +298,15 @@ gfunc(gripple, low) gfunc(gecho, low)
     loopsprings(i)
     {
         /* get delay length values */
-        float L1 =
-            ldl->L1.val[i] + ldl->L1.inc[i] * count / springs->downsampleM;
-        float Lhigh          = hdl->L.val[i] + hdl->L.inc[i] * count;
+        float L              = springs->desc.length[i];
         springs->desc.t60[i] = t60[i];
-        float t60samples     = t60[i] * springs->samplerate;
+        float t60samples     = t60[i];
 
-        float ghf = -powf(0.001, Lhigh / (t60samples * T60_HILO_RATIO));
+        float ghf =
+            -powf(0.001, L * LENGTH_HILO_RATIO / (t60samples * T60_HILO_RATIO));
         setinc(hdl->ghf, ghf, count, i);
 
-        float glf = -powf(0.001, L1 / (t60samples / springs->downsampleM));
+        float glf = -powf(0.001, L / t60samples);
         // low delay line is downsampled
         {
             int countM = count / springs->downsampleM;

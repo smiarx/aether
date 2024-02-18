@@ -43,43 +43,55 @@ PluginProcessor::createLayout()
         "springreverb", "Spring Reverb", "|");
     springs->addChild(std::make_unique<juce::AudioParameterFloat>(
         "springs_drywet", "Dry/Wet", 0.0f, 1.f, 0.f));
+    springs->addChild(std::make_unique<juce::AudioParameterFloat>(
+        "springs_hilo", "Direct/Rattle Mix", 0.f, 1.f, 0.f));
+    springs->addChild(std::make_unique<juce::AudioParameterFloat>(
+        "springs_length", "Length",
+        juce::NormalisableRange<float>(0.02, 0.2, 0.0001f), 0.045f));
+    springs->addChild(std::make_unique<juce::AudioParameterFloat>(
+        "springs_decay", "Decay", 0.2f, 6.f, 2.5f));
+    springs->addChild(std::make_unique<juce::AudioParameterFloat>(
+        "springs_damp", "Damp", 200.f, 12000.f, 4400.f));
+    springs->addChild(std::make_unique<juce::AudioParameterFloat>(
+        "springs_chaos", "Chaos", juce::NormalisableRange{0.0f, 0.01f, 0.0001f},
+        0.f));
+    springs->addChild(std::make_unique<juce::AudioParameterFloat>(
+        "springs_springness", "Springness",
+        juce::NormalisableRange{0.0f, 1.f, 0.001f}, 0.5f));
 
     for (int i = 0; i < MAXSPRINGS; ++i) {
+#define paramname(name) \
+    (juce::String("spring") + juce::String(i - 1) + "_" + name)
         springs->addChild(std::make_unique<juce::AudioProcessorParameterGroup>(
             juce::String("spring") + juce::String(i),
             juce::String("Spring ") + juce::String(i), "|",
             std::make_unique<juce::AudioParameterFloat>(
-                juce::String("spring") + juce::String(i) + "_vol", "Volume",
-                -60.f, 0.f, 0.f),
+                paramname("vol"), "Volume", -60.f, 0.f, 0.f),
             std::make_unique<juce::AudioParameterBool>(
                 juce::String("spring") + juce::String(i) + "_solo", "Solo", 0),
             std::make_unique<juce::AudioParameterBool>(
                 juce::String("spring") + juce::String(i) + "_mute", "mute", 0),
             std::make_unique<juce::AudioParameterChoice>(
-                juce::String("spring") + juce::String(i) + "_source", "Source",
+                paramname("source"), "Source",
                 juce::StringArray{"Left", "Right", "Mono"}, 2),
+            std::make_unique<juce::AudioParameterFloat>(paramname("pan"), "Pan",
+                                                        -1.f, 1.f, 0.f),
             std::make_unique<juce::AudioParameterFloat>(
-                juce::String("spring") + juce::String(i) + "_pan", "Pan", -1.f,
-                1.f, 0.f),
+                paramname("hilo"), "Direct/Rattle Mix", 0.f, 1.f, 0.f),
             std::make_unique<juce::AudioParameterFloat>(
-                juce::String("spring") + juce::String(i) + "_hilo",
-                "Direct/Rattle Mix", 0.f, 1.f, 0.f),
-            std::make_unique<juce::AudioParameterFloat>(
-                juce::String("spring") + juce::String(i) + "_length", "Length",
+                paramname("length"), "Length",
                 juce::NormalisableRange<float>(0.02, 0.2, 0.0001f), 0.045f),
             std::make_unique<juce::AudioParameterFloat>(
-                juce::String("spring") + juce::String(i) + "_decay", "Decay",
-                0.2f, 6.f, 2.5f),
+                paramname("decay"), "Decay", 0.2f, 6.f, 2.5f),
             std::make_unique<juce::AudioParameterFloat>(
-                juce::String("spring") + juce::String(i) + "_damp", "Damp",
-                200.f, 12000.f, 4400.f),
+                paramname("damp"), "Damp", 200.f, 12000.f, 4400.f),
             std::make_unique<juce::AudioParameterFloat>(
-                juce::String("spring") + juce::String(i) + "_chaos", "Chaos",
+                paramname("chaos"), "Chaos",
                 juce::NormalisableRange{0.0f, 0.05f, 0.001f}, 0.f),
             std::make_unique<juce::AudioParameterFloat>(
-                juce::String("spring") + juce::String(i) + "_springness",
-                "Springness", juce::NormalisableRange{0.0f, 1.f, 0.001f},
-                0.5f)));
+                paramname("springness"), "Springness",
+                juce::NormalisableRange{0.0f, 1.f, 0.001f}, 0.5f)));
+#undef paramnam
     }
 
     layout.add(std::move(springs));
@@ -329,6 +341,20 @@ juce::AudioProcessor *JUCE_CALLTYPE createPluginFilter()
 //==============================================================================
 void PluginProcessor::parameterValueChanged(int id, float newValue)
 {
+    constexpr auto springs_begin = ParamId::SpringsHiLo;
+    constexpr auto spring_begin  = ParamId::SpringHiLo;
+    if (id >= static_cast<int>(springs_begin) &&
+        id < static_cast<int>(ParamId::SpringParamBegin)) {
+        int springid = id + static_cast<int>(spring_begin) -
+                       static_cast<int>(springs_begin);
+        for (int i = 0; i < MAXSPRINGS; ++i) {
+            constexpr int begin = static_cast<int>(ParamId::SpringParamBegin);
+            constexpr int end   = static_cast<int>(ParamId::SpringParamEnd);
+            id                  = springid - 1 + (end - begin - 1) * i;
+            getParameters()[id]->setValueNotifyingHost(newValue);
+        }
+        return;
+    }
     auto *ptr = static_cast<juce::RangedAudioParameter *>(getParameters()[id]);
     float value = ptr->convertFrom0to1(newValue);
 

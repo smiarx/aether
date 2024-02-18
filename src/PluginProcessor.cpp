@@ -51,6 +51,10 @@ PluginProcessor::createLayout()
             std::make_unique<juce::AudioParameterFloat>(
                 juce::String("spring") + juce::String(i) + "_vol", "Volume",
                 -60.f, 0.f, 0.f),
+            std::make_unique<juce::AudioParameterBool>(
+                juce::String("spring") + juce::String(i) + "_solo", "Solo", 0),
+            std::make_unique<juce::AudioParameterBool>(
+                juce::String("spring") + juce::String(i) + "_mute", "mute", 0),
             std::make_unique<juce::AudioParameterChoice>(
                 juce::String("spring") + juce::String(i) + "_source", "Source",
                 juce::StringArray{"Left", "Right", "Mono"}, 2),
@@ -155,6 +159,8 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
         /* chaos */
         {0.001f, 0.001f, 0.001f, 0.001f, 0.001f, 0.001f, 0.001f, 0.001f},
         /* vol */ {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f},
+        /* solo */ {0, 0, 0, 0, 0, 0, 0, 0},
+        /* mute */ {0, 0, 0, 0, 0, 0, 0, 0},
         /* hilomix */ {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f},
         /* source */ {2, 2, 2, 2, 2, 2, 2, 2},
         /* pan */ {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f},
@@ -228,6 +234,14 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
         case ParamId::SpringVolume:
             m_springreverb.desc.vol[spring] = event.value;
             springs_set_vol(&m_springreverb, m_springreverb.desc.vol, count);
+            break;
+        case ParamId::SpringSolo:
+            m_springreverb.desc.solo[spring] = event.value != 0.f;
+            springs_set_solo(&m_springreverb, m_springreverb.desc.solo, count);
+            break;
+        case ParamId::SpringMute:
+            m_springreverb.desc.mute[spring] = event.value != 0.f;
+            springs_set_mute(&m_springreverb, m_springreverb.desc.mute, count);
             break;
         case ParamId::SpringSource:
             m_springreverb.desc.source[spring] = static_cast<int>(event.value);

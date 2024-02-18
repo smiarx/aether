@@ -340,11 +340,22 @@ void springs_set_chaos(springs_t *springs, float chaos[restrict MAXSPRINGS],
     void springs_set_vol(springs_t *springs, float vol[restrict MAXSPRINGS],
                          int count)
 {
+    int use_solo = 0;
+    loopsprings(i) use_solo |= springs->desc.solo[i] != 0;
+
     loopsprings(i)
     {
         float db = springs->desc.vol[i] = vol[i];
         float ratio          = springs->desc.hilomix[i];
-        float gain                      = powf(10.f, db / 20.f);
+
+        /* set gain from db, solo & mute */
+        float gain;
+        if ((!use_solo || springs->desc.solo[i] != 0) &&
+            springs->desc.mute[0] == 0)
+            gain = powf(10.f, db / 20.f);
+        else
+            gain = 0.f;
+
         float ghigh =
             atanf(5.f * (ratio - 0.5)) / atanf(5.f) / 2.f + .5f; // TODO change
         float glow = 1.f - ghigh;
@@ -359,6 +370,20 @@ void springs_set_hilomix(springs_t *springs, float hilomix[restrict MAXSPRINGS],
                          int count)
 {
     loopsprings(i) { springs->desc.hilomix[i] = hilomix[i]; }
+    springs_set_vol(springs, springs->desc.vol, count);
+}
+
+void springs_set_solo(springs_t *restrict springs, int solo[MAXSPRINGS],
+                      int count)
+{
+    loopsprings(i) springs->desc.solo[i] = solo[i];
+    springs_set_vol(springs, springs->desc.vol, count);
+}
+
+void springs_set_mute(springs_t *restrict springs, int mute[MAXSPRINGS],
+                      int count)
+{
+    loopsprings(i) springs->desc.mute[i] = mute[i];
     springs_set_vol(springs, springs->desc.vol, count);
 }
 

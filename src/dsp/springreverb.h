@@ -92,6 +92,8 @@ typedef struct {
     springsfloat t60;
     springsfloat chaos;
     springsfloat vol;
+    springsint mute;
+    springsint solo;
     springsfloat hilomix;
     springsint source;
     springsfloat pan;
@@ -245,6 +247,10 @@ void springs_set_gecho(springs_t *springs, float gecho[MAXSPRINGS]);
 void springs_set_t60(springs_t *springs, float t60[MAXSPRINGS], int count);
 void springs_set_chaos(springs_t *springs, float chaos[MAXSPRINGS], int count);
 void springs_set_vol(springs_t *springs, float vol[MAXSPRINGS], int count);
+void springs_set_solo(springs_t *restrict springs, int solo[MAXSPRINGS],
+                      int count);
+void springs_set_mute(springs_t *restrict springs, int mute[MAXSPRINGS],
+                      int count);
 void springs_set_pan(springs_t *springs, float pan[MAXSPRINGS], int count);
 void springs_set_drywet(springs_t *springs, float drywet, int count);
 void springs_set_hilomix(springs_t *springs, float hilomix[MAXSPRINGS],

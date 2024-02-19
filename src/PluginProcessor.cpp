@@ -43,24 +43,37 @@ PluginProcessor::createLayout()
         "springreverb", "Spring Reverb", "|");
     springs->addChild(std::make_unique<juce::AudioParameterFloat>(
         "springs_drywet", "Dry/Wet", 0.0f, 1.f, 0.f));
-    springs->addChild(std::make_unique<juce::AudioParameterFloat>(
-        "springs_hilo", "Direct/Rattle Mix", 0.f, 1.f, 0.f));
-    springs->addChild(std::make_unique<juce::AudioParameterFloat>(
-        "springs_length", "Length",
-        juce::NormalisableRange<float>(0.02, 0.2, 0.0001f), 0.045f));
-    springs->addChild(std::make_unique<juce::AudioParameterFloat>(
-        "springs_decay", "Decay", 0.2f, 6.f, 2.5f));
-    springs->addChild(std::make_unique<juce::AudioParameterFloat>(
-                "springs_dispersion", "Dispersion",
-                0, LOW_CASCADE_N, LOW_CASCADE_N));
-    springs->addChild(std::make_unique<juce::AudioParameterFloat>(
-        "springs_damp", "Damp", 200.f, 12000.f, 4400.f));
-    springs->addChild(std::make_unique<juce::AudioParameterFloat>(
-        "springs_chaos", "Chaos", juce::NormalisableRange{0.0f, 0.01f, 0.0001f},
-        0.f));
-    springs->addChild(std::make_unique<juce::AudioParameterFloat>(
-        "springs_springness", "Springness",
-        juce::NormalisableRange{0.0f, 1.f, 0.001f}, 0.5f));
+
+    for (int i = 0; i < 2; ++i) {
+#define paramname(name) \
+    (juce::String("springs_") + (i == 0 ? "" : "_spread") + name)
+#define paramdefault(val) (i == 0 ? val : 0.f)
+        auto group = std::make_unique<juce::AudioProcessorParameterGroup>(
+            i == 0 ? "springs_macros" : "springs_spread",
+            i == 0 ? "Macros" : "Spread", "|");
+        group->addChild(std::make_unique<juce::AudioParameterFloat>(
+            paramname("hilo"), "Direct/Rattle Mix", 0.f, 1.f,
+            paramdefault(0.f)));
+        group->addChild(std::make_unique<juce::AudioParameterFloat>(
+            paramname("length"), "Length",
+            juce::NormalisableRange<float>(0.02, 0.2, 0.0001f),
+            paramdefault(0.045f)));
+        group->addChild(std::make_unique<juce::AudioParameterFloat>(
+            paramname("decay"), "Decay", 0.2f, 6.f, paramdefault(2.5f)));
+        group->addChild(std::make_unique<juce::AudioParameterFloat>(
+            paramname("dispersion"), "Dispersion", 0, LOW_CASCADE_N,
+            paramdefault(LOW_CASCADE_N)));
+        group->addChild(std::make_unique<juce::AudioParameterFloat>(
+            paramname("damp"), "Damp", 200.f, 12000.f, paramdefault(4400.f)));
+        group->addChild(std::make_unique<juce::AudioParameterFloat>(
+            paramname("chaos"), "Chaos",
+            juce::NormalisableRange{0.0f, 0.01f, 0.0001f}, paramdefault(0.f)));
+        group->addChild(std::make_unique<juce::AudioParameterFloat>(
+            paramname("springness"), "Springness",
+            juce::NormalisableRange{0.0f, 1.f, 0.001f}, paramdefault(0.5f)));
+        springs->addChild(std::move(group));
+#undef paramname
+    }
 
     for (int i = 0; i < MAXSPRINGS; ++i) {
 #define paramname(name) \
@@ -186,6 +199,13 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     };
 
     springs_init(&m_springreverb, &sdesc, sampleRate, samplesPerBlock);
+
+    /* populate spreads */
+    auto *rands = &m_paramRands[0][0];
+    for (int i = 0; i < sizeof(m_paramRands) / sizeof(m_paramRands[0][0]);
+         ++i) {
+        rands[i] = (float)std::rand() / RAND_MAX * 2.f - 1.f;
+    }
 }
 
 void PluginProcessor::releaseResources() {}
@@ -351,14 +371,25 @@ juce::AudioProcessor *JUCE_CALLTYPE createPluginFilter()
 //==============================================================================
 void PluginProcessor::parameterValueChanged(int id, float newValue)
 {
-    if (id >= static_cast<int>(macroBegin) && id < static_cast<int>(macroEnd)) {
-        int springid = id + static_cast<int>(macroSpringBegin) -
-                       static_cast<int>(macroBegin);
+    if (id >= static_cast<int>(macroBegin) &&
+        id < static_cast<int>(springParamBegin)) {
+        int macro = (id - static_cast<int>(macroBegin)) % numMacros;
+
+        // if macro
+        if (id < static_cast<int>(ParamId::_SpringsMacroEnd))
+            m_paramMacros[macro] = newValue;
+        // if spread
+        else
+            m_paramSpreads[macro] = newValue;
+
+        int paramid = macro + static_cast<int>(macroSpringBegin);
         for (int i = 0; i < MAXSPRINGS; ++i) {
             constexpr auto begin = static_cast<int>(springParamBegin);
             constexpr auto end   = static_cast<int>(springParamEnd);
-            id                   = springid + (end - begin) * i;
-            getParameters()[id]->setValueNotifyingHost(newValue);
+            id                   = paramid + (end - begin) * i;
+            float value          = m_paramMacros[macro] +
+                          m_paramSpreads[macro] * m_paramRands[macro][i];
+            getParameters()[id]->setValueNotifyingHost(value);
         }
         return;
     }

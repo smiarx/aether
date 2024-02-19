@@ -67,8 +67,10 @@ class PluginProcessor final : public juce::AudioProcessor,
         SpringsDamp,
         SpringsChaos,
         SpringsSpringness,
-        /* spring individual params */
-        SpringVolume,
+        _SpringsMacroEnd,
+        /* spring individual params,
+         * (there are two sets of macros, one normal and one for spread) */
+        SpringVolume = 2 * _SpringsMacroEnd - SpringsHiLo,
         SpringSolo,
         SpringMute,
         SpringSource,
@@ -84,8 +86,8 @@ class PluginProcessor final : public juce::AudioProcessor,
         _SpringParamEnd,
     };
     static constexpr auto macroBegin       = ParamId::SpringsHiLo;
+    static constexpr auto macroEnd         = ParamId::_SpringsMacroEnd;
     static constexpr auto springParamBegin = ParamId::SpringVolume;
-    static constexpr auto macroEnd         = springParamBegin;
     static constexpr auto springParamEnd   = ParamId::_SpringParamEnd;
     static constexpr auto macroSpringBegin = ParamId::SpringHiLo;
     static constexpr auto macroSpringEnd   = springParamEnd;
@@ -116,6 +118,9 @@ class PluginProcessor final : public juce::AudioProcessor,
   private:
     juce::AudioProcessorValueTreeState m_parameters;
     std::deque<ParamEvent> m_paramEvents;
+    float m_paramMacros[numMacros];
+    float m_paramSpreads[numMacros];
+    float m_paramRands[numMacros][MAXSPRINGS];
 
     tapedelay_t m_tapedelay;
     springs_t m_springreverb;

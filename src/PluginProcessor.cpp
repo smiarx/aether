@@ -44,35 +44,55 @@ PluginProcessor::createLayout()
     springs->addChild(std::make_unique<juce::AudioParameterFloat>(
         "springs_drywet", "Dry/Wet", 0.0f, 1.f, 0.f));
 
+    const juce::NormalisableRange<float> rangeHiLo(0.f, 1.f);
+    const juce::NormalisableRange<float> rangeLength(0.02f, 0.2f);
+    const juce::NormalisableRange<float> rangeDecay(0.2f, 10.f);
+    const juce::NormalisableRange<float> rangeDispersion(0.f, LOW_CASCADE_N,
+                                                         1.f);
+    const juce::NormalisableRange<float> rangeDamp(200.f, 12000.f, 0.f, 0.5f);
+    const juce::NormalisableRange<float> rangeChaos(0.f, 0.01f);
+    const juce::NormalisableRange<float> rangeSpringness(0.f, 1.f);
+    constexpr auto defaultHiLo       = 0.f;
+    constexpr auto defaultLength     = 0.045f;
+    constexpr auto defaultDecay      = 2.5f;
+    constexpr auto defaultDispersion = LOW_CASCADE_N;
+    constexpr auto defaultDamp       = 4400.f;
+    constexpr auto defaultChaos      = 0.f;
+    constexpr auto defaultSpringness = 0.5f;
+
     for (int i = 0; i < 2; ++i) {
 #define paramname(name) \
     (juce::String("springs_") + (i == 0 ? "" : "_spread") + name)
-#define paramdefault(val) (i == 0 ? val : 0.f)
+#define paramdefault(Param) (i == 0 ? default##Param : 0.f)
+#define paramrange(Param) \
+    (i == 0 ? range##Param : juce::NormalisableRange<float>{0.f, 1.f})
         auto group = std::make_unique<juce::AudioProcessorParameterGroup>(
             i == 0 ? "springs_macros" : "springs_spread",
             i == 0 ? "Macros" : "Spread", "|");
         group->addChild(std::make_unique<juce::AudioParameterFloat>(
-            paramname("hilo"), "Direct/Rattle Mix", 0.f, 1.f,
-            paramdefault(0.f)));
+            paramname("hilo"), "Direct/Rattle Mix", paramrange(HiLo),
+            paramdefault(HiLo)));
         group->addChild(std::make_unique<juce::AudioParameterFloat>(
-            paramname("length"), "Length",
-            juce::NormalisableRange<float>(0.02, 0.2, 0.0001f),
-            paramdefault(0.045f)));
+            paramname("length"), "Length", paramrange(Length),
+            paramdefault(Length)));
         group->addChild(std::make_unique<juce::AudioParameterFloat>(
-            paramname("decay"), "Decay", 0.2f, 6.f, paramdefault(2.5f)));
+            paramname("decay"), "Decay", paramrange(Decay),
+            paramdefault(Decay)));
         group->addChild(std::make_unique<juce::AudioParameterFloat>(
-            paramname("dispersion"), "Dispersion", 0, LOW_CASCADE_N,
-            paramdefault(LOW_CASCADE_N)));
+            paramname("dispersion"), "Dispersion", paramrange(Dispersion),
+            paramdefault(Dispersion)));
         group->addChild(std::make_unique<juce::AudioParameterFloat>(
-            paramname("damp"), "Damp", 200.f, 12000.f, paramdefault(4400.f)));
+            paramname("damp"), "Damp", paramrange(Damp), paramdefault(Damp)));
         group->addChild(std::make_unique<juce::AudioParameterFloat>(
-            paramname("chaos"), "Chaos",
-            juce::NormalisableRange{0.0f, 0.01f, 0.0001f}, paramdefault(0.f)));
+            paramname("chaos"), "Chaos", paramrange(Chaos),
+            paramdefault(Chaos)));
         group->addChild(std::make_unique<juce::AudioParameterFloat>(
-            paramname("springness"), "Springness",
-            juce::NormalisableRange{0.0f, 1.f, 0.001f}, paramdefault(0.5f)));
+            paramname("springness"), "Springness", paramrange(Springness),
+            paramdefault(Springness)));
         springs->addChild(std::move(group));
 #undef paramname
+#undef paramdefault
+#undef paramrange
     }
 
     for (int i = 0; i < MAXSPRINGS; ++i) {
@@ -93,23 +113,21 @@ PluginProcessor::createLayout()
             std::make_unique<juce::AudioParameterFloat>(paramname("pan"), "Pan",
                                                         -1.f, 1.f, 0.f),
             std::make_unique<juce::AudioParameterFloat>(
-                paramname("hilo"), "Direct/Rattle Mix", 0.f, 1.f, 0.f),
+                paramname("hilo"), "Direct/Rattle Mix", rangeHiLo, defaultHiLo),
             std::make_unique<juce::AudioParameterFloat>(
-                paramname("length"), "Length",
-                juce::NormalisableRange<float>(0.02, 0.2, 0.0001f), 0.045f),
+                paramname("length"), "Length", rangeLength, defaultLength),
             std::make_unique<juce::AudioParameterFloat>(
-                paramname("decay"), "Decay", 0.2f, 6.f, 2.5f),
+                paramname("decay"), "Decay", rangeDecay, defaultDecay),
             std::make_unique<juce::AudioParameterFloat>(
-                paramname("dispersion"), "Dispersion",
-                0, LOW_CASCADE_N, LOW_CASCADE_N),
+                paramname("dispersion"), "Dispersion", rangeDispersion,
+                defaultDispersion),
             std::make_unique<juce::AudioParameterFloat>(
-                paramname("damp"), "Damp", 200.f, 12000.f, 4400.f),
+                paramname("damp"), "Damp", rangeDamp, defaultDamp),
             std::make_unique<juce::AudioParameterFloat>(
-                paramname("chaos"), "Chaos",
-                juce::NormalisableRange{0.0f, 0.05f, 0.001f}, 0.f),
+                paramname("chaos"), "Chaos", rangeChaos, defaultChaos),
             std::make_unique<juce::AudioParameterFloat>(
-                paramname("springness"), "Springness",
-                juce::NormalisableRange{0.0f, 1.f, 0.001f}, 0.5f)));
+                paramname("springness"), "Springness", rangeSpringness,
+                defaultSpringness)));
 #undef paramnam
     }
 

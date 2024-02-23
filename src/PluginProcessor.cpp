@@ -1,14 +1,14 @@
 #include "PluginProcessor.h"
-#include "PluginEditor.h"
 
 //==============================================================================
 PluginProcessor::PluginProcessor() :
-    AudioProcessor(
+    MagicProcessor(
         BusesProperties()
             .withInput("Input", juce::AudioChannelSet::stereo(), true)
             .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
     m_parameters(*this, nullptr, juce::Identifier("Echoes"), createLayout())
 {
+    FOLEYS_SET_SOURCE_PATH(__FILE__);
     for (auto *param : getParameters()) addProcessorAsListener(param);
 }
 
@@ -351,32 +351,6 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
 
     tapedelay_process(&m_tapedelay, ins, outs, count);
     springs_process(&m_springreverb, ins, outs, count);
-}
-
-//==============================================================================
-bool PluginProcessor::hasEditor() const { return true; }
-
-juce::AudioProcessorEditor *PluginProcessor::createEditor()
-{
-    return new PluginEditor(*this);
-}
-
-//==============================================================================
-void PluginProcessor::getStateInformation(juce::MemoryBlock &destData)
-{
-    auto state = m_parameters.copyState();
-    std::unique_ptr<juce::XmlElement> xml(state.createXml());
-    copyXmlToBinary(*xml, destData);
-}
-
-void PluginProcessor::setStateInformation(const void *data, int sizeInBytes)
-{
-    std::unique_ptr<juce::XmlElement> xmlState(
-        getXmlFromBinary(data, sizeInBytes));
-
-    if (xmlState.get() != nullptr)
-        if (xmlState->hasTagName(m_parameters.state.getType()))
-            m_parameters.replaceState(juce::ValueTree::fromXml(*xmlState));
 }
 
 //==============================================================================

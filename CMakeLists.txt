@@ -4,6 +4,8 @@ project(Echoes VERSION 0.0.1)
 
 find_package(JUCE CONFIG REQUIRED)
 
+add_subdirectory(submodules/foleys_gui_magic/modules)
+
 juce_add_plugin(${PROJECT_NAME}
     # VERSION ...
     # ICON_BIG ...
@@ -23,7 +25,6 @@ juce_add_plugin(${PROJECT_NAME}
 
 target_sources(${PROJECT_NAME}
     PRIVATE
-        src/PluginEditor.cpp
         src/PluginProcessor.cpp)
 
 target_compile_definitions(${PROJECT_NAME}
@@ -43,6 +44,12 @@ target_link_libraries(${PROJECT_NAME}
     PRIVATE
         dsp
         juce::juce_audio_utils
+        foleys_gui_magic
+        -logg
+        -lvorbis
+        -lvorbisfile
+        -lvorbisenc
+        -lFLAC
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags

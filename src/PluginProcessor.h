@@ -1,6 +1,7 @@
 #pragma once
 
 #include <juce_audio_processors/juce_audio_processors.h>
+#include <foleys_gui_magic/foleys_gui_magic.h>
 
 extern "C" {
 #include "dsp/springreverb.h"
@@ -8,7 +9,7 @@ extern "C" {
 }
 
 //==============================================================================
-class PluginProcessor final : public juce::AudioProcessor,
+class PluginProcessor final : public foleys::MagicProcessor,
                               juce::AudioProcessorParameter::Listener
 {
   public:
@@ -26,10 +27,6 @@ class PluginProcessor final : public juce::AudioProcessor,
     using AudioProcessor::processBlock;
 
     //==============================================================================
-    juce::AudioProcessorEditor *createEditor() override;
-    bool hasEditor() const override;
-
-    //==============================================================================
     const juce::String getName() const override;
 
     bool acceptsMidi() const override;
@@ -43,10 +40,6 @@ class PluginProcessor final : public juce::AudioProcessor,
     void setCurrentProgram(int index) override;
     const juce::String getProgramName(int index) override;
     void changeProgramName(int index, const juce::String &newName) override;
-
-    //==============================================================================
-    void getStateInformation(juce::MemoryBlock &destData) override;
-    void setStateInformation(const void *data, int sizeInBytes) override;
 
     //=============================================================================
     enum class ParamId {

@@ -1,4 +1,6 @@
 #include "PluginProcessor.h"
+#include "BinaryData.h"
+#include "GUI/SpreadSlider.h"
 
 //==============================================================================
 PluginProcessor::PluginProcessor() :
@@ -134,6 +136,20 @@ PluginProcessor::createLayout()
     layout.add(std::move(springs));
 
     return layout;
+}
+
+//==============================================================================
+juce::AudioProcessorEditor *PluginProcessor::createEditor()
+{
+    auto builder = std::make_unique<foleys::MagicGUIBuilder>(magicState);
+    builder->registerJUCEFactories();
+    builder->registerFactory("SpreadSlider", &SpreadSliderItem::factory);
+
+    magicState.setGuiValueTree(BinaryData::magic_xml,
+                               BinaryData::magic_xmlSize);
+    auto *editor =
+        new foleys::MagicPluginEditor(magicState, std::move(builder));
+    return editor;
 }
 
 //==============================================================================

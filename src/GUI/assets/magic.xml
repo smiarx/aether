@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<magic>
+  <Styles>
+    <Style name="default">
+      <Nodes/>
+      <Classes>
+        <plot-view border="2" background-color="black" border-color="silver" display="contents"/>
+        <nomargin margin="0" padding="0" border="0"/>
+        <group margin="5" padding="5" border="2" flex-direction="column"/>
+        <transparent background-color="transparentblack"/>
+      </Classes>
+      <Types>
+        <Slider border="0" slider-textbox="textbox-below"/>
+        <ToggleButton border="0" max-height="50" caption-size="0" text="Active"/>
+        <TextButton border="0" max-height="50" caption-size="0"/>
+        <ComboBox border="0" max-height="50" caption-size="0"/>
+        <Plot border="0" margin="0" padding="0" background-color="00000000"
+              radius="0"/>
+        <XYDragComponent border="0" margin="0" padding="0" background-color="00000000"
+                         radius="0"/>
+      </Types>
+      <Palettes>
+        <default/>
+      </Palettes>
+    </Style>
+  </Styles>
+  <View id="root" resizable="1" resize-corner="1">
+    <View class="parameters nomargin" display="tabbed">
+      <View caption="Delay" class="group">
+        <Slider caption="Dry/Wet" parameter="delay_drywet"/>
+        <Slider caption="Delay" parameter="delay_time"/>
+        <Slider caption="Feedback" parameter="delay_feedback"/>
+        <Slider caption="Cutoff" parameter="delay_cutoff"/>
+        <Slider caption="Drive" parameter="delay_drive"/>
+        <Slider caption="Drift" parameter="delay_drift"/>
+        <Slider caption="Drift Freq" parameter="delay_driftfreq"/>
+        <ComboBox caption="Mode" parameter="delay_mode"/>
+      </View>
+      <View caption="Spring Reverb" class="group">
+        <View caption="Macros" class="group" flex-direction="row">
+          <SpreadSlider caption="Direct/Rattle Mix" parameter="springs_hilo" spread-parameter="springs__spreadhilo"
+                        slider-type="rotary"/>
+          <SpreadSlider caption="Length" slider-type="rotary" parameter="springs_length" spread-parameter="springs__spreadlength"/>
+          <SpreadSlider caption="Decay" parameter="springs_decay" spread-parameter="springs_spreaddecay" slider-type="rotary"/>
+          <SpreadSlider caption="Dispersion" parameter="springs_dispersion" spread-parameter="springs__spreaddispersion" slider-type="rotary"/>
+          <SpreadSlider caption="Damp" parameter="springs_damp" spread-parameter="springs__spreaddamp" slider-type="rotary"/>
+          <SpreadSlider caption="Chaos" parameter="springs_chaos" spread-parameter="springs__spreadchaos" slider-type="rotary"/>
+          <SpreadSlider caption="Springness" parameter="springs_springness" spread-parameter="springs__spreadspringness" slider-type="rotary"/>
+        </View>
+        <View caption="Spread" class="group" flex-direction="row">
+          <Slider caption="Direct/Rattle Mix" parameter="springs__spreadhilo"/>
+          <Slider caption="Length" parameter="springs__spreadlength"/>
+          <Slider caption="Decay" parameter="springs__spreaddecay"/>
+          <Slider caption="Dispersion" parameter="springs__spreaddispersion"/>
+          <Slider caption="Damp" parameter="springs__spreaddamp"/>
+          <Slider caption="Chaos" parameter="springs__spreadchaos"/>
+          <Slider caption="Springness" parameter="springs__spreadspringness"/>
+        </View>
+        <Slider caption="Dry/Wet" parameter="springs_drywet"/>
+      </View>
+    </View>
+  </View>
+</magic>

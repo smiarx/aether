@@ -27,6 +27,8 @@ class PluginProcessor final : public foleys::MagicProcessor,
     using AudioProcessor::processBlock;
 
     //==============================================================================
+    juce::AudioProcessorEditor *createEditor();
+    //==============================================================================
     const juce::String getName() const override;
 
     bool acceptsMidi() const override;

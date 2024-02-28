@@ -23,9 +23,15 @@ juce_add_plugin(${PROJECT_NAME}
     FORMATS VST3
     PRODUCT_NAME "${PROJECT_NAME}")
 
+juce_add_binary_data(${PROJECT_NAME}_data
+    SOURCES
+    src/GUI/assets/magic.xml)
+
 target_sources(${PROJECT_NAME}
     PRIVATE
-        src/PluginProcessor.cpp)
+        src/PluginProcessor.cpp
+        src/GUI/SpreadSlider.cpp
+    )
 
 target_compile_definitions(${PROJECT_NAME}
     PUBLIC
@@ -40,9 +46,11 @@ target_compile_options(${PROJECT_NAME} PRIVATE
 
 add_subdirectory(src/dsp/)
 
+
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
         dsp
+        ${PROJECT_NAME}_data
         juce::juce_audio_utils
         foleys_gui_magic
         -logg

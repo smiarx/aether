@@ -64,7 +64,7 @@ PluginProcessor::createLayout()
 
     for (int i = 0; i < 2; ++i) {
 #define paramname(name) \
-    (juce::String("springs_") + (i == 0 ? "" : "_spread") + name)
+    (juce::String("springs_") + (i == 0 ? "" : "spread_") + name)
 #define paramdefault(Param) (i == 0 ? default##Param : 0.f)
 #define paramrange(Param) \
     (i == 0 ? range##Param : juce::NormalisableRange<float>{0.f, 1.f})

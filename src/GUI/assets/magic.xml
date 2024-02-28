@@ -39,23 +39,23 @@
       </View>
       <View caption="Spring Reverb" class="group">
         <View caption="Macros" class="group" flex-direction="row">
-          <SpreadSlider caption="Direct/Rattle Mix" parameter="springs_hilo" spread-parameter="springs__spreadhilo"
+          <SpreadSlider caption="Direct/Rattle Mix" parameter="springs_hilo" spread-parameter="springs_spread_hilo"
                         slider-type="rotary"/>
-          <SpreadSlider caption="Length" slider-type="rotary" parameter="springs_length" spread-parameter="springs__spreadlength"/>
-          <SpreadSlider caption="Decay" parameter="springs_decay" spread-parameter="springs_spreaddecay" slider-type="rotary"/>
-          <SpreadSlider caption="Dispersion" parameter="springs_dispersion" spread-parameter="springs__spreaddispersion" slider-type="rotary"/>
-          <SpreadSlider caption="Damp" parameter="springs_damp" spread-parameter="springs__spreaddamp" slider-type="rotary"/>
-          <SpreadSlider caption="Chaos" parameter="springs_chaos" spread-parameter="springs__spreadchaos" slider-type="rotary"/>
-          <SpreadSlider caption="Springness" parameter="springs_springness" spread-parameter="springs__spreadspringness" slider-type="rotary"/>
+          <SpreadSlider caption="Length" slider-type="rotary" parameter="springs_length" spread-parameter="springs_spread_length"/>
+          <SpreadSlider caption="Decay" parameter="springs_decay" spread-parameter="springs_spread_decay" slider-type="rotary"/>
+          <SpreadSlider caption="Dispersion" parameter="springs_dispersion" spread-parameter="springs_spread_dispersion" slider-type="rotary"/>
+          <SpreadSlider caption="Damp" parameter="springs_damp" spread-parameter="springs_spread_damp" slider-type="rotary"/>
+          <SpreadSlider caption="Chaos" parameter="springs_chaos" spread-parameter="springs_spread_chaos" slider-type="rotary"/>
+          <SpreadSlider caption="Springness" parameter="springs_springness" spread-parameter="springs_spread_springness" slider-type="rotary"/>
         </View>
         <View caption="Spread" class="group" flex-direction="row">
-          <Slider caption="Direct/Rattle Mix" parameter="springs__spreadhilo"/>
-          <Slider caption="Length" parameter="springs__spreadlength"/>
-          <Slider caption="Decay" parameter="springs__spreaddecay"/>
-          <Slider caption="Dispersion" parameter="springs__spreaddispersion"/>
-          <Slider caption="Damp" parameter="springs__spreaddamp"/>
-          <Slider caption="Chaos" parameter="springs__spreadchaos"/>
-          <Slider caption="Springness" parameter="springs__spreadspringness"/>
+          <Slider caption="Direct/Rattle Mix" parameter="springs_spread_hilo"/>
+          <Slider caption="Length" parameter="springs_spread_length"/>
+          <Slider caption="Decay" parameter="springs_spread_decay"/>
+          <Slider caption="Dispersion" parameter="springs_spread_dispersion"/>
+          <Slider caption="Damp" parameter="springs_spread_damp"/>
+          <Slider caption="Chaos" parameter="springs_spread_chaos"/>
+          <Slider caption="Springness" parameter="springs_spread_springness"/>
         </View>
         <Slider caption="Dry/Wet" parameter="springs_drywet"/>
       </View>

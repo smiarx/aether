@@ -15,8 +15,12 @@ class SpreadSlider : public foleys::AutoOrientationSlider
 
     void setSpreadParameter(juce::RangedAudioParameter *parameter);
 
+    virtual void mouseDrag(const juce::MouseEvent &e) override;
+
   private:
     foleys::ParameterAttachment<float> m_spreadAttachment;
+
+    static constexpr float spreadIntensity = 6.f;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SpreadSlider)
 };

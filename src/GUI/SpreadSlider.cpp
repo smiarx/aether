@@ -14,13 +14,12 @@ void SpreadSlider::setSpreadParameter(juce::RangedAudioParameter *parameter)
 
 void SpreadSlider::paint(juce::Graphics &g)
 {
-
     auto &lf              = getLookAndFeel();
     auto layout           = lf.getSliderLayout(*this);
     const auto sliderRect = layout.sliderBounds;
 
     const auto sliderPos = (float)valueToProportionOfLength(getValue());
-    const auto spreadPos = m_spreadAttachment.getNormalisedValue();
+    const auto spreadPos = m_spreadAttachment.getValue();
 
     if (isRotary())
         drawRotarySlider(g, sliderRect.getX(), sliderRect.getY(),
@@ -42,9 +41,9 @@ void SpreadSlider::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
                                     int height, float sliderPos,
                                     float spreadPos)
 {
-
-    const auto rotaryStartAngle = -0.85 * juce::MathConstants<float>::pi;
-    const auto rotaryEndAngle   = 0.85 * juce::MathConstants<float>::pi;
+    const auto rotaryParams     = getRotaryParameters();
+    const auto rotaryStartAngle = rotaryParams.startAngleRadians;
+    const auto rotaryEndAngle   = rotaryParams.endAngleRadians;
 
     auto outline = findColour(Slider::rotarySliderOutlineColourId);
     auto fill    = findColour(Slider::rotarySliderFillColourId);
@@ -113,6 +112,31 @@ void SpreadSlider::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
         juce::Rectangle<float>(thumbWidth, thumbWidth).withCentre(thumbPoint));
 }
 
+void SpreadSlider::mouseDrag(const juce::MouseEvent &e)
+{
+    if (!e.mods.isCtrlDown()) {
+        /* set spread from drag radius */
+        auto &lf              = getLookAndFeel();
+        auto layout           = lf.getSliderLayout(*this);
+        const auto sliderRect = layout.sliderBounds;
+
+        auto dx = e.position.x - (float)sliderRect.getCentreX();
+        auto dy = e.position.y - (float)sliderRect.getCentreY();
+        auto radius =
+            juce::jmin(sliderRect.getWidth(), sliderRect.getHeight()) / 2.0f;
+
+        auto dist = (std::sqrt(dx * dx + dy * dy) - radius) /
+                    (radius * spreadIntensity);
+        dist = juce::jmax(0.f, juce::jmin(1.f, dist));
+
+        m_spreadAttachment.setNormalisedValue(dist);
+    }
+
+    /* set value from slider */
+    if (!e.mods.isShiftDown()) {
+        foleys::AutoOrientationSlider::mouseDrag(e);
+    }
+}
 //====================================================================
 SpreadSliderItem::SpreadSliderItem(foleys::MagicGUIBuilder &builder,
                                    const juce::ValueTree &node) :

@@ -66,8 +66,9 @@ PluginProcessor::createLayout()
 #define paramname(name) \
     (juce::String("springs_") + (i == 0 ? "" : "spread_") + name)
 #define paramdefault(Param) (i == 0 ? default##Param : 0.f)
-#define paramrange(Param) \
-    (i == 0 ? range##Param : juce::NormalisableRange<float>{0.f, 1.f})
+#define paramrange(Param)  \
+    (i == 0 ? range##Param \
+            : juce::NormalisableRange<float>{0.f, 1.f, 0.f, 0.7f})
         auto group = std::make_unique<juce::AudioProcessorParameterGroup>(
             i == 0 ? "springs_macros" : "springs_spread",
             i == 0 ? "Macros" : "Spread", "|");

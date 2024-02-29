@@ -48,15 +48,6 @@
           <SpreadSlider caption="Chaos" parameter="springs_chaos" spread-parameter="springs_spread_chaos" slider-type="rotary"/>
           <SpreadSlider caption="Springness" parameter="springs_springness" spread-parameter="springs_spread_springness" slider-type="rotary"/>
         </View>
-        <View caption="Spread" class="group" flex-direction="row">
-          <Slider caption="Direct/Rattle Mix" parameter="springs_spread_hilo"/>
-          <Slider caption="Length" parameter="springs_spread_length"/>
-          <Slider caption="Decay" parameter="springs_spread_decay"/>
-          <Slider caption="Dispersion" parameter="springs_spread_dispersion"/>
-          <Slider caption="Damp" parameter="springs_spread_damp"/>
-          <Slider caption="Chaos" parameter="springs_spread_chaos"/>
-          <Slider caption="Springness" parameter="springs_spread_springness"/>
-        </View>
         <Slider caption="Dry/Wet" parameter="springs_drywet"/>
       </View>
     </View>

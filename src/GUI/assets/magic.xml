@@ -9,9 +9,15 @@
         <nomargin margin="0" padding="0" border="0"/>
         <group margin="5" padding="5" border="2" flex-direction="column"/>
         <transparent background-color="transparentblack"/>
+        <spring margin="0" padding="0" min-height="60"/>
+        <springparam slider-textbox="no-textbox" caption-size="12"/>
+        <hidden flex-grow="0"/>
+        <showsprings flex-grow="1" active="showsprings"/>
       </Classes>
       <Types>
-        <Slider border="0" slider-textbox="textbox-below"/>
+        <View margin="0" padding="0"/>
+        <Label border="0" margin="0" padding="0"/>
+        <Slider border="0" margin="0" padding="0" slider-textbox="textbox-below"/>
         <ToggleButton border="0" max-height="50" caption-size="0" text="Active"/>
         <TextButton border="0" max-height="50" caption-size="0"/>
         <ComboBox border="0" max-height="50" caption-size="0"/>
@@ -26,8 +32,8 @@
     </Style>
   </Styles>
   <View id="root" resizable="1" resize-corner="1">
-    <View class="parameters nomargin" display="tabbed">
-      <View caption="Delay" class="group">
+    <View class="parameters nomargin" flex-direction="column">
+      <View caption="Delay" class="group" flex-direction="row" max-height="180">
         <Slider caption="Dry/Wet" parameter="delay_drywet"/>
         <Slider caption="Delay" parameter="delay_time"/>
         <Slider caption="Feedback" parameter="delay_feedback"/>
@@ -38,7 +44,7 @@
         <ComboBox caption="Mode" parameter="delay_mode"/>
       </View>
       <View caption="Spring Reverb" class="group">
-        <View caption="Macros" class="group" flex-direction="row">
+        <View flex-direction="row" max-height="180">
           <SpreadSlider caption="Direct/Rattle Mix" parameter="springs_hilo" spread-parameter="springs_spread_hilo"
                         slider-type="rotary"/>
           <SpreadSlider caption="Length" slider-type="rotary" parameter="springs_length" spread-parameter="springs_spread_length"/>
@@ -47,8 +53,94 @@
           <SpreadSlider caption="Damp" parameter="springs_damp" spread-parameter="springs_spread_damp" slider-type="rotary"/>
           <SpreadSlider caption="Chaos" parameter="springs_chaos" spread-parameter="springs_spread_chaos" slider-type="rotary"/>
           <SpreadSlider caption="Springness" parameter="springs_springness" spread-parameter="springs_spread_springness" slider-type="rotary"/>
+          <Slider caption="Dry/Wet" parameter="springs_drywet"/>
+          <ToggleButton property="showsprings" text="show all springs"/>
         </View>
-        <Slider caption="Dry/Wet" parameter="springs_drywet"/>
+        <View caption="Springs" flex-direction="column" class="showsprings hidden">
+          <View class="spring" min-height="30" flex-grow="0">
+            <Label text="Direct/Rattle Mix" justification="centred"/>
+            <Label text="Length" justification="centred"/>
+            <Label text="Decay" justification="centred"/>
+            <Label text="Dispersion" justification="centred"/>
+            <Label text="Damp" justification="centred"/>
+            <Label text="Chaos" justification="centred"/>
+            <Label text="Springness" justification="centred"/>
+          </View>
+          <View flex-direction="column" scroll-mode="scroll-vertical">
+            <View class="spring">
+              <Slider class="springparam" parameter="spring0_hilo"/>
+              <Slider class="springparam" parameter="spring0_length"/>
+              <Slider class="springparam" parameter="spring0_decay"/>
+              <Slider class="springparam" parameter="spring0_dispersion"/>
+              <Slider class="springparam" parameter="spring0_damp"/>
+              <Slider class="springparam" parameter="spring0_chaos"/>
+              <Slider class="springparam" parameter="spring0_springness"/>
+            </View>
+            <View class="spring">
+              <Slider class="springparam" parameter="spring1_hilo"/>
+              <Slider class="springparam" parameter="spring1_length"/>
+              <Slider class="springparam" parameter="spring1_decay"/>
+              <Slider class="springparam" parameter="spring1_dispersion"/>
+              <Slider class="springparam" parameter="spring1_damp"/>
+              <Slider class="springparam" parameter="spring1_chaos"/>
+              <Slider class="springparam" parameter="spring1_springness"/>
+            </View>
+            <View class="spring">
+              <Slider class="springparam" parameter="spring2_hilo"/>
+              <Slider class="springparam" parameter="spring2_length"/>
+              <Slider class="springparam" parameter="spring2_decay"/>
+              <Slider class="springparam" parameter="spring2_dispersion"/>
+              <Slider class="springparam" parameter="spring2_damp"/>
+              <Slider class="springparam" parameter="spring2_chaos"/>
+              <Slider class="springparam" parameter="spring2_springness"/>
+            </View>
+            <View class="spring">
+              <Slider class="springparam" parameter="spring3_hilo"/>
+              <Slider class="springparam" parameter="spring3_length"/>
+              <Slider class="springparam" parameter="spring3_decay"/>
+              <Slider class="springparam" parameter="spring3_dispersion"/>
+              <Slider class="springparam" parameter="spring3_damp"/>
+              <Slider class="springparam" parameter="spring3_chaos"/>
+              <Slider class="springparam" parameter="spring3_springness"/>
+            </View>
+            <View class="spring">
+              <Slider class="springparam" parameter="spring4_hilo"/>
+              <Slider class="springparam" parameter="spring4_length"/>
+              <Slider class="springparam" parameter="spring4_decay"/>
+              <Slider class="springparam" parameter="spring4_dispersion"/>
+              <Slider class="springparam" parameter="spring4_damp"/>
+              <Slider class="springparam" parameter="spring4_chaos"/>
+              <Slider class="springparam" parameter="spring4_springness"/>
+            </View>
+            <View class="spring">
+              <Slider class="springparam" parameter="spring5_hilo"/>
+              <Slider class="springparam" parameter="spring5_length"/>
+              <Slider class="springparam" parameter="spring5_decay"/>
+              <Slider class="springparam" parameter="spring5_dispersion"/>
+              <Slider class="springparam" parameter="spring5_damp"/>
+              <Slider class="springparam" parameter="spring5_chaos"/>
+              <Slider class="springparam" parameter="spring5_springness"/>
+            </View>
+            <View class="spring">
+              <Slider class="springparam" parameter="spring6_hilo"/>
+              <Slider class="springparam" parameter="spring6_length"/>
+              <Slider class="springparam" parameter="spring6_decay"/>
+              <Slider class="springparam" parameter="spring6_dispersion"/>
+              <Slider class="springparam" parameter="spring6_damp"/>
+              <Slider class="springparam" parameter="spring6_chaos"/>
+              <Slider class="springparam" parameter="spring6_springness"/>
+            </View>
+            <View class="spring">
+              <Slider class="springparam" parameter="spring7_hilo"/>
+              <Slider class="springparam" parameter="spring7_length"/>
+              <Slider class="springparam" parameter="spring7_decay"/>
+              <Slider class="springparam" parameter="spring7_dispersion"/>
+              <Slider class="springparam" parameter="spring7_damp"/>
+              <Slider class="springparam" parameter="spring7_chaos"/>
+              <Slider class="springparam" parameter="spring7_springness"/>
+            </View>
+          </View>
+        </View>
       </View>
     </View>
   </View>

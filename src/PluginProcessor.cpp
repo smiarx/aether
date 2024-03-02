@@ -10,7 +10,6 @@ PluginProcessor::PluginProcessor() :
             .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
     m_parameters(*this, nullptr, juce::Identifier("Echoes"), createLayout())
 {
-    FOLEYS_SET_SOURCE_PATH(__FILE__);
     for (auto *param : getParameters()) addProcessorAsListener(param);
 }
 

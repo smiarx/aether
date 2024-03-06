@@ -31,7 +31,6 @@ static inline void tap_set_delay(struct delay_tap *tap, float delay, int i)
 }
 
 /* springs */
-
 void springs_init(springs_t *springs, springs_desc_t *desc, float samplerate,
                   int count)
 {
@@ -705,6 +704,50 @@ void high_cascade_process(struct high_cascade *restrict hc, float y[MAXSPRINGS],
     }
 }
 
+void rms_process(struct rms *restrict rms, const float y[][MAXSPRINGS],
+                 int count)
+{
+    y = __builtin_assume_aligned(y, sizeof(springsfloat));
+
+    /* get ceil of count/RMS_OVERLAPP_SIZE */
+    const int nwindows = (count + RMS_OVERLAP_SIZE - 1) / RMS_OVERLAP_SIZE;
+
+    int n = 0;
+
+    for (int w = 0; w < nwindows; ++w) {
+        /* compute square in new overlap window */
+        int overlap_n;
+        for (overlap_n = rms->overlap_n;
+             overlap_n < RMS_OVERLAP_SIZE && n < count; ++overlap_n) {
+            loopsprings(i) rms->yoverlap[0][i] += y[n][i] * y[n][i];
+            ++n;
+        }
+        rms->overlap_n = (overlap_n)&RMS_OVERLAP_MASK;
+
+        /* only if count and RMS_OVERLAPP_SIZE exactly overlap and all squares
+         * have been computed */
+        if (rms->overlap_n == 0) {
+            /* sum and rms */
+            springsfloat sum = {0};
+            for (int overlap_id = 0; overlap_id < RMS_NOVERLAPS; ++overlap_id) {
+                loopsprings(i) sum[i] += rms->yoverlap[overlap_id][i];
+            }
+            loopsprings(i) rms->rms[rms->rms_id][i] =
+                sqrtf(sum[i] / ((float)RMS_SIZE));
+
+            /* cycle overlap values order */
+            for (int overlap_id = RMS_NOVERLAPS - 1; overlap_id > 0;
+                 --overlap_id) {
+                loopsprings(i) rms->yoverlap[overlap_id][i] =
+                    rms->yoverlap[overlap_id - 1][i];
+            }
+            loopsprings(i) rms->yoverlap[0][i] = 0.f;
+
+            rms->rms_id = (rms->rms_id + 1) & RMS_BUFFER_MASK;
+        }
+    }
+}
+
 #define loopsamples(n) for (int n = 0; n < blocksize; ++n)
 #define loopdownsamples(n) \
     for (int n = downsamplestart; n < blocksize; n += springs->downsampleM)
@@ -846,6 +889,9 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
     }
 
         sum_hilo(springs->increment_glowhigh);
+
+        /* rms */
+        rms_process(&springs->rms, y, blocksize);
 
         /* sum springs */
         float drywet;

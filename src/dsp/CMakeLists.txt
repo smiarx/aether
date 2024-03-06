@@ -5,6 +5,10 @@ set(dsp_sources
 
 add_library(dsp STATIC ${dsp_sources})
 
+target_link_libraries(dsp PUBLIC m)
+
+target_include_directories(dsp PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+
 target_compile_options(dsp PRIVATE
        -Wall -Werror -fopenmp-simd
        $<$<CONFIG:RELEASE>:-Ofast -march=native -mtune=native>

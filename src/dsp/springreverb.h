@@ -62,6 +62,13 @@
 
 #define MAXBLOCKSIZE 512
 
+#define RMS_BUFFER_SIZE  128
+#define RMS_BUFFER_MASK  (RMS_BUFFER_SIZE - 1)
+#define RMS_SIZE         64
+#define RMS_OVERLAP_SIZE (RMS_SIZE / 2)
+#define RMS_OVERLAP_MASK (RMS_OVERLAP_SIZE - 1)
+#define RMS_NOVERLAPS    (RMS_SIZE / RMS_OVERLAP_SIZE)
+
 typedef float springsfloat[MAXSPRINGS]
     __attribute__((aligned(sizeof(float) * MAXSPRINGS)));
 typedef int springsint[MAXSPRINGS]
@@ -185,6 +192,12 @@ struct high_delayline {
     struct springparam ghf;
 };
 
+struct rms {
+    springsfloat yoverlap[RMS_NOVERLAPS];
+    springsfloat rms[RMS_BUFFER_SIZE];
+    int overlap_n, rms_id;
+};
+
 typedef struct {
     springs_desc_t desc;
 
@@ -224,6 +237,8 @@ typedef struct {
 
     struct springparam gchannel[NCHANNELS];
     enum inc increment_gchannel;
+
+    struct rms rms;
 
     float drywet;
     float drywet_inc;
@@ -267,6 +282,7 @@ void high_cascade_process(struct high_cascade *hc, float y[MAXSPRINGS],
                           enum inc inc_ahigh);
 void high_delayline_process(struct high_delayline *dl, float y[MAXSPRINGS],
                             enum inc inc_delaytime, enum inc inc_t60);
+void rms_process(struct rms *rms, const float y[][MAXSPRINGS], int count);
 void springs_process(springs_t *springs, const float *const *in,
                      float *const *out, int count);
 

@@ -5,6 +5,7 @@ project(Echoes VERSION 0.0.1)
 find_package(JUCE CONFIG REQUIRED)
 
 add_subdirectory(submodules/foleys_gui_magic/modules)
+add_subdirectory(submodules/Unity/)
 
 juce_add_plugin(${PROJECT_NAME}
     # VERSION ...
@@ -46,6 +47,8 @@ target_compile_options(${PROJECT_NAME} PRIVATE
 
 add_subdirectory(src/dsp/)
 
+include(CTest)
+add_subdirectory(test/)
 
 target_link_libraries(${PROJECT_NAME}
     PRIVATE

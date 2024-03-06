@@ -1,3 +1,6 @@
 [submodule "submodules/foleys_gui_magic"]
 	path = submodules/foleys_gui_magic
 	url = https://github.com/ffAudio/foleys_gui_magic.git
+[submodule "submodules/Unity"]
+	path = submodules/Unity
+	url = https://github.com/ThrowTheSwitch/Unity

@@ -78,10 +78,29 @@ void test_rms(void)
 #undef TESTSIZE
 }
 
+/* test rms of sine (should be equal to 1/sqrt(2))*/
+void test_rms_sine(void)
+{
+    springsfloat y[RMS_SIZE];
+    springsint freq;
+    for (int i = 0; i < MAXSPRINGS; ++i) freq[i] = rand() % (RMS_SIZE / 2 - 1);
+    for (int n = 0; n < RMS_SIZE; ++n) {
+        for (int i = 0; i < MAXSPRINGS; ++i)
+            y[n][i] = sinf(n * freq[i] * (1.f / RMS_SIZE) * M_PI);
+    }
+
+    struct rms rms = {0};
+    rms_process(&rms, y, RMS_SIZE);
+
+    TEST_ASSERT_EACH_EQUAL_FLOAT(1.f / sqrtf(2.f), rms.rms[RMS_NOVERLAPS - 1],
+                                 MAXSPRINGS);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
     RUN_TEST(test_hann);
     RUN_TEST(test_rms);
+    RUN_TEST(test_rms_sine);
     return UNITY_END();
 }

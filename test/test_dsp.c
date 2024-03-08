@@ -1,10 +1,32 @@
 #include <springreverb.h>
 #include <stdlib.h>
 #include <unity.h>
+#include <windows.h>
 
 void setUp(void) {}
 
 void tearDown(void) {}
+
+void test_hann(void)
+{
+#define TESTSIZE 256
+    float hann[TESTSIZE];
+    hann_init(hann, TESTSIZE);
+
+    /* test similar formula for hann */
+    for (int n = 0; n < TESTSIZE; ++n) {
+        float c = cosf((float)(n + 1) / (TESTSIZE + 1) * M_PI / 2.f);
+        TEST_ASSERT_FLOAT_WITHIN(0.000001f, c * c, hann[n]);
+    }
+
+    /* test fadein and fadout should equal to 1 */
+    for (int n = 0; n < (TESTSIZE + 1) / 2; ++n) {
+        float fadeout = hann[n];
+        float fadein  = hann[TESTSIZE - 1 - n];
+        TEST_ASSERT_EQUAL_FLOAT(1.f, fadeout + fadein);
+    }
+#undef TESTSIZE
+}
 
 void test_rms(void)
 {
@@ -59,6 +81,7 @@ void test_rms(void)
 int main(void)
 {
     UNITY_BEGIN();
+    RUN_TEST(test_hann);
     RUN_TEST(test_rms);
     return UNITY_END();
 }

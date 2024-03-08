@@ -1,5 +1,6 @@
 #include "tapedelay.h"
 #include "fastmath.h"
+#include "windows.h"
 
 #define DELAYSMOOTHQ 30
 #define DELAYSMOOTHF 0.9999f
@@ -22,7 +23,7 @@ void tapedelay_tap(tapedelay_t *tapedelay, tap_t *tap, size_t nread,
                    float y[restrict NCHANNELS]);
 
 #define FADESIZE 256
-static float fadelut[FADESIZE];
+static float hannwin[FADESIZE];
 
 // return true if x > y
 int comparegt(int64_t x, int64_t y)
@@ -31,13 +32,6 @@ int comparegt(int64_t x, int64_t y)
     uint64_t tmp = -y;
     int64_t diff = x + tmp;
     return diff > 0;
-}
-
-void tapedelay_initlut()
-{
-    for (int i = 0; i < FADESIZE; ++i) {
-        fadelut[i] = 0.5f + 0.5f * cosf(M_PI * (float)(i + 1) / (FADESIZE + 1));
-    }
 }
 
 void tapedelay_init(tapedelay_t *tapedelay, tapedelay_desc_t *desc,
@@ -64,6 +58,8 @@ void tapedelay_init(tapedelay_t *tapedelay, tapedelay_desc_t *desc,
 
     tapedelay->desc = *desc;
     tapedelay_set_delay(tapedelay, desc->delay);
+
+    hann_init(hannwin, FADESIZE);
 }
 
 void tapedelay_inittaphermite(tapedelay_t *tapedelay, tap_t *tap)
@@ -318,7 +314,7 @@ static inline int tapedelay_fade(tapedelay_t *tapedelay,
                                  const float y2[restrict NCHANNELS])
 {
 
-    float xfade = fadelut[tapedelay->fadepos];
+    float xfade = hannwin[tapedelay->fadepos];
 
     for (int c = 0; c < NCHANNELS; ++c) y1[c] += xfade * (y2[c] - y1[c]);
 

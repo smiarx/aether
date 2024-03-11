@@ -1,6 +1,5 @@
 #pragma once
 
-#include "BinaryData.h"
 #include <foleys_gui_magic/foleys_gui_magic.h>
 #include <juce_opengl/juce_opengl.h>
 
@@ -15,12 +14,19 @@ class SpringsGL : public juce::Component, public juce::OpenGLRenderer
     SpringsGL();
     ~SpringsGL();
 
-    static springsfloat *rms;
+    static const springsfloat *rms;
     static const int *rmspos;
-    static void setRMS(springsfloat t_rms[RMS_BUFFER_SIZE], const int *t_rmspos)
+    static const springsfloat *length;
+    static const springsfloat *density;
+
+    static void setUniforms(const springsfloat t_rms[RMS_BUFFER_SIZE],
+                            const int *t_rmspos, const springsfloat *t_length,
+                            const springsfloat *t_density)
     {
         rms    = t_rms;
         rmspos = t_rmspos;
+        length  = t_length;
+        density = t_density;
     }
 
     //==========================================================================
@@ -64,14 +70,17 @@ class SpringsGL : public juce::Component, public juce::OpenGLRenderer
         {
             resolution.reset(
                 createUniform(openGLContext, shaderProgram, "u_resolution"));
-            time.reset(createUniform(openGLContext, shaderProgram, "u_time"));
+            length.reset(
+                createUniform(openGLContext, shaderProgram, "u_length"));
+            density.reset(
+                createUniform(openGLContext, shaderProgram, "u_density"));
             rms.reset(createUniform(openGLContext, shaderProgram, "u_rms"));
             rmspos.reset(
                 createUniform(openGLContext, shaderProgram, "u_rmspos"));
         }
 
-        std::unique_ptr<juce::OpenGLShaderProgram::Uniform> resolution, time,
-            rms, rmspos;
+        std::unique_ptr<juce::OpenGLShaderProgram::Uniform> resolution, length,
+            density, rms, rmspos;
 
       private:
         static juce::OpenGLShaderProgram::Uniform *
@@ -95,8 +104,6 @@ class SpringsGL : public juce::Component, public juce::OpenGLRenderer
     std::unique_ptr<juce::OpenGLShaderProgram> shader;
     std::unique_ptr<Uniforms> uniforms;
 
-    int itime;
-
     /** DEV NOTE
         If I wanted to optionally have an interchangeable shader system,
         this would be fairly easy to add. Chack JUCE Demo -> OpenGLDemo.cpp for
@@ -113,25 +120,23 @@ class SpringsGLItem : public foleys::GuiItem
   public:
     FOLEYS_DECLARE_GUI_FACTORY(SpringsGLItem)
 
+    static const juce::Identifier pLengthParameter;
+
     SpringsGLItem(foleys::MagicGUIBuilder &builder,
                   const juce::ValueTree &node) :
         GuiItem(builder, node)
     {
-        addAndMakeVisible(springGL);
+        addAndMakeVisible(springsGL);
     }
 
-    void update() override{};
-    juce::Component *getWrappedComponent() override { return &springGL; }
+    void update() override;
+    juce::Component *getWrappedComponent() override { return &springsGL; }
 
     [[nodiscard]] std::vector<foleys::SettableProperty>
-    getSettableProperties() const override
-    {
-        std::vector<foleys::SettableProperty> props;
-        return props;
-    };
+    getSettableProperties() const override;
 
   private:
-    SpringsGL springGL;
+    SpringsGL springsGL;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SpringsGLItem)
 };

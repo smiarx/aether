@@ -1,7 +1,6 @@
 #pragma once
 
 #include <juce_audio_processors/juce_audio_processors.h>
-#include <foleys_gui_magic/foleys_gui_magic.h>
 
 extern "C" {
 #include "dsp/springreverb.h"
@@ -9,7 +8,7 @@ extern "C" {
 }
 
 //==============================================================================
-class PluginProcessor final : public foleys::MagicProcessor,
+class PluginProcessor final : public juce::AudioProcessor,
                               juce::AudioProcessorParameter::Listener
 {
   public:
@@ -27,7 +26,8 @@ class PluginProcessor final : public foleys::MagicProcessor,
     using AudioProcessor::processBlock;
 
     //==============================================================================
-    juce::AudioProcessorEditor *createEditor();
+    juce::AudioProcessorEditor *createEditor() override;
+    bool hasEditor() const override { return true; }
     //==============================================================================
     const juce::String getName() const override;
 
@@ -42,6 +42,10 @@ class PluginProcessor final : public foleys::MagicProcessor,
     void setCurrentProgram(int index) override;
     const juce::String getProgramName(int index) override;
     void changeProgramName(int index, const juce::String &newName) override;
+
+    //=============================================================================
+    void getStateInformation(juce::MemoryBlock &destData) override;
+    void setStateInformation(const void *data, int sizeInBytes) override;
 
     //=============================================================================
     enum class ParamId {
@@ -104,9 +108,9 @@ class PluginProcessor final : public foleys::MagicProcessor,
 
     juce::AudioProcessorValueTreeState::ParameterLayout createLayout();
     void addProcessorAsListener(juce::AudioProcessorParameter *param);
-    void parameterValueChanged(int id, float newValue);
+    void parameterValueChanged(int id, float newValue) override;
     void parameterGestureChanged(int /*parameterIndex*/,
-                                 bool /*gestureIsStarting*/)
+                                 bool /*gestureIsStarting*/) override
     {
     }
 

@@ -1,11 +1,9 @@
 #include "PluginProcessor.h"
-#include "BinaryData.h"
-#include "GUI/SpreadSlider.h"
-#include "GUI/SpringsGL.h"
+#include "GUI/PluginEditor.h"
 
 //==============================================================================
 PluginProcessor::PluginProcessor() :
-    MagicProcessor(
+    AudioProcessor(
         BusesProperties()
             .withInput("Input", juce::AudioChannelSet::stereo(), true)
             .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
@@ -142,16 +140,7 @@ PluginProcessor::createLayout()
 //==============================================================================
 juce::AudioProcessorEditor *PluginProcessor::createEditor()
 {
-    auto builder = std::make_unique<foleys::MagicGUIBuilder>(magicState);
-    builder->registerJUCEFactories();
-    builder->registerFactory("SpreadSlider", &SpreadSliderItem::factory);
-    builder->registerFactory("SpringsGL", &SpringsGLItem::factory);
-
-    magicState.setGuiValueTree(BinaryData::magic_xml,
-                               BinaryData::magic_xmlSize);
-    auto *editor =
-        new foleys::MagicPluginEditor(magicState, std::move(builder));
-    return editor;
+    return new PluginEditor(*this);
 }
 
 //==============================================================================
@@ -183,6 +172,24 @@ const juce::String PluginProcessor::getProgramName(int index)
 void PluginProcessor::changeProgramName(int index, const juce::String &newName)
 {
     juce::ignoreUnused(index, newName);
+}
+
+//==============================================================================
+void PluginProcessor::getStateInformation(juce::MemoryBlock &destData)
+{
+    auto state = m_parameters.copyState();
+    std::unique_ptr<juce::XmlElement> xml(state.createXml());
+    copyXmlToBinary(*xml, destData);
+}
+
+void PluginProcessor::setStateInformation(const void *data, int sizeInBytes)
+{
+    std::unique_ptr<juce::XmlElement> xmlState(
+        getXmlFromBinary(data, sizeInBytes));
+
+    if (xmlState.get() != nullptr)
+        if (xmlState->hasTagName(m_parameters.state.getType()))
+            m_parameters.replaceState(juce::ValueTree::fromXml(*xmlState));
 }
 
 //==============================================================================
@@ -237,9 +244,10 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     springs_init(&m_springreverb, &sdesc, sampleRate, samplesPerBlock);
 
     /* Set springgl uniform values */
-    SpringsGL::setUniforms(m_springreverb.rms.rms, &m_springreverb.rms.rms_id,
-                           &m_springreverb.desc.length,
-                           &m_springreverb.desc.ftr);
+    // SpringsGL::setUniforms(m_springreverb.rms.rms,
+    // &m_springreverb.rms.rms_id,
+    //                        &m_springreverb.desc.length,
+    //                        &m_springreverb.desc.ftr);
 
     /* populate spreads */
     auto *rands = &m_paramRands[0][0];

@@ -114,6 +114,8 @@ class PluginProcessor final : public juce::AudioProcessor,
     {
     }
 
+    juce::AudioProcessorValueTreeState &getAPVTS() { return m_parameters; }
+
   private:
     juce::AudioProcessorValueTreeState m_parameters;
     std::deque<ParamEvent> m_paramEvents;

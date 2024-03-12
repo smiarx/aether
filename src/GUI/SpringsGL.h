@@ -1,6 +1,5 @@
 #pragma once
 
-#include <foleys_gui_magic/foleys_gui_magic.h>
 #include <juce_opengl/juce_opengl.h>
 
 extern "C" {
@@ -113,30 +112,4 @@ class SpringsGL : public juce::Component, public juce::OpenGLRenderer
      */
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SpringsGL)
-};
-
-class SpringsGLItem : public foleys::GuiItem
-{
-  public:
-    FOLEYS_DECLARE_GUI_FACTORY(SpringsGLItem)
-
-    static const juce::Identifier pLengthParameter;
-
-    SpringsGLItem(foleys::MagicGUIBuilder &builder,
-                  const juce::ValueTree &node) :
-        GuiItem(builder, node)
-    {
-        addAndMakeVisible(springsGL);
-    }
-
-    void update() override;
-    juce::Component *getWrappedComponent() override { return &springsGL; }
-
-    [[nodiscard]] std::vector<foleys::SettableProperty>
-    getSettableProperties() const override;
-
-  private:
-    SpringsGL springsGL;
-
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SpringsGLItem)
 };

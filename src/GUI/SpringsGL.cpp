@@ -163,14 +163,3 @@ void SpringsGL::createShaders()
     } else {
     }
 }
-
-void SpringsGLItem::update() {}
-
-std::vector<foleys::SettableProperty>
-SpringsGLItem::getSettableProperties() const
-{
-    std::vector<foleys::SettableProperty> props;
-    return props;
-}
-
-const juce::Identifier SpringsGLItem::pLengthParameter{"length"};

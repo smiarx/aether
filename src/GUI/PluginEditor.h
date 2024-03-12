@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../PluginProcessor.h"
+#include "SpringsGL.h"
 #include "SpringsSection.h"
 #include <juce_audio_processors/juce_audio_processors.h>
 
@@ -18,6 +19,7 @@ class PluginEditor : public juce::AudioProcessorEditor
     PluginProcessor &audioProcessor;
 
     SpringsSection springsSection;
+    SpringsGL springsGL;
 
     juce::ComponentBoundsConstrainer constrainer;
     juce::ResizableCornerComponent resizableCorner{this, &constrainer};

@@ -23,6 +23,8 @@ class SpringsSection : public juce::Component
         }};
 
   public:
+    static constexpr auto headerHeight = 30.f;
+
     SpringsSection(juce::AudioProcessorValueTreeState &apvts);
     void resized() override;
 
@@ -30,6 +32,7 @@ class SpringsSection : public juce::Component
     struct Spring : public juce::Component {
         Spring(juce::AudioProcessorValueTreeState &apvts, int id);
         void resized() override;
+        void paint(juce::Graphics &g) override;
 
         struct SpringParam {
             SpringParam(juce::AudioProcessorValueTreeState &apvts,
@@ -47,7 +50,16 @@ class SpringsSection : public juce::Component
             juce::AudioProcessorValueTreeState::SliderAttachment attachment;
         };
 
+        int m_id;
         SpringParam params[elements.size()];
+
+        juce::TextButton mute;
+        juce::TextButton solo;
+        juce::AudioProcessorValueTreeState::ButtonAttachment muteAttachment;
+        juce::AudioProcessorValueTreeState::ButtonAttachment soloAttachment;
+
+        juce::Rectangle<float> leftPanelRect;
+
     } springs[MAXSPRINGS];
 
     juce::Label labels[elements.size()];

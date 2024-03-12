@@ -32,6 +32,7 @@ target_sources(${PROJECT_NAME}
         src/PluginProcessor.cpp
         src/GUI/PluginEditor.cpp
         src/GUI/SpringsSection.cpp
+        src/GUI/SpringsGL.cpp
     )
 
 target_compile_definitions(${PROJECT_NAME}

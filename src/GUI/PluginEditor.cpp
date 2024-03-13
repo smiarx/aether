@@ -3,6 +3,7 @@
 PluginEditor::PluginEditor(PluginProcessor &p) :
     AudioProcessorEditor(&p), audioProcessor(p), springsSection{p.getAPVTS()}
 {
+    setLookAndFeel(&lookandfeel);
     addAndMakeVisible(springsSection);
     addAndMakeVisible(springsGL);
     addAndMakeVisible(resizableCorner);

@@ -113,7 +113,7 @@ void SpringsSection::Spring::resized()
 void SpringsSection::Spring::paint(juce::Graphics &g)
 {
     g.setColour(m_id % 2 ? juce::Colours::royalblue
-                         : juce::Colours::lemonchiffon);
+                         : juce::Colours::mediumseagreen);
     g.fillRect(getLocalBounds());
 
     g.setColour(juce::Colours::mediumpurple.withAlpha(0.8f));

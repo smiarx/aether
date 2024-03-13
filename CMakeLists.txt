@@ -31,6 +31,7 @@ target_sources(${PROJECT_NAME}
     PRIVATE
         src/PluginProcessor.cpp
         src/GUI/PluginEditor.cpp
+        src/GUI/CustomLNF.cpp
         src/GUI/SpringsSection.cpp
         src/GUI/SpringsGL.cpp
     )

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../PluginProcessor.h"
+#include "CustomLNF.h"
 #include "SpringsGL.h"
 #include "SpringsSection.h"
 #include <juce_audio_processors/juce_audio_processors.h>
@@ -9,7 +10,7 @@ class PluginEditor : public juce::AudioProcessorEditor
 {
   public:
     PluginEditor(PluginProcessor &);
-    ~PluginEditor(){};
+    ~PluginEditor() { setLookAndFeel(nullptr); };
 
     //===================================================================
     void paint(juce::Graphics &) override;
@@ -18,6 +19,7 @@ class PluginEditor : public juce::AudioProcessorEditor
   private:
     PluginProcessor &audioProcessor;
 
+    CustomLNF lookandfeel;
     SpringsSection springsSection;
     SpringsGL springsGL;
 

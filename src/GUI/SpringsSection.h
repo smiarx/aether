@@ -37,7 +37,7 @@ class SpringsSection : public juce::Component
         struct SpringParam {
             SpringParam(juce::AudioProcessorValueTreeState &apvts,
                         const juce::String &parameterId, int id) :
-                slider(juce::Slider::SliderStyle::Rotary,
+                slider(juce::Slider::SliderStyle::RotaryVerticalDrag,
                        juce::Slider::TextEntryBoxPosition::NoTextBox),
                 attachment(apvts,
                            "spring" + juce::String(id) + "_" + parameterId,

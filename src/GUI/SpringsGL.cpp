@@ -1,6 +1,8 @@
 #include "SpringsGL.h"
 #include "BinaryData.h"
 
+static constexpr auto refreshTimeMs = 40;
+
 const springsfloat *SpringsGL::rms;
 const int *SpringsGL::rmspos;
 const springsfloat *SpringsGL::length;
@@ -8,6 +10,7 @@ const springsfloat *SpringsGL::density;
 
 SpringsGL::SpringsGL()
 {
+    setOpaque(true);
     //// Sets the OpenGL version to 3.2
     // openGLContext.setOpenGLVersionRequired(
     //     juce::OpenGLContext::OpenGLVersion::openGL3_2);
@@ -15,25 +18,27 @@ SpringsGL::SpringsGL()
     // Attach the OpenGL context but do not start [ see start() ]
     openGLContext.setRenderer(this);
     openGLContext.attachTo(*this);
-    openGLContext.setContinuousRepainting(true);
+    openGLContext.setContinuousRepainting(false);
 }
 
 SpringsGL::~SpringsGL()
 {
     // Turn off OpenGL
-    openGLContext.setContinuousRepainting(false);
     openGLContext.detach();
 }
 
+void SpringsGL::timerCallback() { repaint(); }
+
 void SpringsGL::newOpenGLContextCreated()
 {
-    openGLContext.setSwapInterval(0);
     // Setup Shaders
     createShaders();
 
     // Setup Buffer Objects
     openGLContext.extensions.glGenBuffers(1, &VBO); // Vertex Buffer Object
     openGLContext.extensions.glGenBuffers(1, &EBO); // Element Buffer Object
+
+    startTimer(refreshTimeMs);
 }
 
 void SpringsGL::openGLContextClosing()

@@ -62,7 +62,7 @@
 
 #define MAXBLOCKSIZE 512
 
-#define RMS_BUFFER_SIZE  512
+#define RMS_BUFFER_SIZE  128
 #define RMS_BUFFER_MASK  (RMS_BUFFER_SIZE - 1)
 #define RMS_SIZE         2048
 #define RMS_OVERLAP_SIZE (128)

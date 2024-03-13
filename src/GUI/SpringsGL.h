@@ -6,7 +6,9 @@ extern "C" {
 #include "springreverb.h"
 }
 
-class SpringsGL : public juce::Component, public juce::OpenGLRenderer
+class SpringsGL : public juce::Component,
+                  public juce::OpenGLRenderer,
+                  public juce::Timer
 {
 
   public:
@@ -27,6 +29,8 @@ class SpringsGL : public juce::Component, public juce::OpenGLRenderer
         length  = t_length;
         density = t_density;
     }
+
+    virtual void timerCallback() override;
 
     //==========================================================================
     // OpenGL Callbacks

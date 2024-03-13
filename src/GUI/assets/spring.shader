@@ -20,7 +20,7 @@ void main()
 
     f *= u_density[spring]/ 4500.f;
 
-    float xpos = u_length[spring] * float(RMS_BUFFER_SIZE) * (st.x + 1.0) / 2.0;
+    float xpos = u_length[spring] / 0.2 * float(RMS_BUFFER_SIZE) * (st.x + 1.0) / 2.0;
     int ixpos  = int(xpos);
     float fxpos = xpos - float(ixpos);
     int ixpos0  = (u_rmspos - ixpos) & (RMS_BUFFER_SIZE - 1);
@@ -29,7 +29,7 @@ void main()
     float rms1  = u_rms[ixpos1 * MAXSPRINGS + spring];
     float rms   = rms0 + fxpos * (rms1 - rms0);
 
-    rms *= .3;
+    rms *= .5;
 
     float win = pow(cos(st.x * PI / 2.), 0.8);
 

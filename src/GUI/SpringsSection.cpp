@@ -16,7 +16,12 @@ SpringsSection::SpringsSection(juce::AudioProcessorValueTreeState &apvts) :
         ++i;
     }
 
-    for (auto &s : springs) addAndMakeVisible(s);
+    for (auto &s : springs) {
+        addAndMakeVisible(s);
+        for (auto &p : s.params)
+            p.slider.setPopupDisplayEnabled(true, false,
+                                            getTopLevelComponent());
+    }
 }
 
 void SpringsSection::resized()

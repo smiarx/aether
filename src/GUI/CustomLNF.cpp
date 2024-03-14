@@ -1,5 +1,17 @@
 #include "CustomLNF.h"
 
+CustomLNF::CustomLNF()
+{
+    static const uint32_t definedColours[] = {
+        juce::BubbleComponent::backgroundColourId,
+        0xff000000,
+        juce::BubbleComponent::outlineColourId,
+        0xffdddddd,
+    };
+    for (int i = 0; i < juce::numElementsInArray(definedColours); i += 2)
+        setColour((int)definedColours[i], juce::Colour(definedColours[i + 1]));
+}
+
 void CustomLNF::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
                                  int height, float sliderPos,
                                  const float rotaryStartAngle,
@@ -84,4 +96,23 @@ void CustomLNF::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
 
     g.setGradientFill(gradient2);
     g.fillEllipse(juce::Rectangle<float>(rwSmall, rwSmall).withCentre(centre));
+}
+
+void CustomLNF::drawBubble(juce::Graphics &g, juce::BubbleComponent &comp,
+                           const juce::Point<float> & /*tip*/,
+                           const juce::Rectangle<float> &body)
+{
+    juce::Path p;
+    p.addRoundedRectangle(body, 3.f);
+
+    g.setColour(comp.findColour(juce::BubbleComponent::backgroundColourId));
+    g.fillPath(p);
+
+    g.setColour(comp.findColour(juce::BubbleComponent::outlineColourId));
+    g.strokePath(p, juce::PathStrokeType(1.0f));
+}
+
+void CustomLNF::setComponentEffectForBubbleComponent(
+    juce::BubbleComponent & /*bubbleComponent*/)
+{
 }

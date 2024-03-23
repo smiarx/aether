@@ -6,7 +6,8 @@ SpringsSection::SpringsSection(juce::AudioProcessorValueTreeState &apvts) :
     springs{
         {apvts, 0}, {apvts, 1}, {apvts, 2}, {apvts, 3},
         {apvts, 4}, {apvts, 5}, {apvts, 6}, {apvts, 7},
-    }
+    },
+    macros{apvts}
 {
     unsigned int i = 0;
     for (auto &l : labels) {
@@ -18,10 +19,9 @@ SpringsSection::SpringsSection(juce::AudioProcessorValueTreeState &apvts) :
 
     for (auto &s : springs) {
         addAndMakeVisible(s);
-        for (auto &p : s.params)
-            p.slider.setPopupDisplayEnabled(true, false,
-                                            getTopLevelComponent());
     }
+
+    addAndMakeVisible(macros);
 }
 
 void SpringsSection::resized()
@@ -30,6 +30,8 @@ void SpringsSection::resized()
     fb.flexDirection = juce::FlexBox::Direction::column;
     fb.flexWrap      = juce::FlexBox::Wrap::noWrap;
     fb.alignContent  = juce::FlexBox::AlignContent::center;
+
+    fb.items.add(juce::FlexItem(macros).withFlex(1.f));
 
     juce::FlexBox fbLabels;
     fbLabels.flexDirection = juce::FlexBox::Direction::row;
@@ -74,7 +76,10 @@ SpringsSection::Spring::Spring(juce::AudioProcessorValueTreeState &apvts,
 
     params[0].slider.setSliderStyle(
         juce::Slider::SliderStyle::LinearHorizontal);
-    for (auto &p : params) addAndMakeVisible(p.slider);
+    for (auto &p : params) {
+        addAndMakeVisible(p.slider);
+        p.slider.setPopupDisplayEnabled(true, false, getTopLevelComponent());
+    }
 }
 
 void SpringsSection::Spring::resized()
@@ -123,4 +128,42 @@ void SpringsSection::Spring::paint(juce::Graphics &g)
 
     g.setColour(juce::Colours::mediumpurple.withAlpha(0.8f));
     g.fillRect(leftPanelRect);
+}
+
+SpringsSection::Macros::Macros(juce::AudioProcessorValueTreeState &apvts) :
+    params{
+        Macro(apvts, std::get<0>(elements[2])),
+        Macro(apvts, std::get<0>(elements[3])),
+        Macro(apvts, std::get<0>(elements[4])),
+        Macro(apvts, std::get<0>(elements[5])),
+        Macro(apvts, std::get<0>(elements[6])),
+        Macro(apvts, std::get<0>(elements[7])),
+        Macro(apvts, std::get<0>(elements[8])),
+    }
+{
+    for (auto &macro : params) {
+        addAndMakeVisible(macro);
+        macro.setPopupDisplayEnabled(true, false, getTopLevelComponent());
+    }
+}
+
+void SpringsSection::Macros::resized()
+{
+    juce::FlexBox fb;
+    fb.flexDirection = juce::FlexBox::Direction::row;
+    fb.flexWrap      = juce::FlexBox::Wrap::noWrap;
+    fb.alignContent  = juce::FlexBox::AlignContent::center;
+
+    fb.items.add(juce::FlexItem({}).withFlex(VolPanFlex));
+    for (auto &macro : params)
+        fb.items.add(juce::FlexItem(macro).withFlex(1.f));
+
+    fb.performLayout(getLocalBounds());
+}
+
+SpringsSection::Macros::Macro::Macro(juce::AudioProcessorValueTreeState &apvts,
+                                     const juce::String &id) :
+    SpreadSlider(apvts, "springs_" + id, "springs_spread_" + id)
+{
+    setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
 }

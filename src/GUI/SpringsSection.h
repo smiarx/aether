@@ -3,6 +3,8 @@
 #include "juce_audio_processors/juce_audio_processors.h"
 #include "juce_gui_basics/juce_gui_basics.h"
 
+#include "SpreadSlider.h"
+
 extern "C" {
 #include "../dsp/springreverb.h"
 }
@@ -59,8 +61,18 @@ class SpringsSection : public juce::Component
         juce::AudioProcessorValueTreeState::ButtonAttachment soloAttachment;
 
         juce::Rectangle<float> leftPanelRect;
-
     } springs[MAXSPRINGS];
+
+    struct Macros : public juce::Component {
+        Macros(juce::AudioProcessorValueTreeState &apvts);
+        void resized() override;
+
+        struct Macro : SpreadSlider {
+            Macro(juce::AudioProcessorValueTreeState &apvts,
+                  const juce::String &id);
+        };
+        Macro params[elements.size() - 2];
+    } macros;
 
     juce::Label labels[elements.size()];
 };

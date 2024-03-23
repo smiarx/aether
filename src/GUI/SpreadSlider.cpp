@@ -4,7 +4,7 @@ SpreadSlider::SpreadSlider(juce::AudioProcessorValueTreeState &apvts,
                            const juce::String &id,
                            const juce::String &spreadId) :
     m_attachment(apvts, id, *this),
-    m_spreadParameter(*apvts.getParameter(spreadId)),
+    m_spread{apvts.getParameter(spreadId)->getValue()},
     m_spreadAttachment(
         *apvts.getParameter(spreadId),
         [&](float value) {
@@ -86,7 +86,7 @@ void SpreadSlider::drawSpreadSlider(juce::Graphics &g, int x, int y, int width,
 void SpreadSlider::mouseDown(const juce::MouseEvent &e)
 {
     m_mouseDragStartPos = e.position;
-    m_valueDragStartPos = m_spreadParameter.getValue();
+    m_valueDragStartPos = m_spread;
 
     if (!e.mods.isAltDown()) Slider::mouseDown(e);
 }

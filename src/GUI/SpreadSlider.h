@@ -23,7 +23,6 @@ class SpreadSlider : public juce::Slider
     juce::AudioProcessorValueTreeState::SliderAttachment m_attachment;
 
     float m_spread;
-    const juce::RangedAudioParameter &m_spreadParameter;
     juce::ParameterAttachment m_spreadAttachment;
     const juce::NormalisableRange<float> &m_spreadRange;
 

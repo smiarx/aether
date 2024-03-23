@@ -52,15 +52,15 @@ SpringsSection::Spring::Spring(juce::AudioProcessorValueTreeState &apvts,
                                int id) :
     m_id(id),
     params{
-        SpringParam(apvts, std::get<0>(elements[0]), id),
-        SpringParam(apvts, std::get<0>(elements[1]), id),
-        SpringParam(apvts, std::get<0>(elements[2]), id),
-        SpringParam(apvts, std::get<0>(elements[3]), id),
-        SpringParam(apvts, std::get<0>(elements[4]), id),
-        SpringParam(apvts, std::get<0>(elements[5]), id),
-        SpringParam(apvts, std::get<0>(elements[6]), id),
-        SpringParam(apvts, std::get<0>(elements[7]), id),
-        SpringParam(apvts, std::get<0>(elements[8]), id),
+        SpringSlider(apvts, std::get<0>(elements[0]), id),
+        SpringSlider(apvts, std::get<0>(elements[1]), id),
+        SpringSlider(apvts, std::get<0>(elements[2]), id),
+        SpringSlider(apvts, std::get<0>(elements[3]), id),
+        SpringSlider(apvts, std::get<0>(elements[4]), id),
+        SpringSlider(apvts, std::get<0>(elements[5]), id),
+        SpringSlider(apvts, std::get<0>(elements[6]), id),
+        SpringSlider(apvts, std::get<0>(elements[7]), id),
+        SpringSlider(apvts, std::get<0>(elements[8]), id),
     },
     muteAttachment(apvts, "spring" + juce::String(id) + "_mute", mute),
     soloAttachment(apvts, "spring" + juce::String(id) + "_solo", solo)
@@ -74,11 +74,10 @@ SpringsSection::Spring::Spring(juce::AudioProcessorValueTreeState &apvts,
     addAndMakeVisible(mute);
     addAndMakeVisible(solo);
 
-    params[0].slider.setSliderStyle(
-        juce::Slider::SliderStyle::LinearHorizontal);
+    params[0].setSliderStyle(juce::Slider::SliderStyle::LinearHorizontal);
     for (auto &p : params) {
-        addAndMakeVisible(p.slider);
-        p.slider.setPopupDisplayEnabled(true, false, getTopLevelComponent());
+        addAndMakeVisible(p);
+        p.setPopupDisplayEnabled(true, false, getTopLevelComponent());
     }
 }
 
@@ -100,20 +99,19 @@ void SpringsSection::Spring::resized()
     fbTop.alignContent  = juce::FlexBox::AlignContent::center;
 
     fbTop.items.addArray({
-        juce::FlexItem(params[1].slider).withFlex(3).withMargin(0),
+        juce::FlexItem(params[1]).withFlex(3).withMargin(0),
         juce::FlexItem(mute).withFlex(1),
         juce::FlexItem(solo).withFlex(1),
     });
 
     fbLeft.items.addArray({
         juce::FlexItem(fbTop).withFlex(1).withMargin(0),
-        juce::FlexItem(params[0].slider).withFlex(0.5).withMargin(0),
+        juce::FlexItem(params[0]).withFlex(0.5).withMargin(0),
     });
 
     fb.items.add(juce::FlexItem(fbLeft).withFlex(VolPanFlex));
     for (unsigned int i = 2; i < elements.size(); ++i)
-        fb.items.add(
-            juce::FlexItem(params[i].slider).withFlex(1).withMargin(0));
+        fb.items.add(juce::FlexItem(params[i]).withFlex(1).withMargin(0));
 
     fb.performLayout(getLocalBounds());
 
@@ -159,11 +157,4 @@ void SpringsSection::Macros::resized()
         fb.items.add(juce::FlexItem(macro).withFlex(1.f));
 
     fb.performLayout(getLocalBounds());
-}
-
-SpringsSection::Macros::Macro::Macro(juce::AudioProcessorValueTreeState &apvts,
-                                     const juce::String &id) :
-    SpreadSlider(apvts, "springs_" + id, "springs_spread_" + id)
-{
-    setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
 }

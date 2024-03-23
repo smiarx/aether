@@ -36,24 +36,23 @@ class SpringsSection : public juce::Component
         void resized() override;
         void paint(juce::Graphics &g) override;
 
-        struct SpringParam {
-            SpringParam(juce::AudioProcessorValueTreeState &apvts,
-                        const juce::String &parameterId, int id) :
-                slider(juce::Slider::SliderStyle::RotaryVerticalDrag,
-                       juce::Slider::TextEntryBoxPosition::NoTextBox),
+        struct SpringSlider : public juce::Slider {
+            SpringSlider(juce::AudioProcessorValueTreeState &apvts,
+                         const juce::String &parameterId, int id) :
+                juce::Slider(juce::Slider::SliderStyle::RotaryVerticalDrag,
+                             juce::Slider::TextEntryBoxPosition::NoTextBox),
                 attachment(apvts,
                            "spring" + juce::String(id) + "_" + parameterId,
-                           slider)
+                           *this)
             {
             }
-            juce::Slider slider;
 
           private:
             juce::AudioProcessorValueTreeState::SliderAttachment attachment;
         };
 
         int m_id;
-        SpringParam params[elements.size()];
+        SpringSlider params[elements.size()];
 
         juce::TextButton mute;
         juce::TextButton solo;
@@ -69,7 +68,12 @@ class SpringsSection : public juce::Component
 
         struct Macro : SpreadSlider {
             Macro(juce::AudioProcessorValueTreeState &apvts,
-                  const juce::String &id);
+                  const juce::String &id) :
+                SpreadSlider(apvts, "springs_" + id, "springs_spread_" + id)
+            {
+                setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox,
+                                true, 0, 0);
+            }
         };
         Macro params[elements.size() - 2];
     } macros;

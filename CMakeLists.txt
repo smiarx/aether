@@ -34,6 +34,7 @@ target_sources(${PROJECT_NAME}
         src/GUI/CustomLNF.cpp
         src/GUI/SpringsSection.cpp
         src/GUI/SpringsGL.cpp
+        src/GUI/SpreadSlider.cpp
     )
 
 target_compile_definitions(${PROJECT_NAME}

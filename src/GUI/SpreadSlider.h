@@ -1,62 +1,34 @@
 #pragma once
 
-#include <foleys_gui_magic/foleys_gui_magic.h>
+#include <juce_audio_processors/juce_audio_processors.h>
+#include <juce_gui_basics/juce_gui_basics.h>
 
-class SpreadSlider : public foleys::AutoOrientationSlider
+class SpreadSlider : public juce::Slider
 {
   public:
-    SpreadSlider();
+    SpreadSlider(juce::AudioProcessorValueTreeState &apvts,
+                 const juce::String &id, const juce::String &spreadId);
 
     void paint(juce::Graphics &g) override;
-    void drawRotarySlider(juce::Graphics &g, int x, int y, int width,
+    void drawSpreadSlider(juce::Graphics &g, int x, int y, int width,
                           int height, float sliderPos, float spreadPos);
-    void drawLinearSlider(juce::Graphics &g, int x, int y, int width,
-                          int height, float sliderPos, float spreadPos);
+    void setSpread(float spread);
 
-    void setSpreadParameter(juce::RangedAudioParameter *parameter);
-
+    virtual void mouseDown(const juce::MouseEvent &e) override;
     virtual void mouseDrag(const juce::MouseEvent &e) override;
 
   private:
-    foleys::ParameterAttachment<float> m_spreadAttachment;
-
     static constexpr float spreadIntensity = 6.f;
 
+    juce::AudioProcessorValueTreeState::SliderAttachment m_attachment;
+
+    float m_spread;
+    const juce::RangedAudioParameter &m_spreadParameter;
+    juce::ParameterAttachment m_spreadAttachment;
+    const juce::NormalisableRange<float> &m_spreadRange;
+
+    juce::Point<float> m_mouseDragStartPos;
+    float m_valueDragStartPos;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SpreadSlider)
-};
-
-//====================================================================
-class SpreadSliderItem : public foleys::GuiItem
-{
-  public:
-    FOLEYS_DECLARE_GUI_FACTORY(SpreadSliderItem)
-
-    static const juce::Identifier pSliderType;
-    static const juce::StringArray pSliderTypes;
-
-    static const juce::Identifier pSpreadParameter;
-
-    static const juce::Identifier pSliderTextBox;
-    static const juce::StringArray pTextBoxPositions;
-
-    static const juce::Identifier pValue;
-    static const juce::Identifier pMinValue;
-    static const juce::Identifier pMaxValue;
-    static const juce::Identifier pInterval;
-    static const juce::Identifier pSuffix;
-
-    SpreadSliderItem(foleys::MagicGUIBuilder &builder,
-                     const juce::ValueTree &node);
-
-    void update() override;
-    juce::Component *getWrappedComponent() override { return &slider; }
-
-    [[nodiscard]] std::vector<foleys::SettableProperty>
-    getSettableProperties() const override;
-
-  private:
-    SpreadSlider slider;
-    std::unique_ptr<juce::SliderParameterAttachment> attachment;
-
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SpreadSliderItem)
 };

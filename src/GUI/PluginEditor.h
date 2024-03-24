@@ -2,6 +2,7 @@
 
 #include "../PluginProcessor.h"
 #include "CustomLNF.h"
+#include "DelaySection.h"
 #include "SpringsGL.h"
 #include "SpringsSection.h"
 #include <juce_audio_processors/juce_audio_processors.h>
@@ -21,6 +22,7 @@ class PluginEditor : public juce::AudioProcessorEditor
 
     CustomLNF lookandfeel;
     SpringsSection springsSection;
+    DelaySection delaySection;
     SpringsGL springsGL;
 
     juce::ComponentBoundsConstrainer constrainer;

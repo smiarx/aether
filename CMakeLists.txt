@@ -33,6 +33,7 @@ target_sources(${PROJECT_NAME}
         src/GUI/PluginEditor.cpp
         src/GUI/CustomLNF.cpp
         src/GUI/SpringsSection.cpp
+        src/GUI/DelaySection.cpp
         src/GUI/SpringsGL.cpp
         src/GUI/SpreadSlider.cpp
     )

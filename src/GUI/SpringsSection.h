@@ -4,6 +4,7 @@
 #include "juce_gui_basics/juce_gui_basics.h"
 
 #include "SpreadSlider.h"
+#include "Widgets.h"
 
 extern "C" {
 #include "../dsp/springreverb.h"
@@ -36,23 +37,8 @@ class SpringsSection : public juce::Component
         void resized() override;
         void paint(juce::Graphics &g) override;
 
-        struct SpringSlider : public juce::Slider {
-            SpringSlider(juce::AudioProcessorValueTreeState &apvts,
-                         const juce::String &parameterId, int id) :
-                juce::Slider(juce::Slider::SliderStyle::RotaryVerticalDrag,
-                             juce::Slider::TextEntryBoxPosition::NoTextBox),
-                attachment(apvts,
-                           "spring" + juce::String(id) + "_" + parameterId,
-                           *this)
-            {
-            }
-
-          private:
-            juce::AudioProcessorValueTreeState::SliderAttachment attachment;
-        };
-
         int m_id;
-        SpringSlider params[elements.size()];
+        Slider params[elements.size()];
 
         juce::TextButton mute;
         juce::TextButton solo;

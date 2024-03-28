@@ -3,7 +3,7 @@
 #include "juce_audio_processors/juce_audio_processors.h"
 #include "juce_gui_basics/juce_gui_basics.h"
 
-using APVTS = juce::AudioProcessorValueTreeState;
+#include "Widgets.h"
 
 class DelaySection : public juce::Component
 {
@@ -24,21 +24,7 @@ class DelaySection : public juce::Component
     virtual void resized() override;
 
   private:
-    struct DelaySlider : juce::Slider {
-        DelaySlider(APVTS &apvts, const juce::String &id) :
-            juce::Slider(juce::Slider::SliderStyle::RotaryVerticalDrag,
-                         juce::Slider::TextEntryBoxPosition::NoTextBox),
-            attachment(apvts, id, *this)
-        {
-        }
-        juce::Slider slider;
-
-      private:
-        APVTS::SliderAttachment attachment;
-    };
-
-    DelaySlider m_sliders[elements.size()];
-    juce::Label m_labels[elements.size()];
+    Slider m_sliders[elements.size()];
 
     juce::ComboBox m_mode;
     juce::AudioProcessorValueTreeState::ComboBoxAttachment m_modeAttachment;

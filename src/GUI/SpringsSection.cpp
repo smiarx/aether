@@ -48,23 +48,35 @@ void SpringsSection::resized()
     fb.performLayout(getLocalBounds());
 }
 
+#define sliderid(string, id) ("spring" + juce::String(id) + "_" + string)
+
 SpringsSection::Spring::Spring(juce::AudioProcessorValueTreeState &apvts,
                                int id) :
     m_id(id),
     params{
-        SpringSlider(apvts, std::get<0>(elements[0]), id),
-        SpringSlider(apvts, std::get<0>(elements[1]), id),
-        SpringSlider(apvts, std::get<0>(elements[2]), id),
-        SpringSlider(apvts, std::get<0>(elements[3]), id),
-        SpringSlider(apvts, std::get<0>(elements[4]), id),
-        SpringSlider(apvts, std::get<0>(elements[5]), id),
-        SpringSlider(apvts, std::get<0>(elements[6]), id),
-        SpringSlider(apvts, std::get<0>(elements[7]), id),
-        SpringSlider(apvts, std::get<0>(elements[8]), id),
+        Slider(apvts, sliderid(std::get<0>(elements[0]), id),
+               std::get<1>(elements[0])),
+        Slider(apvts, sliderid(std::get<0>(elements[1]), id),
+               std::get<1>(elements[1])),
+        Slider(apvts, sliderid(std::get<0>(elements[2]), id),
+               std::get<1>(elements[2])),
+        Slider(apvts, sliderid(std::get<0>(elements[3]), id),
+               std::get<1>(elements[3])),
+        Slider(apvts, sliderid(std::get<0>(elements[4]), id),
+               std::get<1>(elements[4])),
+        Slider(apvts, sliderid(std::get<0>(elements[5]), id),
+               std::get<1>(elements[5])),
+        Slider(apvts, sliderid(std::get<0>(elements[6]), id),
+               std::get<1>(elements[6])),
+        Slider(apvts, sliderid(std::get<0>(elements[7]), id),
+               std::get<1>(elements[7])),
+        Slider(apvts, sliderid(std::get<0>(elements[8]), id),
+               std::get<1>(elements[8])),
     },
     muteAttachment(apvts, "spring" + juce::String(id) + "_mute", mute),
     soloAttachment(apvts, "spring" + juce::String(id) + "_solo", solo)
 {
+#undef sliderid
     mute.setButtonText("M");
     solo.setButtonText("S");
     mute.setToggleable(true);
@@ -74,10 +86,10 @@ SpringsSection::Spring::Spring(juce::AudioProcessorValueTreeState &apvts,
     addAndMakeVisible(mute);
     addAndMakeVisible(solo);
 
-    params[0].setSliderStyle(juce::Slider::SliderStyle::LinearHorizontal);
+    params[0].getSlider().setSliderStyle(
+        juce::Slider::SliderStyle::LinearHorizontal);
     for (auto &p : params) {
         addAndMakeVisible(p);
-        p.setPopupDisplayEnabled(true, false, getTopLevelComponent());
     }
 }
 

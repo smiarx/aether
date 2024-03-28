@@ -1,28 +1,27 @@
 #pragma once
 
-#include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_audio_processors/juce_audio_processors.h>
+#include <juce_gui_basics/juce_gui_basics.h>
 
 using APVTS = juce::AudioProcessorValueTreeState;
 
-class Slider : public juce::Component {
+template <class Comp> class Widget : public juce::Component
+{
     static constexpr auto labelMaxHeight = 20.f;
-public:
-    Slider(APVTS& apvts, const juce::String& id, const juce::String& name) :
-        m_slider(juce::Slider::SliderStyle::RotaryVerticalDrag,
-                juce::Slider::TextEntryBoxPosition::NoTextBox),
-        m_attachment(apvts, id, m_slider)
+
+  public:
+    template <class... Ts>
+    Widget(const juce::String &name, Ts &&...args) : m_component(args...)
     {
-        addAndMakeVisible(m_slider);
+        addAndMakeVisible(m_component);
         addAndMakeVisible(m_label);
-        m_slider.setPopupDisplayEnabled(true, false, getTopLevelComponent());
+
         m_label.setText(name, juce::NotificationType::dontSendNotification);
         m_label.setJustificationType(juce::Justification::centred);
 
         auto font = juce::Font(9);
         m_label.setFont(font);
     }
-
     virtual void resized() override
     {
         juce::FlexBox fb;
@@ -30,21 +29,35 @@ public:
         fb.flexWrap      = juce::FlexBox::Wrap::noWrap;
         fb.alignContent  = juce::FlexBox::AlignContent::center;
 
-        fb.items.addArray({
-                juce::FlexItem(m_label).withFlex(0.3f).withMaxHeight(labelMaxHeight),
-                juce::FlexItem(m_slider).withFlex(1.f)
-                });
+        fb.items.addArray({juce::FlexItem(m_label).withFlex(0.3f).withMaxHeight(
+                               labelMaxHeight),
+                           juce::FlexItem(m_component).withFlex(1.f)});
 
         fb.performLayout(getLocalBounds());
     }
 
-    juce::Slider& getSlider() { return m_slider;}
+    Comp &getComponent() { return m_component; }
 
-private:
-    juce::Slider m_slider;
-    APVTS::SliderAttachment m_attachment;
+  protected:
+    Comp m_component;
     juce::Label m_label;
-
-    
 };
 
+class Slider : public Widget<juce::Slider>
+{
+  public:
+    Slider(APVTS &apvts, const juce::String &id, const juce::String &name) :
+        Widget<juce::Slider>(name), m_attachment(apvts, id, m_component)
+    {
+        m_component.setSliderStyle(
+            juce::Slider::SliderStyle::RotaryVerticalDrag);
+        m_component.setTextBoxStyle(
+            juce::Slider::TextEntryBoxPosition::NoTextBox, false, 0, 0);
+        m_component.setPopupDisplayEnabled(true, false, getTopLevelComponent());
+    }
+
+    juce::Slider &getSlider() { return getComponent(); }
+
+  private:
+    APVTS::SliderAttachment m_attachment;
+};

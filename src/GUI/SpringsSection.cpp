@@ -1,6 +1,6 @@
 #include "SpringsSection.h"
 
-constexpr auto VolPanFlex = 3;
+static constexpr auto springTopHeight = 50;
 
 SpringsSection::SpringsSection(juce::AudioProcessorValueTreeState &apvts) :
     springs{
@@ -9,14 +9,6 @@ SpringsSection::SpringsSection(juce::AudioProcessorValueTreeState &apvts) :
     },
     macros{apvts}
 {
-    unsigned int i = 0;
-    for (auto &l : labels) {
-        l.setText(std::get<1>(elements[i]), juce::dontSendNotification);
-        l.setJustificationType(juce::Justification::centred);
-        addAndMakeVisible(l);
-        ++i;
-    }
-
     for (auto &s : springs) {
         addAndMakeVisible(s);
     }
@@ -33,17 +25,16 @@ void SpringsSection::resized()
 
     fb.items.add(juce::FlexItem(macros).withFlex(1.f));
 
-    juce::FlexBox fbLabels;
-    fbLabels.flexDirection = juce::FlexBox::Direction::row;
-    fbLabels.flexWrap      = juce::FlexBox::Wrap::noWrap;
-    fbLabels.alignContent  = juce::FlexBox::AlignContent::stretch;
-    fbLabels.alignItems    = juce::FlexBox::AlignItems::stretch;
-    fbLabels.items.add(juce::FlexItem().withFlex(VolPanFlex));
-    for (unsigned int i = 2; i < elements.size(); ++i)
-        fbLabels.items.add(juce::FlexItem(labels[i]).withFlex(1.f));
-    fb.items.add(juce::FlexItem(fbLabels).withHeight(headerHeight));
+    juce::FlexBox fbSprings;
+    fbSprings.flexDirection = juce::FlexBox::Direction::row;
+    fbSprings.flexWrap      = juce::FlexBox::Wrap::wrap;
+    fbSprings.alignContent  = juce::FlexBox::AlignContent::center;
+    for (auto &s : springs)
+        fbSprings.items.add(
+            juce::FlexItem(s).withFlex(1.f).withMinWidth(160.f).withMinHeight(
+                160.f));
 
-    for (auto &s : springs) fb.items.add(juce::FlexItem(s).withFlex(1.f));
+    fb.items.add(juce::FlexItem(fbSprings).withFlex(8.f));
 
     fb.performLayout(getLocalBounds());
 }
@@ -77,6 +68,9 @@ SpringsSection::Spring::Spring(juce::AudioProcessorValueTreeState &apvts,
     soloAttachment(apvts, "spring" + juce::String(id) + "_solo", solo)
 {
 #undef sliderid
+    setText("Spring " + juce::String(id + 1));
+    setTextLabelPosition(juce::Justification::centredTop);
+
     mute.setButtonText("M");
     solo.setButtonText("S");
     mute.setToggleable(true);
@@ -95,49 +89,59 @@ SpringsSection::Spring::Spring(juce::AudioProcessorValueTreeState &apvts,
 
 void SpringsSection::Spring::resized()
 {
-    juce::FlexBox fb;
-    fb.flexDirection = juce::FlexBox::Direction::row;
-    fb.flexWrap      = juce::FlexBox::Wrap::noWrap;
-    fb.alignContent  = juce::FlexBox::AlignContent::center;
-
-    juce::FlexBox fbLeft;
-    fbLeft.flexDirection = juce::FlexBox::Direction::column;
-    fbLeft.flexWrap      = juce::FlexBox::Wrap::noWrap;
-    fbLeft.alignContent  = juce::FlexBox::AlignContent::center;
+    auto bounds = getLocalBounds();
+    bounds.reduce(3, 3);
+    auto topBounds = bounds.removeFromTop(springTopHeight);
+    topBounds.reduce(3, 5);
 
     juce::FlexBox fbTop;
     fbTop.flexDirection = juce::FlexBox::Direction::row;
     fbTop.flexWrap      = juce::FlexBox::Wrap::noWrap;
     fbTop.alignContent  = juce::FlexBox::AlignContent::center;
+    fbTop.alignItems    = juce::FlexBox::AlignItems::center;
 
+    constexpr auto elHeight = 30;
     fbTop.items.addArray({
-        juce::FlexItem(params[1]).withFlex(3).withMargin(0),
-        juce::FlexItem(mute).withFlex(1),
-        juce::FlexItem(solo).withFlex(1),
+        juce::FlexItem(params[0]).withFlex(4).withHeight(elHeight).withMargin(
+            0),
+        juce::FlexItem(mute).withFlex(1).withHeight(elHeight).withMaxWidth(
+            elHeight),
+        juce::FlexItem(solo).withFlex(1).withHeight(elHeight).withMaxWidth(
+            elHeight),
+        juce::FlexItem(params[1]).withFlex(1).withHeight(elHeight).withMargin(
+            0),
     });
+    fbTop.performLayout(topBounds);
 
-    fbLeft.items.addArray({
-        juce::FlexItem(fbTop).withFlex(1).withMargin(0),
-        juce::FlexItem(params[0]).withFlex(0.5).withMargin(0),
-    });
+    juce::FlexBox fb;
+    fb.flexDirection = juce::FlexBox::Direction::row;
+    fb.flexWrap      = juce::FlexBox::Wrap::wrap;
+    fb.alignContent  = juce::FlexBox::AlignContent::center;
 
-    fb.items.add(juce::FlexItem(fbLeft).withFlex(VolPanFlex));
+    constexpr auto dialSize = 35.f;
     for (unsigned int i = 2; i < elements.size(); ++i)
-        fb.items.add(juce::FlexItem(params[i]).withFlex(1).withMargin(0));
+        fb.items.add(juce::FlexItem(params[i])
+                         .withFlex(1)
+                         .withMinWidth(dialSize)
+                         .withMinHeight(dialSize)
+                         .withMargin(0));
 
-    fb.performLayout(getLocalBounds());
-
-    leftPanelRect = fb.items[0].currentBounds;
+    fb.performLayout(bounds);
 }
 
 void SpringsSection::Spring::paint(juce::Graphics &g)
 {
-    g.setColour(m_id % 2 ? juce::Colours::royalblue
-                         : juce::Colours::mediumseagreen);
-    g.fillRect(getLocalBounds());
+    const auto bounds = getLocalBounds();
+    getLookAndFeel().drawGroupComponentOutline(g, bounds.getWidth(),
+                                               bounds.getHeight(), getText(),
+                                               getTextLabelPosition(), *this);
 
-    g.setColour(juce::Colours::mediumpurple.withAlpha(0.8f));
-    g.fillRect(leftPanelRect);
+    auto outline = findColour(juce::GroupComponent::outlineColourId);
+    auto indent  = 3;
+    auto lineY   = bounds.getY() + indent + springTopHeight;
+    g.setColour(outline);
+    g.drawLine(bounds.getX() + indent, lineY,
+               bounds.getX() + bounds.getWidth() - indent, lineY, 2.f);
 }
 
 SpringsSection::Macros::Macros(juce::AudioProcessorValueTreeState &apvts) :
@@ -164,7 +168,6 @@ void SpringsSection::Macros::resized()
     fb.flexWrap      = juce::FlexBox::Wrap::noWrap;
     fb.alignContent  = juce::FlexBox::AlignContent::center;
 
-    fb.items.add(juce::FlexItem({}).withFlex(VolPanFlex));
     for (auto &macro : params)
         fb.items.add(juce::FlexItem(macro).withFlex(1.f));
 

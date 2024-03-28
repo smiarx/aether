@@ -32,10 +32,10 @@ class SpringsSection : public juce::Component
     void resized() override;
 
   private:
-    struct Spring : public juce::Component {
+    struct Spring : public juce::GroupComponent {
         Spring(juce::AudioProcessorValueTreeState &apvts, int id);
         void resized() override;
-        void paint(juce::Graphics &g) override;
+        void paint(juce::Graphics &) override;
 
         int m_id;
         Slider params[elements.size()];
@@ -63,6 +63,4 @@ class SpringsSection : public juce::Component
         };
         Macro params[elements.size() - 2];
     } macros;
-
-    juce::Label labels[elements.size()];
 };

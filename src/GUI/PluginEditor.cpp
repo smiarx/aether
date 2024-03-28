@@ -25,8 +25,8 @@ void PluginEditor::resized()
 
     fbSprings.items.add(
         juce::FlexItem(springsSection).withFlex(1.f).withMargin(0.f));
-    fbSprings.items.add(
-        juce::FlexItem(springsGL).withFlex(0.4f).withMargin(0.f));
+    // fbSprings.items.add(
+    //     juce::FlexItem(springsGL).withFlex(0.4f).withMargin(0.f));
 
     fb.items.add(juce::FlexItem(delaySection).withFlex(1.f).withMargin(0.f));
     fb.items.add(juce::FlexItem(fbSprings).withFlex(7.f).withMargin(0.f));
@@ -36,5 +36,5 @@ void PluginEditor::resized()
 
 void PluginEditor::paint(juce::Graphics &g)
 {
-    g.fillAll(juce::Colours::crimson);
+    g.fillAll(juce::Colours::darkgrey);
 }

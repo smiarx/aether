@@ -1,9 +1,7 @@
 #include "SpreadSlider.h"
 
-SpreadSlider::SpreadSlider(juce::AudioProcessorValueTreeState &apvts,
-                           const juce::String &id,
-                           const juce::String &spreadId) :
-    m_attachment(apvts, id, *this),
+_SpreadSlider::_SpreadSlider(juce::AudioProcessorValueTreeState &apvts,
+                             const juce::String &spreadId) :
     m_spread{apvts.getParameter(spreadId)->getValue()},
     m_spreadAttachment(
         *apvts.getParameter(spreadId),
@@ -17,7 +15,7 @@ SpreadSlider::SpreadSlider(juce::AudioProcessorValueTreeState &apvts,
     setSliderStyle(juce::Slider::RotaryVerticalDrag);
 }
 
-void SpreadSlider::paint(juce::Graphics &g)
+void _SpreadSlider::paint(juce::Graphics &g)
 {
     auto &lf              = getLookAndFeel();
     auto layout           = lf.getSliderLayout(*this);
@@ -31,9 +29,9 @@ void SpreadSlider::paint(juce::Graphics &g)
                      spreadPos);
 }
 
-void SpreadSlider::drawSpreadSlider(juce::Graphics &g, int x, int y, int width,
-                                    int height, float sliderPos,
-                                    float spreadPos)
+void _SpreadSlider::drawSpreadSlider(juce::Graphics &g, int x, int y, int width,
+                                     int height, float sliderPos,
+                                     float spreadPos)
 {
     const auto rotaryParams     = getRotaryParameters();
     const auto rotaryStartAngle = rotaryParams.startAngleRadians;
@@ -83,7 +81,7 @@ void SpreadSlider::drawSpreadSlider(juce::Graphics &g, int x, int y, int width,
                                       juce::PathStrokeType::rounded));
 }
 
-void SpreadSlider::mouseDown(const juce::MouseEvent &e)
+void _SpreadSlider::mouseDown(const juce::MouseEvent &e)
 {
     m_mouseDragStartPos = e.position;
     m_valueDragStartPos = m_spread;
@@ -91,7 +89,7 @@ void SpreadSlider::mouseDown(const juce::MouseEvent &e)
     if (!e.mods.isAltDown()) Slider::mouseDown(e);
 }
 
-void SpreadSlider::mouseDrag(const juce::MouseEvent &e)
+void _SpreadSlider::mouseDrag(const juce::MouseEvent &e)
 {
     constexpr auto pixelForFullDragExtent = 250;
     if (!e.mods.isShiftDown() && !e.mods.isCtrlDown()) {

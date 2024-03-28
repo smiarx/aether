@@ -146,18 +146,19 @@ void SpringsSection::Spring::paint(juce::Graphics &g)
 
 SpringsSection::Macros::Macros(juce::AudioProcessorValueTreeState &apvts) :
     params{
-        Macro(apvts, std::get<0>(elements[2])),
-        Macro(apvts, std::get<0>(elements[3])),
-        Macro(apvts, std::get<0>(elements[4])),
-        Macro(apvts, std::get<0>(elements[5])),
-        Macro(apvts, std::get<0>(elements[6])),
-        Macro(apvts, std::get<0>(elements[7])),
-        Macro(apvts, std::get<0>(elements[8])),
+        Macro(apvts, std::get<0>(elements[2]), std::get<1>(elements[2])),
+        Macro(apvts, std::get<0>(elements[3]), std::get<1>(elements[3])),
+        Macro(apvts, std::get<0>(elements[4]), std::get<1>(elements[4])),
+        Macro(apvts, std::get<0>(elements[5]), std::get<1>(elements[5])),
+        Macro(apvts, std::get<0>(elements[6]), std::get<1>(elements[6])),
+        Macro(apvts, std::get<0>(elements[7]), std::get<1>(elements[7])),
+        Macro(apvts, std::get<0>(elements[8]), std::get<1>(elements[8])),
     }
 {
     for (auto &macro : params) {
         addAndMakeVisible(macro);
-        macro.setPopupDisplayEnabled(true, false, getTopLevelComponent());
+        macro.getComponent().setPopupDisplayEnabled(true, false,
+                                                    getTopLevelComponent());
     }
 }
 

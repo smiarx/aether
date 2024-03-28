@@ -54,11 +54,10 @@ class SpringsSection : public juce::Component
 
         struct Macro : SpreadSlider {
             Macro(juce::AudioProcessorValueTreeState &apvts,
-                  const juce::String &id) :
-                SpreadSlider(apvts, "springs_" + id, "springs_spread_" + id)
+                  const juce::String &id, const juce::String &name) :
+                SpreadSlider(apvts, "springs_" + id, "springs_spread_" + id,
+                             name)
             {
-                setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox,
-                                true, 0, 0);
             }
         };
         Macro params[elements.size() - 2];

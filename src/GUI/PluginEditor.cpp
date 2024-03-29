@@ -10,7 +10,7 @@ PluginEditor::PluginEditor(PluginProcessor &p) :
     addAndMakeVisible(springsGL);
     addAndMakeVisible(resizableCorner);
 
-    setSize(400, 400);
+    setSize(700, 600);
 }
 
 void PluginEditor::resized()
@@ -20,16 +20,10 @@ void PluginEditor::resized()
     juce::FlexBox fb;
     fb.flexDirection = juce::FlexBox::Direction::column;
 
-    juce::FlexBox fbSprings;
-    fbSprings.flexDirection = juce::FlexBox::Direction::row;
-
-    fbSprings.items.add(
-        juce::FlexItem(springsSection).withFlex(1.f).withMargin(0.f));
-    // fbSprings.items.add(
-    //     juce::FlexItem(springsGL).withFlex(0.4f).withMargin(0.f));
-
     fb.items.add(juce::FlexItem(delaySection).withFlex(1.f).withMargin(0.f));
-    fb.items.add(juce::FlexItem(fbSprings).withFlex(7.f).withMargin(0.f));
+    fb.items.add(juce::FlexItem(springsSection).withFlex(6.f).withMargin(0.f));
+    // fb.items.add(
+    //      juce::FlexItem(springsGL).withFlex(1.f).withMargin(0.f));
 
     fb.performLayout(getLocalBounds());
 }

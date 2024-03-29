@@ -19,21 +19,33 @@ template <class Comp> class Widget : public juce::Component
         m_label.setText(name, juce::NotificationType::dontSendNotification);
         m_label.setJustificationType(juce::Justification::centred);
 
-        auto font = juce::Font(9);
+        auto font = juce::Font(10);
         m_label.setFont(font);
     }
     virtual void resized() override
     {
         juce::FlexBox fb;
-        fb.flexDirection = juce::FlexBox::Direction::column;
+        fb.flexDirection = juce::FlexBox::Direction::columnReverse;
         fb.flexWrap      = juce::FlexBox::Wrap::noWrap;
         fb.alignContent  = juce::FlexBox::AlignContent::center;
 
-        fb.items.addArray({juce::FlexItem(m_label).withFlex(0.3f).withMaxHeight(
-                               labelMaxHeight),
-                           juce::FlexItem(m_component).withFlex(1.f)});
+        if (m_labelVisible)
+            fb.items.add(juce::FlexItem(m_label).withFlex(0.4f).withMaxHeight(
+                labelMaxHeight));
+
+        fb.items.add(juce::FlexItem(m_component).withFlex(1.f));
 
         fb.performLayout(getLocalBounds());
+    }
+
+    void setLabelVisiblie(bool labelVisible)
+    {
+        m_labelVisible = labelVisible;
+        if (m_labelVisible) {
+            addAndMakeVisible(m_label);
+        } else {
+            removeChildComponent(&m_label);
+        }
     }
 
     Comp &getComponent() { return m_component; }
@@ -41,6 +53,9 @@ template <class Comp> class Widget : public juce::Component
   protected:
     Comp m_component;
     juce::Label m_label;
+
+  private:
+    bool m_labelVisible{true};
 };
 
 class Slider : public Widget<juce::Slider>
@@ -53,7 +68,6 @@ class Slider : public Widget<juce::Slider>
             juce::Slider::SliderStyle::RotaryVerticalDrag);
         m_component.setTextBoxStyle(
             juce::Slider::TextEntryBoxPosition::NoTextBox, false, 0, 0);
-        m_component.setPopupDisplayEnabled(true, false, getTopLevelComponent());
     }
 
     juce::Slider &getSlider() { return getComponent(); }

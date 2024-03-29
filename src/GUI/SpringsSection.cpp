@@ -1,6 +1,8 @@
 #include "SpringsSection.h"
 
-static constexpr auto springTopHeight = 50;
+static constexpr auto springTopHeight = 50.f;
+static constexpr auto springBoxWidth  = 150.f;
+static constexpr auto indent          = 3;
 
 SpringsSection::SpringsSection(juce::AudioProcessorValueTreeState &apvts) :
     springs{
@@ -30,9 +32,10 @@ void SpringsSection::resized()
     fbSprings.flexWrap      = juce::FlexBox::Wrap::wrap;
     fbSprings.alignContent  = juce::FlexBox::AlignContent::center;
     for (auto &s : springs)
-        fbSprings.items.add(
-            juce::FlexItem(s).withFlex(1.f).withMinWidth(160.f).withMinHeight(
-                160.f));
+        fbSprings.items.add(juce::FlexItem(s)
+                                .withFlex(1.f)
+                                .withMinWidth(springBoxWidth)
+                                .withMinHeight(180.f));
 
     fb.items.add(juce::FlexItem(fbSprings).withFlex(8.f));
 
@@ -82,17 +85,22 @@ SpringsSection::Spring::Spring(juce::AudioProcessorValueTreeState &apvts,
 
     params[0].getSlider().setSliderStyle(
         juce::Slider::SliderStyle::LinearHorizontal);
+    /* remove label for volume and pan */
+    params[0].setLabelVisiblie(false);
+    params[1].setLabelVisiblie(false);
+
     for (auto &p : params) {
         addAndMakeVisible(p);
+        p.getComponent().setPopupDisplayEnabled(true, false,
+                                                getTopLevelComponent());
     }
 }
 
 void SpringsSection::Spring::resized()
 {
     auto bounds = getLocalBounds();
-    bounds.reduce(3, 3);
+    bounds.reduce(indent, indent * 3);
     auto topBounds = bounds.removeFromTop(springTopHeight);
-    topBounds.reduce(3, 5);
 
     juce::FlexBox fbTop;
     fbTop.flexDirection = juce::FlexBox::Direction::row;
@@ -101,15 +109,28 @@ void SpringsSection::Spring::resized()
     fbTop.alignItems    = juce::FlexBox::AlignItems::center;
 
     constexpr auto elHeight = 30;
+    constexpr auto elMargin = 1;
     fbTop.items.addArray({
-        juce::FlexItem(params[0]).withFlex(4).withHeight(elHeight).withMargin(
-            0),
-        juce::FlexItem(mute).withFlex(1).withHeight(elHeight).withMaxWidth(
-            elHeight),
-        juce::FlexItem(solo).withFlex(1).withHeight(elHeight).withMaxWidth(
-            elHeight),
-        juce::FlexItem(params[1]).withFlex(1).withHeight(elHeight).withMargin(
-            0),
+        juce::FlexItem(params[0])
+            .withFlex(4)
+            .withHeight(elHeight)
+            .withMargin(0)
+            .withMargin(elMargin),
+        juce::FlexItem(mute)
+            .withFlex(1)
+            .withHeight(elHeight)
+            .withMaxWidth(elHeight)
+            .withMargin(elMargin),
+        juce::FlexItem(solo)
+            .withFlex(1)
+            .withHeight(elHeight)
+            .withMaxWidth(elHeight)
+            .withMargin(elMargin),
+        juce::FlexItem(params[1])
+            .withFlex(1)
+            .withHeight(elHeight)
+            .withMargin(0)
+            .withMargin(elMargin),
     });
     fbTop.performLayout(topBounds);
 
@@ -117,12 +138,13 @@ void SpringsSection::Spring::resized()
     fb.flexDirection = juce::FlexBox::Direction::row;
     fb.flexWrap      = juce::FlexBox::Wrap::wrap;
     fb.alignContent  = juce::FlexBox::AlignContent::center;
+    fb.justifyContent = juce::FlexBox::JustifyContent::spaceBetween;
 
-    constexpr auto dialSize = 35.f;
+    constexpr auto dialSize = 45.f;
     for (unsigned int i = 2; i < elements.size(); ++i)
         fb.items.add(juce::FlexItem(params[i])
                          .withFlex(1)
-                         .withMinWidth(dialSize)
+                         .withMinWidth(springBoxWidth / 4.f)
                          .withMinHeight(dialSize)
                          .withMargin(0));
 
@@ -132,13 +154,25 @@ void SpringsSection::Spring::resized()
 void SpringsSection::Spring::paint(juce::Graphics &g)
 {
     const auto bounds = getLocalBounds();
+    auto outline      = findColour(juce::GroupComponent::outlineColourId);
+    auto lineY        = bounds.getY() + indent * 3 + springTopHeight;
+
+    auto fillTopBounds = bounds.toFloat();
+    fillTopBounds.reduce(indent, indent * 3);
+    fillTopBounds = fillTopBounds.removeFromTop(springTopHeight);
+    g.setColour(juce::Colours::darkgrey.darker(0.3));
+    g.fillRoundedRectangle(fillTopBounds, 4.f);
+
+    auto fillBottomBounds = bounds.toFloat();
+    fillBottomBounds.reduce(indent, indent);
+    fillBottomBounds.removeFromTop(springTopHeight + 2 * indent);
+    g.setColour(juce::Colours::darkgrey.brighter(0.15));
+    g.fillRoundedRectangle(fillBottomBounds, 4.f);
+
     getLookAndFeel().drawGroupComponentOutline(g, bounds.getWidth(),
                                                bounds.getHeight(), getText(),
                                                getTextLabelPosition(), *this);
 
-    auto outline = findColour(juce::GroupComponent::outlineColourId);
-    auto indent  = 3;
-    auto lineY   = bounds.getY() + indent + springTopHeight;
     g.setColour(outline);
     g.drawLine(bounds.getX() + indent, lineY,
                bounds.getX() + bounds.getWidth() - indent, lineY, 2.f);

@@ -12,7 +12,11 @@ DelaySection::DelaySection(juce::AudioProcessorValueTreeState &apvts) :
     },
     m_mode{}, m_modeAttachment(apvts, "delay_mode", m_mode)
 {
-    for (auto &slider : m_sliders) addAndMakeVisible(slider);
+    for (auto &slider : m_sliders) {
+        addAndMakeVisible(slider);
+        slider.getComponent().setPopupDisplayEnabled(true, false,
+                                                     getTopLevelComponent());
+    }
 
     addAndMakeVisible(m_mode);
     m_mode.addItemList(apvts.getParameter("delay_mode")->getAllValueStrings(),

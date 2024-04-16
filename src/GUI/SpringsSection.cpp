@@ -1,9 +1,5 @@
 #include "SpringsSection.h"
 
-static constexpr auto springTopHeight = 50.f;
-static constexpr auto springBoxWidth  = 150.f;
-static constexpr auto indent          = 3;
-
 SpringsSection::SpringsSection(juce::AudioProcessorValueTreeState &apvts) :
     springs{
         {apvts, 0}, {apvts, 1}, {apvts, 2}, {apvts, 3},
@@ -18,22 +14,27 @@ SpringsSection::SpringsSection(juce::AudioProcessorValueTreeState &apvts) :
 
 void SpringsSection::resized()
 {
+    /* draw springs boxes */
+    constexpr auto nRows   = 2;
+    constexpr auto rowSize = elements.size() / nRows;
+
     juce::FlexBox fb;
     fb.flexDirection = juce::FlexBox::Direction::column;
     fb.flexWrap      = juce::FlexBox::Wrap::noWrap;
     fb.alignContent  = juce::FlexBox::AlignContent::center;
 
-    juce::FlexBox fbSprings;
-    fbSprings.flexDirection = juce::FlexBox::Direction::row;
-    fbSprings.flexWrap      = juce::FlexBox::Wrap::wrap;
-    fbSprings.alignContent  = juce::FlexBox::AlignContent::center;
-    for (auto &s : springs)
-        fbSprings.items.add(juce::FlexItem(s)
-                                .withFlex(1.f)
-                                .withMinWidth(springBoxWidth)
-                                .withMinHeight(180.f));
+    juce::FlexBox fbRow[nRows];
+    for (size_t i = 0; i < nRows; ++i) {
+        fbRow[i].flexDirection = juce::FlexBox::Direction::row;
+        fbRow[i].flexWrap      = juce::FlexBox::Wrap::noWrap;
+        fbRow[i].alignContent  = juce::FlexBox::AlignContent::center;
+        for (size_t j = 0; j < rowSize; ++j) {
+            auto &s = springs[i * rowSize + j];
+            fbRow[i].items.add(juce::FlexItem(s).withFlex(1.f));
+        }
 
-    fb.items.add(juce::FlexItem(fbSprings).withFlex(8.f));
+        fb.items.add(juce::FlexItem(fbRow[i]).withFlex(1.f));
+    }
 
     fb.performLayout(getLocalBounds());
 }
@@ -94,84 +95,73 @@ SpringsSection::Spring::Spring(juce::AudioProcessorValueTreeState &apvts,
 
 void SpringsSection::Spring::resized()
 {
-    auto bounds = getLocalBounds();
-    bounds.reduce(indent, indent * 3);
-    auto topBounds = bounds.removeFromTop(springTopHeight);
+    juce::FlexBox fb;
+    fb.flexDirection = juce::FlexBox::Direction::column;
+    fb.flexWrap      = juce::FlexBox::Wrap::noWrap;
+    fb.alignContent  = juce::FlexBox::AlignContent::center;
 
     juce::FlexBox fbTop;
     fbTop.flexDirection = juce::FlexBox::Direction::row;
     fbTop.flexWrap      = juce::FlexBox::Wrap::noWrap;
     fbTop.alignContent  = juce::FlexBox::AlignContent::center;
-    fbTop.alignItems    = juce::FlexBox::AlignItems::center;
 
-    constexpr auto elHeight = 30;
-    constexpr auto elMargin = 1;
-    fbTop.items.addArray({
-        juce::FlexItem(params[0])
-            .withFlex(4)
-            .withHeight(elHeight)
-            .withMargin(0)
-            .withMargin(elMargin),
-        juce::FlexItem(mute)
-            .withFlex(1)
-            .withHeight(elHeight)
-            .withMaxWidth(elHeight)
-            .withMargin(elMargin),
-        juce::FlexItem(solo)
-            .withFlex(1)
-            .withHeight(elHeight)
-            .withMaxWidth(elHeight)
-            .withMargin(elMargin),
-        juce::FlexItem(params[1])
-            .withFlex(1)
-            .withHeight(elHeight)
-            .withMargin(0)
-            .withMargin(elMargin),
+    juce::FlexBox fbMuteSolo;
+    fbMuteSolo.flexDirection = juce::FlexBox::Direction::column;
+    fbMuteSolo.flexWrap      = juce::FlexBox::Wrap::noWrap;
+    fbMuteSolo.alignContent  = juce::FlexBox::AlignContent::center;
+
+    fbMuteSolo.items.addArray({
+        juce::FlexItem(solo).withFlex(1.f),
+        juce::FlexItem(mute).withFlex(1.f),
     });
-    fbTop.performLayout(topBounds);
 
-    juce::FlexBox fb;
-    fb.flexDirection = juce::FlexBox::Direction::row;
-    fb.flexWrap      = juce::FlexBox::Wrap::wrap;
-    fb.alignContent  = juce::FlexBox::AlignContent::center;
-    fb.justifyContent = juce::FlexBox::JustifyContent::spaceBetween;
+    fbTop.items.addArray({
+        juce::FlexItem(params[0]).withFlex(4.f),
+        juce::FlexItem(params[1]).withFlex(1.f),
+        juce::FlexItem(fbMuteSolo).withFlex(0.8f),
+    });
 
-    constexpr auto dialSize = 45.f;
-    for (unsigned int i = 2; i < elements.size(); ++i)
-        fb.items.add(juce::FlexItem(params[i])
-                         .withFlex(1)
-                         .withMinWidth(springBoxWidth / 4.f)
-                         .withMinHeight(dialSize)
-                         .withMargin(0));
+    juce::FlexBox fbMid;
+    fbMid.flexDirection = juce::FlexBox::Direction::row;
+    fbMid.flexWrap      = juce::FlexBox::Wrap::noWrap;
+    fbMid.alignContent  = juce::FlexBox::AlignContent::center;
+    fbMid.items.addArray({
+        juce::FlexItem(params[2]).withFlex(1.f),
+        juce::FlexItem(params[3]).withFlex(1.f),
+        juce::FlexItem(params[4]).withFlex(1.f),
+    });
 
+    juce::FlexBox fbBot;
+    fbBot.flexDirection = juce::FlexBox::Direction::row;
+    fbBot.flexWrap      = juce::FlexBox::Wrap::noWrap;
+    fbBot.alignContent  = juce::FlexBox::AlignContent::center;
+    fbBot.items.addArray({
+        juce::FlexItem(params[5]).withFlex(1.f),
+        juce::FlexItem(params[6]).withFlex(1.f),
+        juce::FlexItem(params[7]).withFlex(1.f),
+        juce::FlexItem(params[8]).withFlex(1.f),
+    });
+
+    constexpr auto margin = 4;
+    fb.items.addArray({
+        juce::FlexItem(fbTop).withFlex(1.f).withMargin(margin),
+        juce::FlexItem(fbMid).withFlex(1.f).withMargin(margin),
+        juce::FlexItem(fbBot).withFlex(0.8f).withMargin(margin),
+    });
+
+    constexpr auto indent = 3;
+    auto bounds           = getLocalBounds();
+    bounds.reduce(indent, indent);
+    bounds.removeFromTop(indent);
     fb.performLayout(bounds);
 }
 
 void SpringsSection::Spring::paint(juce::Graphics &g)
 {
     const auto bounds = getLocalBounds();
-    auto outline      = findColour(juce::GroupComponent::outlineColourId);
-    auto lineY        = bounds.getY() + indent * 3 + springTopHeight;
-
-    auto fillTopBounds = bounds.toFloat();
-    fillTopBounds.reduce(indent, indent * 3);
-    fillTopBounds = fillTopBounds.removeFromTop(springTopHeight);
-    g.setColour(juce::Colours::darkgrey.darker(0.3));
-    g.fillRoundedRectangle(fillTopBounds, 4.f);
-
-    auto fillBottomBounds = bounds.toFloat();
-    fillBottomBounds.reduce(indent, indent);
-    fillBottomBounds.removeFromTop(springTopHeight + 2 * indent);
-    g.setColour(juce::Colours::darkgrey.brighter(0.15));
-    g.fillRoundedRectangle(fillBottomBounds, 4.f);
-
     getLookAndFeel().drawGroupComponentOutline(g, bounds.getWidth(),
                                                bounds.getHeight(), getText(),
                                                getTextLabelPosition(), *this);
-
-    g.setColour(outline);
-    g.drawLine(bounds.getX() + indent, lineY,
-               bounds.getX() + bounds.getWidth() - indent, lineY, 2.f);
 }
 
 SpringsSection::Macros::Macros(juce::AudioProcessorValueTreeState &apvts) :

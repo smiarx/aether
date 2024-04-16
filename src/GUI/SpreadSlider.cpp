@@ -84,7 +84,7 @@ void _SpreadSlider::drawSpreadSlider(juce::Graphics &g, int x, int y, int width,
 void _SpreadSlider::mouseDown(const juce::MouseEvent &e)
 {
     m_mouseDragStartPos = e.position;
-    m_valueDragStartPos = m_spread;
+    m_valueDragStartPos = m_spreadRange.convertTo0to1(m_spread);
 
     if (!e.mods.isAltDown()) Slider::mouseDown(e);
 }

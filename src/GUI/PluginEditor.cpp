@@ -6,6 +6,7 @@ PluginEditor::PluginEditor(PluginProcessor &p) :
 {
     setLookAndFeel(&lookandfeel);
     addAndMakeVisible(springsSection);
+    addAndMakeVisible(springsSection.macros);
     addAndMakeVisible(delaySection);
     addAndMakeVisible(springsGL);
     addAndMakeVisible(resizableCorner);
@@ -21,6 +22,7 @@ void PluginEditor::resized()
     fb.flexDirection = juce::FlexBox::Direction::column;
 
     fb.items.add(juce::FlexItem(delaySection).withFlex(1.f).withMargin(0.f));
+    fb.items.add(juce::FlexItem(springsSection.macros).withFlex(1.f).withMargin(0.f));
     fb.items.add(juce::FlexItem(springsSection).withFlex(6.f).withMargin(0.f));
     // fb.items.add(
     //      juce::FlexItem(springsGL).withFlex(1.f).withMargin(0.f));

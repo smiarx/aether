@@ -14,8 +14,6 @@ SpringsSection::SpringsSection(juce::AudioProcessorValueTreeState &apvts) :
     for (auto &s : springs) {
         addAndMakeVisible(s);
     }
-
-    addAndMakeVisible(macros);
 }
 
 void SpringsSection::resized()
@@ -24,8 +22,6 @@ void SpringsSection::resized()
     fb.flexDirection = juce::FlexBox::Direction::column;
     fb.flexWrap      = juce::FlexBox::Wrap::noWrap;
     fb.alignContent  = juce::FlexBox::AlignContent::center;
-
-    fb.items.add(juce::FlexItem(macros).withFlex(1.f));
 
     juce::FlexBox fbSprings;
     fbSprings.flexDirection = juce::FlexBox::Direction::row;

@@ -48,6 +48,7 @@ class SpringsSection : public juce::Component
         juce::Rectangle<float> leftPanelRect;
     } springs[MAXSPRINGS];
 
+  public:
     struct Macros : public juce::Component {
         Macros(juce::AudioProcessorValueTreeState &apvts);
         void resized() override;

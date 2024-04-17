@@ -58,6 +58,7 @@ class PluginProcessor final : public juce::AudioProcessor,
         DelayDriftFreq,
         DelayMode,
         SpringsDryWet,
+        SpringsWidth,
         /* springs macro */
         SpringsHiLo,
         SpringsLength,

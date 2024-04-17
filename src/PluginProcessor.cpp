@@ -43,6 +43,8 @@ PluginProcessor::createLayout()
         "springreverb", "Spring Reverb", "|");
     springs->addChild(std::make_unique<juce::AudioParameterFloat>(
         "springs_drywet", "Dry/Wet", 0.0f, 1.f, 0.f));
+    springs->addChild(std::make_unique<juce::AudioParameterFloat>(
+        "springs_width", "Width", 0.0f, 1.f, 1.f));
 
     const juce::NormalisableRange<float> rangeHiLo(0.f, 1.f);
     const juce::NormalisableRange<float> rangeLength(0.02f, 0.2f);
@@ -316,6 +318,9 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
             break;
         case ParamId::SpringsDryWet:
             springs_set_drywet(&m_springreverb, event.value, count);
+            break;
+        case ParamId::SpringsWidth:
+            // TODO
             break;
         case ParamId::SpringVolume:
             m_springreverb.desc.vol[spring] = event.value;

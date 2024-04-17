@@ -147,9 +147,8 @@ SpringsSection::Spring::Spring(juce::AudioProcessorValueTreeState &apvts,
 
     params[0].getSlider().setSliderStyle(
         juce::Slider::SliderStyle::LinearHorizontal);
-    /* remove label for volume and pan */
-    params[0].setLabelVisiblie(false);
-    params[1].setLabelVisiblie(false);
+    /* remove label for parameters */
+    for (auto &param : params) param.setLabelVisiblie(false);
 
     for (auto &p : params) {
         addAndMakeVisible(p);

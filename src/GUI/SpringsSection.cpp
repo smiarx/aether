@@ -1,5 +1,7 @@
 #include "SpringsSection.h"
 
+#include "../PluginProcessor.h"
+
 SpringsSection::SpringsSection(juce::AudioProcessorValueTreeState &apvts) :
     springs{
         {apvts, 0}, {apvts, 1}, {apvts, 2}, {apvts, 3},
@@ -41,6 +43,64 @@ void SpringsSection::resized()
 
 #define sliderid(string, id) ("spring" + juce::String(id) + "_" + string)
 
+SpringsSection::Spring::Source::Source(APVTS &apvts, int id)
+{
+    constexpr auto sourceGroupId = 1000;
+    left.setButtonText("L");
+    right.setButtonText("R");
+    middle.setButtonText("M");
+    left.setClickingTogglesState(true);
+    right.setClickingTogglesState(true);
+    middle.setClickingTogglesState(true);
+    left.setRadioGroupId(sourceGroupId + id);
+    right.setRadioGroupId(sourceGroupId + id);
+    middle.setRadioGroupId(sourceGroupId + id);
+
+    const auto param = static_cast<juce::RangedAudioParameter *>(
+        apvts.getParameter("spring" + juce::String(id) + "_source"));
+    if (param == nullptr) return;
+    param->addListener(this);
+    parameterValueChanged(0, param->getValue());
+
+    left.setTriggeredOnMouseDown(true);
+    right.setTriggeredOnMouseDown(true);
+    middle.setTriggeredOnMouseDown(true);
+
+    left.onClick = [param] {
+        param->setValueNotifyingHost(param->convertTo0to1(
+            static_cast<int>(PluginProcessor::Source::Left)));
+    };
+    right.onClick = [param] {
+        param->setValueNotifyingHost(param->convertTo0to1(
+            static_cast<int>(PluginProcessor::Source::Right)));
+    };
+    middle.onClick = [param] {
+        param->setValueNotifyingHost(param->convertTo0to1(
+            static_cast<int>(PluginProcessor::Source::Mono)));
+    };
+}
+
+void SpringsSection::Spring::Source::parameterValueChanged(
+    int /*parameterIndex*/, float newValue)
+{
+    const auto iValue = static_cast<PluginProcessor::Source>(newValue * 2.f);
+    switch (iValue) {
+    case PluginProcessor::Source::Left:
+        left.setToggleState(true, juce::NotificationType::dontSendNotification);
+        break;
+    case PluginProcessor::Source::Right:
+        right.setToggleState(true,
+                             juce::NotificationType::dontSendNotification);
+        break;
+    case PluginProcessor::Source::Mono:
+        middle.setToggleState(true,
+                              juce::NotificationType::dontSendNotification);
+        break;
+    default:
+        break;
+    }
+}
+
 SpringsSection::Spring::Spring(juce::AudioProcessorValueTreeState &apvts,
                                int id) :
     m_id(id),
@@ -65,7 +125,8 @@ SpringsSection::Spring::Spring(juce::AudioProcessorValueTreeState &apvts,
                std::get<1>(elements[8])),
     },
     muteAttachment(apvts, "spring" + juce::String(id) + "_mute", mute),
-    soloAttachment(apvts, "spring" + juce::String(id) + "_solo", solo)
+    soloAttachment(apvts, "spring" + juce::String(id) + "_solo", solo),
+    source(apvts, id)
 {
 #undef sliderid
     setText("Spring " + juce::String(id + 1));
@@ -79,6 +140,10 @@ SpringsSection::Spring::Spring(juce::AudioProcessorValueTreeState &apvts,
     solo.setClickingTogglesState(true);
     addAndMakeVisible(mute);
     addAndMakeVisible(solo);
+
+    addAndMakeVisible(source.left);
+    addAndMakeVisible(source.right);
+    addAndMakeVisible(source.middle);
 
     params[0].getSlider().setSliderStyle(
         juce::Slider::SliderStyle::LinearHorizontal);
@@ -105,6 +170,17 @@ void SpringsSection::Spring::resized()
     fbTop.flexWrap      = juce::FlexBox::Wrap::noWrap;
     fbTop.alignContent  = juce::FlexBox::AlignContent::center;
 
+    juce::FlexBox fbSource;
+    fbSource.flexDirection = juce::FlexBox::Direction::column;
+    fbSource.flexWrap      = juce::FlexBox::Wrap::noWrap;
+    fbSource.alignContent  = juce::FlexBox::AlignContent::center;
+
+    fbSource.items.addArray({
+        juce::FlexItem(source.left).withFlex(1.f),
+        juce::FlexItem(source.middle).withFlex(1.f),
+        juce::FlexItem(source.right).withFlex(1.f),
+    });
+
     juce::FlexBox fbMuteSolo;
     fbMuteSolo.flexDirection = juce::FlexBox::Direction::column;
     fbMuteSolo.flexWrap      = juce::FlexBox::Wrap::noWrap;
@@ -116,6 +192,7 @@ void SpringsSection::Spring::resized()
     });
 
     fbTop.items.addArray({
+        juce::FlexItem(fbSource).withFlex(0.8f),
         juce::FlexItem(params[0]).withFlex(4.f),
         juce::FlexItem(params[1]).withFlex(1.f),
         juce::FlexItem(fbMuteSolo).withFlex(0.8f),

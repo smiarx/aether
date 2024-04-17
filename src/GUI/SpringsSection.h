@@ -45,6 +45,23 @@ class SpringsSection : public juce::Component
         juce::AudioProcessorValueTreeState::ButtonAttachment muteAttachment;
         juce::AudioProcessorValueTreeState::ButtonAttachment soloAttachment;
 
+        struct Source : public juce::AudioProcessorParameter::Listener {
+            static constexpr auto groupId = 1000;
+
+            Source(APVTS &apvts, int id);
+            virtual void parameterValueChanged(int parameterIndex,
+                                               float newValue) override;
+            virtual void
+            parameterGestureChanged(int parameterIndex,
+                                    bool gestureIsStarting) override
+            {
+            }
+
+            juce::TextButton left;
+            juce::TextButton right;
+            juce::TextButton middle;
+        } source;
+
         juce::Rectangle<float> leftPanelRect;
     } springs[MAXSPRINGS];
 

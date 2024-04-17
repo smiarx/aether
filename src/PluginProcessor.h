@@ -97,6 +97,12 @@ class PluginProcessor final : public juce::AudioProcessor,
     static constexpr auto numMacros =
         static_cast<int>(macroEnd) - static_cast<int>(macroBegin);
 
+    enum class Source {
+        Left  = 0,
+        Right = 1,
+        Mono  = 2,
+    };
+
     struct ParamEvent {
         ParamEvent(int t_id, float t_value) :
             id(static_cast<ParamId>(t_id)), value(t_value)

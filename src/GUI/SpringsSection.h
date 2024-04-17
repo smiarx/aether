@@ -16,11 +16,11 @@ class SpringsSection : public juce::Component
         elements{{
             {"vol", "Volume"},
             {"pan", "Panning"},
-            {"hilo", "Lo/Hi"},
             {"length", "Length"},
             {"decay", "Decay"},
-            {"dispersion", "Dispersion"},
             {"damp", "Damp"},
+            {"hilo", "Lo/Hi"},
+            {"dispersion", "Dispersion"},
             {"chaos", "Chaos"},
             {"springness", "Springness"},
         }};

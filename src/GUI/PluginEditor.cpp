@@ -21,9 +21,19 @@ void PluginEditor::resized()
     juce::FlexBox fb;
     fb.flexDirection = juce::FlexBox::Direction::column;
 
-    fb.items.add(juce::FlexItem(delaySection).withFlex(1.f).withMargin(0.f));
-    fb.items.add(juce::FlexItem(springsSection.macros).withFlex(1.f).withMargin(0.f));
-    fb.items.add(juce::FlexItem(springsSection).withFlex(6.f).withMargin(0.f));
+    juce::FlexBox fbMain;
+    fbMain.flexDirection = juce::FlexBox::Direction::row;
+
+    fbMain.items.addArray({
+        juce::FlexItem(delaySection).withFlex(0.68f).withMargin(0.f),
+        juce::FlexItem(springsSection.macros).withFlex(1.f).withMargin(0.f),
+    });
+
+    fb.items.addArray({
+        juce::FlexItem(fbMain).withFlex(1.f),
+        juce::FlexItem(springsSection).withFlex(0.75f).withMargin(0.f),
+    });
+
     // fb.items.add(
     //      juce::FlexItem(springsGL).withFlex(1.f).withMargin(0.f));
 

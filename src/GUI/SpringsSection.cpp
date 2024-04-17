@@ -261,13 +261,25 @@ SpringsSection::Macros::Macros(juce::AudioProcessorValueTreeState &apvts) :
 
 void SpringsSection::Macros::resized()
 {
-    juce::FlexBox fb;
-    fb.flexDirection = juce::FlexBox::Direction::row;
-    fb.flexWrap      = juce::FlexBox::Wrap::noWrap;
-    fb.alignContent  = juce::FlexBox::AlignContent::center;
+    juce::Grid grid;
+    using Track = juce::Grid::TrackInfo;
+    using Fr    = juce::Grid::Fr;
+    using Span  = juce::GridItem::Span;
 
-    for (auto &macro : params)
-        fb.items.add(juce::FlexItem(macro).withFlex(1.f));
+    grid.templateColumns = {Track(Fr(1)), Track(Fr(1)), Track(Fr(1)),
+                            Track(Fr(1)), Track(Fr(3))};
+    grid.templateRows    = {Track(Fr(1)), Track(Fr(1)), Track(Fr(1))};
 
-    fb.performLayout(getLocalBounds());
+    grid.items = {
+        // juce::GridItem(params[0]).withArea("hilo"),
+        juce::GridItem(params[0]).withArea(1, 1, Span(2), Span(2)), // length
+        juce::GridItem(params[1]).withArea(1, 3, Span(1), Span(2)), // decay
+        juce::GridItem(params[2]).withArea(2, 3, Span(1), Span(2)), // damp
+        juce::GridItem(params[3]).withArea(3, 1),                   // hilo
+        juce::GridItem(params[4]).withArea(3, 2),                   // disp
+        juce::GridItem(params[5]).withArea(3, 3),                   // chaos
+        juce::GridItem(params[6]).withArea(3, 4), // springness
+    };
+
+    grid.performLayout(getLocalBounds());
 }

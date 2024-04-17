@@ -30,15 +30,26 @@ DelaySection::DelaySection(juce::AudioProcessorValueTreeState &apvts) :
 
 void DelaySection::resized()
 {
-    juce::FlexBox fb;
-    fb.flexDirection = juce::FlexBox::Direction::row;
-    fb.flexWrap      = juce::FlexBox::Wrap::noWrap;
-    fb.alignContent  = juce::FlexBox::AlignContent::center;
+    juce::Grid grid;
+    using Track = juce::Grid::TrackInfo;
+    using Fr    = juce::Grid::Fr;
+    using Span  = juce::GridItem::Span;
 
-    for (auto &slider : m_sliders)
-        fb.items.add(juce::FlexItem(slider).withFlex(1.f));
+    grid.templateColumns = {Track(Fr(1)), Track(Fr(1)), Track(Fr(1)),
+                            Track(Fr(1))};
+    grid.templateRows    = {Track(Fr(1)), Track(Fr(1)), Track(Fr(1))};
 
-    fb.items.add(juce::FlexItem(m_mode).withFlex(1.f).withMaxHeight(30.f));
+    grid.items = {
+        juce::GridItem(m_sliders[0])
+            .withArea(1, 3, Span(2), Span(2)), // dry/wet
+        juce::GridItem(m_sliders[1]).withArea(1, 1, Span(1), Span(2)), // time
+        juce::GridItem(m_sliders[2])
+            .withArea(2, 1, Span(1), Span(2)),       // feedback
+        juce::GridItem(m_sliders[3]).withArea(3, 1), // cutoff
+        juce::GridItem(m_sliders[4]).withArea(3, 2), // drive
+        juce::GridItem(m_sliders[5]).withArea(3, 3), // drift
+        juce::GridItem(m_sliders[6]).withArea(3, 4), // drift freq
+    };
 
-    fb.performLayout(getLocalBounds());
+    grid.performLayout(getLocalBounds());
 }

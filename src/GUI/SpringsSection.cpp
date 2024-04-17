@@ -249,13 +249,17 @@ SpringsSection::Macros::Macros(juce::AudioProcessorValueTreeState &apvts) :
         Macro(apvts, std::get<0>(elements[6]), std::get<1>(elements[6])),
         Macro(apvts, std::get<0>(elements[7]), std::get<1>(elements[7])),
         Macro(apvts, std::get<0>(elements[8]), std::get<1>(elements[8])),
-    }
+    },
+    drywet(apvts, "springs_drywet", "Dry/Wet"),
+    width(apvts, "springs_width", "Width")
 {
     for (auto &macro : params) {
         addAndMakeVisible(macro);
         macro.getComponent().setPopupDisplayEnabled(true, false,
                                                     getTopLevelComponent());
     }
+    addAndMakeVisible(drywet);
+    addAndMakeVisible(width);
 }
 
 void SpringsSection::Macros::resized()
@@ -266,7 +270,7 @@ void SpringsSection::Macros::resized()
     using Span  = juce::GridItem::Span;
 
     grid.templateColumns = {Track(Fr(1)), Track(Fr(1)), Track(Fr(1)),
-                            Track(Fr(1)), Track(Fr(3))};
+                            Track(Fr(1)), Track(Fr(2))};
     grid.templateRows    = {Track(Fr(1)), Track(Fr(1)), Track(Fr(1))};
 
     grid.items = {
@@ -278,6 +282,8 @@ void SpringsSection::Macros::resized()
         juce::GridItem(params[4]).withArea(3, 2),                   // disp
         juce::GridItem(params[5]).withArea(3, 3),                   // chaos
         juce::GridItem(params[6]).withArea(3, 4), // springness
+        juce::GridItem(width).withArea(2, 5),
+        juce::GridItem(drywet).withArea(3, 5),
     };
 
     grid.performLayout(getLocalBounds());

@@ -79,5 +79,8 @@ class SpringsSection : public juce::Component
             }
         };
         Macro params[elements.size() - 2];
+
+        Slider drywet;
+        Slider width;
     } macros;
 };

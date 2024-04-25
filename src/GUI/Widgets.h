@@ -50,6 +50,11 @@ template <class Comp> class Widget : public juce::Component
 
     Comp &getComponent() { return m_component; }
 
+    void setColour(int colourID, juce::Colour colour)
+    {
+        m_component.setColour(colourID, colour);
+    }
+
   protected:
     Comp m_component;
     juce::Label m_label;

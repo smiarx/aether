@@ -1,4 +1,5 @@
 #include "DelaySection.h"
+#include "CustomLNF.h"
 
 DelaySection::DelaySection(juce::AudioProcessorValueTreeState &apvts) :
     m_sliders{
@@ -26,6 +27,17 @@ DelaySection::DelaySection(juce::AudioProcessorValueTreeState &apvts) :
     m_modeLabel.setText("Mode", juce::NotificationType::dontSendNotification);
     m_modeLabel.attachToComponent(&m_mode, false);
     m_modeLabel.setJustificationType(juce::Justification::centred);
+
+    // set colours
+    const auto mainColour  = juce::Colour(0xffffef03);
+    const auto smallColour = juce::Colour(0xffffa301);
+    m_sliders[0].setColour(juce::Slider::thumbColourId, mainColour);
+    m_sliders[1].setColour(juce::Slider::thumbColourId, mainColour);
+    m_sliders[2].setColour(juce::Slider::thumbColourId, mainColour);
+    m_sliders[3].setColour(juce::Slider::thumbColourId, smallColour);
+    m_sliders[4].setColour(juce::Slider::thumbColourId, smallColour);
+    m_sliders[5].setColour(juce::Slider::thumbColourId, smallColour);
+    m_sliders[6].setColour(juce::Slider::thumbColourId, smallColour);
 }
 
 void DelaySection::resized()
@@ -51,5 +63,16 @@ void DelaySection::resized()
         juce::GridItem(m_sliders[6]).withArea(3, 4), // drift freq
     };
 
-    grid.performLayout(getLocalBounds());
+    auto bounds = getLocalBounds();
+    bounds.reduce(CustomLNF::padding, CustomLNF::padding);
+    grid.performLayout(bounds);
+}
+
+void DelaySection::paint(juce::Graphics &g)
+{
+    auto bounds = getLocalBounds();
+    bounds.reduce(CustomLNF::padding, CustomLNF::padding);
+
+    g.setColour(findColour(backgroundColourId));
+    g.fillRoundedRectangle(bounds.toFloat(), CustomLNF::boxRoundSize);
 }

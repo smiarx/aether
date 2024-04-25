@@ -19,9 +19,14 @@ class DelaySection : public juce::Component
         }};
 
   public:
+    enum ColourIds {
+        backgroundColourId = 0x1312000,
+    };
+
     DelaySection(APVTS &apvts);
 
     virtual void resized() override;
+    virtual void paint(juce::Graphics &g) override;
 
   private:
     Slider m_sliders[elements.size()];

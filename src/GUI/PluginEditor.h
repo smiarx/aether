@@ -10,6 +10,10 @@
 class PluginEditor : public juce::AudioProcessorEditor
 {
   public:
+    enum ColourIDs {
+        backgroundColourId = 0x1610200,
+    };
+
     PluginEditor(PluginProcessor &);
     ~PluginEditor() { setLookAndFeel(nullptr); };
 

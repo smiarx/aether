@@ -1,6 +1,10 @@
 #include "SpringsSection.h"
+#include "CustomLNF.h"
 
 #include "../PluginProcessor.h"
+
+static const auto mainColour  = juce::Colour(0xff8fe7f3);
+static const auto smallColour = juce::Colour(0xfff130f1);
 
 SpringsSection::SpringsSection(juce::AudioProcessorValueTreeState &apvts) :
     springs{
@@ -32,13 +36,23 @@ void SpringsSection::resized()
         fbRow[i].alignContent  = juce::FlexBox::AlignContent::center;
         for (size_t j = 0; j < rowSize; ++j) {
             auto &s = springs[i * rowSize + j];
-            fbRow[i].items.add(juce::FlexItem(s).withFlex(1.f));
+            fbRow[i].items.add(juce::FlexItem(s).withFlex(1.f).withMargin(1.f));
         }
 
         fb.items.add(juce::FlexItem(fbRow[i]).withFlex(1.f));
     }
 
-    fb.performLayout(getLocalBounds());
+    auto bounds = getLocalBounds();
+
+    bounds.reduce(CustomLNF::padding, CustomLNF::padding);
+    fb.performLayout(bounds);
+}
+
+void SpringsSection::paint(juce::Graphics &g)
+{
+    const auto bounds = getLocalBounds();
+    g.setColour(findColour(allBackgroundColourId));
+    g.fillRoundedRectangle(bounds.toFloat(), CustomLNF::boxRoundSize);
 }
 
 #define sliderid(string, id) ("spring" + juce::String(id) + "_" + string)
@@ -155,6 +169,17 @@ SpringsSection::Spring::Spring(juce::AudioProcessorValueTreeState &apvts,
         p.getComponent().setPopupDisplayEnabled(true, false,
                                                 getTopLevelComponent());
     }
+
+    // set colour
+    params[0].setColour(juce::Slider::thumbColourId, mainColour);
+    params[1].setColour(juce::Slider::thumbColourId, mainColour);
+    params[2].setColour(juce::Slider::thumbColourId, mainColour);
+    params[3].setColour(juce::Slider::thumbColourId, mainColour);
+    params[4].setColour(juce::Slider::thumbColourId, mainColour);
+    params[5].setColour(juce::Slider::thumbColourId, smallColour);
+    params[6].setColour(juce::Slider::thumbColourId, smallColour);
+    params[7].setColour(juce::Slider::thumbColourId, smallColour);
+    params[8].setColour(juce::Slider::thumbColourId, smallColour);
 }
 
 void SpringsSection::Spring::resized()
@@ -235,6 +260,8 @@ void SpringsSection::Spring::resized()
 void SpringsSection::Spring::paint(juce::Graphics &g)
 {
     const auto bounds = getLocalBounds();
+    g.setColour(findColour(backgroundColourId));
+    g.fillRoundedRectangle(bounds.toFloat(), CustomLNF::boxRoundSize);
     getLookAndFeel().drawGroupComponentOutline(g, bounds.getWidth(),
                                                bounds.getHeight(), getText(),
                                                getTextLabelPosition(), *this);
@@ -260,6 +287,17 @@ SpringsSection::Macros::Macros(juce::AudioProcessorValueTreeState &apvts) :
     }
     addAndMakeVisible(drywet);
     addAndMakeVisible(width);
+
+    // set colours
+    drywet.setColour(juce::Slider::thumbColourId, mainColour);
+    width.setColour(juce::Slider::thumbColourId, mainColour);
+    params[0].setColour(juce::Slider::thumbColourId, mainColour);
+    params[1].setColour(juce::Slider::thumbColourId, mainColour);
+    params[2].setColour(juce::Slider::thumbColourId, mainColour);
+    params[3].setColour(juce::Slider::thumbColourId, smallColour);
+    params[4].setColour(juce::Slider::thumbColourId, smallColour);
+    params[5].setColour(juce::Slider::thumbColourId, smallColour);
+    params[6].setColour(juce::Slider::thumbColourId, smallColour);
 }
 
 void SpringsSection::Macros::resized()
@@ -286,5 +324,22 @@ void SpringsSection::Macros::resized()
         juce::GridItem(drywet).withArea(3, 5),
     };
 
-    grid.performLayout(getLocalBounds());
+    auto bounds = getLocalBounds();
+    bounds.reduce(CustomLNF::padding, CustomLNF::padding);
+    grid.performLayout(bounds);
+}
+
+void SpringsSection::Macros::paint(juce::Graphics &g)
+{
+    auto bounds = getLocalBounds().toFloat();
+    g.setColour(findColour(allBackgroundColourId));
+    juce::Path box;
+    box.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(),
+                            bounds.getHeight(), CustomLNF::boxRoundSize,
+                            CustomLNF::boxRoundSize, true, true, false, true);
+    g.fillPath(box);
+
+    bounds.reduce(CustomLNF::padding, CustomLNF::padding);
+    g.setColour(findColour(backgroundColourId));
+    g.fillRoundedRectangle(bounds, CustomLNF::boxRoundSize);
 }

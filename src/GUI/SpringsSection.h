@@ -26,10 +26,16 @@ class SpringsSection : public juce::Component
         }};
 
   public:
+    enum ColourIDs {
+        backgroundColourId    = 0x1610100,
+        allBackgroundColourId = 0x1610900,
+    };
+
     static constexpr auto headerHeight = 30.f;
 
     SpringsSection(juce::AudioProcessorValueTreeState &apvts);
     void resized() override;
+    void paint(juce::Graphics &g) override;
 
   private:
     struct Spring : public juce::GroupComponent {
@@ -69,6 +75,7 @@ class SpringsSection : public juce::Component
     struct Macros : public juce::Component {
         Macros(juce::AudioProcessorValueTreeState &apvts);
         void resized() override;
+        void paint(juce::Graphics &g) override;
 
         struct Macro : SpreadSlider {
             Macro(juce::AudioProcessorValueTreeState &apvts,

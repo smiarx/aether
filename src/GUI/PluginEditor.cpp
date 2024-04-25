@@ -37,10 +37,12 @@ void PluginEditor::resized()
     // fb.items.add(
     //      juce::FlexItem(springsGL).withFlex(1.f).withMargin(0.f));
 
-    fb.performLayout(getLocalBounds());
+    auto bounds = getLocalBounds();
+    bounds.reduce(CustomLNF::margin, CustomLNF::margin);
+    fb.performLayout(bounds);
 }
 
 void PluginEditor::paint(juce::Graphics &g)
 {
-    g.fillAll(juce::Colours::darkgrey);
+    g.fillAll(findColour(backgroundColourId));
 }

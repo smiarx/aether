@@ -1,13 +1,19 @@
 #include "CustomLNF.h"
+#include "DelaySection.h"
+#include "PluginEditor.h"
+#include "SpringsSection.h"
 
 CustomLNF::CustomLNF()
 {
     static const uint32_t definedColours[] = {
-        juce::BubbleComponent::backgroundColourId,
-        0xff000000,
-        juce::BubbleComponent::outlineColourId,
-        0xffdddddd,
+        juce::BubbleComponent::backgroundColourId, 0xff000000,
+        juce::BubbleComponent::outlineColourId,    0xffdddddd,
+        PluginEditor::backgroundColourId,          0xffffffb7,
+        DelaySection::backgroundColourId,          0xff011b2d,
+        SpringsSection::backgroundColourId,        0xff013559,
+        SpringsSection::allBackgroundColourId,     0xffc2ebf1,
     };
+
     for (int i = 0; i < juce::numElementsInArray(definedColours); i += 2)
         setColour((int)definedColours[i], juce::Colour(definedColours[i + 1]));
 }

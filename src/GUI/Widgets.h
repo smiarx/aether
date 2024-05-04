@@ -7,9 +7,11 @@ using APVTS = juce::AudioProcessorValueTreeState;
 
 template <class Comp> class Widget : public juce::Component
 {
-    static constexpr auto labelMaxHeight = 20.f;
-
   public:
+    static constexpr auto textSize    = 16;
+    static constexpr auto labelMargin = 12;
+    static constexpr auto labelSize   = textSize + labelMargin;
+
     template <class... Ts>
     Widget(const juce::String &name, Ts &&...args) : m_component(args...)
     {
@@ -24,18 +26,14 @@ template <class Comp> class Widget : public juce::Component
     }
     virtual void resized() override
     {
-        juce::FlexBox fb;
-        fb.flexDirection = juce::FlexBox::Direction::columnReverse;
-        fb.flexWrap      = juce::FlexBox::Wrap::noWrap;
-        fb.alignContent  = juce::FlexBox::AlignContent::center;
+        auto bounds = getLocalBounds();
 
-        if (m_labelVisible)
-            fb.items.add(juce::FlexItem(m_label).withFlex(0.4f).withMaxHeight(
-                labelMaxHeight));
-
-        fb.items.add(juce::FlexItem(m_component).withFlex(1.f));
-
-        fb.performLayout(getLocalBounds());
+        if (m_labelVisible) {
+            auto textBox = bounds.removeFromBottom(labelSize);
+            textBox.removeFromTop(labelMargin);
+            m_label.setBounds(textBox);
+        }
+        m_component.setBounds(getLocalBounds());
     }
 
     void setLabelVisiblie(bool labelVisible)
@@ -53,6 +51,25 @@ template <class Comp> class Widget : public juce::Component
     void setColour(int colourID, juce::Colour colour)
     {
         m_component.setColour(colourID, colour);
+    }
+
+    /* set the size of the widget to be squared (for slider,..) */
+    void squareSized()
+    {
+        auto bounds      = getBounds();
+        const auto width = bounds.getWidth();
+        auto height      = bounds.getHeight();
+
+        /* remove text size if label is visible */
+        if (m_labelVisible) height -= labelSize;
+
+        const auto size = width > height ? height : width;
+
+        const auto centre = bounds.getCentre();
+        bounds.setWidth(size);
+        bounds.setHeight(m_labelVisible ? size + labelSize : size);
+        bounds.setCentre(centre);
+        setBounds(bounds);
     }
 
   protected:
@@ -73,6 +90,12 @@ class Slider : public Widget<juce::Slider>
             juce::Slider::SliderStyle::RotaryVerticalDrag);
         m_component.setTextBoxStyle(
             juce::Slider::TextEntryBoxPosition::NoTextBox, false, 0, 0);
+    }
+
+    void resized() override
+    {
+        if (getSlider().isRotary()) squareSized();
+        Widget<juce::Slider>::resized();
     }
 
     juce::Slider &getSlider() { return getComponent(); }

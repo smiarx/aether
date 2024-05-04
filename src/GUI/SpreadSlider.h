@@ -49,6 +49,12 @@ class SpreadSlider : public Widget<_SpreadSlider>
 
     juce::Slider &getSlider() { return getComponent(); }
 
+    void resized() override
+    {
+        squareSized();
+        Widget<_SpreadSlider>::resized();
+    }
+
   private:
     APVTS::SliderAttachment m_attachment;
 };

@@ -8,7 +8,7 @@ using APVTS = juce::AudioProcessorValueTreeState;
 template <class Comp> class Widget : public juce::Component
 {
   public:
-    static constexpr auto textSize    = 16;
+    static constexpr auto textSize    = 13;
     static constexpr auto labelMargin = 12;
     static constexpr auto labelSize   = textSize + labelMargin;
 
@@ -21,7 +21,7 @@ template <class Comp> class Widget : public juce::Component
         m_label.setText(name, juce::NotificationType::dontSendNotification);
         m_label.setJustificationType(juce::Justification::centred);
 
-        auto font = juce::Font(10);
+        auto font = juce::Font(textSize);
         m_label.setFont(font);
     }
     virtual void resized() override
@@ -36,7 +36,7 @@ template <class Comp> class Widget : public juce::Component
         m_component.setBounds(getLocalBounds());
     }
 
-    void setLabelVisiblie(bool labelVisible)
+    void setLabelVisible(bool labelVisible)
     {
         m_labelVisible = labelVisible;
         if (m_labelVisible) {

@@ -6,12 +6,24 @@
 CustomLNF::CustomLNF()
 {
     static const uint32_t definedColours[] = {
-        juce::BubbleComponent::backgroundColourId, 0xff000000,
-        juce::BubbleComponent::outlineColourId,    0xffdddddd,
-        PluginEditor::backgroundColourId,          0xffffffb7,
-        DelaySection::backgroundColourId,          0xff011b2d,
-        SpringsSection::backgroundColourId,        0xff013559,
-        SpringsSection::allBackgroundColourId,     0xffc2ebf1,
+        juce::BubbleComponent::backgroundColourId,
+        0xff000000,
+        juce::BubbleComponent::outlineColourId,
+        0xffdddddd,
+        PluginEditor::backgroundColourId,
+        0xffffffb7,
+        DelaySection::backgroundColourId,
+        0xff011b2d,
+        SpringsSection::backgroundColourId,
+        0xff013559,
+        SpringsSection::allBackgroundColourId,
+        0xffc2ebf1,
+        juce::Slider::rotarySliderFillColourId,
+        0xfff5f5f5,
+        juce::Slider::trackColourId,
+        0xff808080,
+        juce::Slider::rotarySliderOutlineColourId,
+        0xff333333,
     };
 
     for (int i = 0; i < juce::numElementsInArray(definedColours); i += 2)
@@ -24,84 +36,84 @@ void CustomLNF::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
                                  const float rotaryEndAngle,
                                  juce::Slider &slider)
 {
-    auto insideColour = slider.findColour(juce::Slider::thumbColourId);
+    auto radius          = juce::jmin(width, height) / 2.f;
+    auto lineWidth       = juce::jmin(6.f, juce::jmax(2.f, radius * 0.09f));
+    auto arcRadius       = radius - lineWidth / 2.f;
+    auto dialMargin      = juce::jmin(16.f, juce::jmax(4.f, radius * 0.22f));
+    auto outlineSize     = 1.f;
+    auto dialRadius      = radius - dialMargin;
+    auto centerRadius    = dialRadius * 0.7f;
+    auto indicatorWidth  = juce::jmin(6.f, juce::jmax(1.f, radius * 0.12f));
+    auto indicatorLength = 0.7f * dialRadius;
 
-    auto radius         = juce::jmin(width, height) / 2.f * 0.98f;
-    auto lineWidth      = juce::jmax(0.5f, radius * 0.02f);
-    auto indicatorWidth = juce::jmax(1.f, radius * 0.14f);
-    auto arcRadius      = radius - lineWidth / 2.f;
-    auto arcRadiusExt   = arcRadius * 0.06f;
-    bool drawExtLine    = true;
+    auto thumbColour = slider.findColour(juce::Slider::thumbColourId);
+    auto dialColour = slider.findColour(juce::Slider::rotarySliderFillColourId);
+    auto indicColour = dialColour.contrasting(0.8f);
+    auto outlineColour =
+        slider.findColour(juce::Slider::rotarySliderOutlineColourId);
+    auto trackColour = slider.findColour(juce::Slider::trackColourId);
 
-    if (arcRadiusExt < 1.8f) {
-        drawExtLine = false;
-    } else {
-        arcRadius -= arcRadiusExt;
-        radius = arcRadius * 0.92f;
-    }
-
-    auto centre  = juce::Point<float>(x + width / 2.f, y + height / 2.f);
-    auto corner  = centre - juce::Point<float>(radius, 0.f);
-    auto rw      = radius * 2.f;
-    auto rwSmall = rw * 0.72f;
+    auto centre = juce::Point<float>(x + width / 2.f, y + height / 2.f);
 
     auto posAngle =
         rotaryStartAngle + sliderPos * (rotaryEndAngle - rotaryStartAngle);
 
-    if (drawExtLine) {
-        juce::Path backgroundArc;
-        backgroundArc.addCentredArc(centre.getX(), centre.getY(), arcRadius,
-                                    arcRadius, 0.f, rotaryStartAngle,
-                                    rotaryEndAngle, true);
+    juce::Path arcActive;
+    arcActive.addCentredArc(centre.getX(), centre.getY(), arcRadius, arcRadius,
+                            0.f, rotaryStartAngle, posAngle, true);
+    g.setColour(thumbColour);
+    g.strokePath(arcActive,
+                 juce::PathStrokeType(lineWidth, juce::PathStrokeType::curved,
+                                      juce::PathStrokeType::square));
 
-        g.setColour(juce::Colours::black.brighter(0.3));
-        g.strokePath(backgroundArc, juce::PathStrokeType(
-                                        lineWidth, juce::PathStrokeType::curved,
-                                        juce::PathStrokeType::rounded));
+    juce::Path arcInactive;
+    arcInactive.addCentredArc(centre.getX(), centre.getY(), arcRadius,
+                              arcRadius, 0.f, posAngle, rotaryEndAngle, true);
+    g.setColour(trackColour);
+    g.strokePath(arcInactive,
+                 juce::PathStrokeType(lineWidth, juce::PathStrokeType::curved,
+                                      juce::PathStrokeType::square));
 
-        auto startP =
-            juce::Point<float>(-sinf(rotaryStartAngle), cosf(rotaryStartAngle));
-        auto endP =
-            juce::Point<float>(-sinf(rotaryEndAngle), cosf(rotaryEndAngle));
-        g.drawLine(
-            juce::Line<float>(centre - startP * (arcRadius + arcRadiusExt),
-                              centre - startP * (arcRadius - arcRadiusExt)),
-            lineWidth);
-        g.drawLine(
-            juce::Line<float>(centre - endP * (arcRadius + arcRadiusExt),
-                              centre - endP * (arcRadius - arcRadiusExt)),
-            lineWidth);
-    }
+    /* dial */
+    juce::ColourGradient gradient{
+        dialColour.brighter(0.3f), juce::Point<float>(x, y),
+        dialColour.darker(0.3f), juce::Point<float>(x, y + height), false};
+    g.setFillType(juce::FillType{gradient});
+    g.fillEllipse(juce::Rectangle<float>(2.f * dialRadius, 2.f * dialRadius)
+                      .withCentre(centre));
 
-    juce::ColourGradient gradient1{juce::Colours::black.brighter(0.1f), centre,
-                                   juce::Colours::black.brighter(1.0f), corner,
-                                   true};
-    gradient1.addColour(0.95, gradient1.getColour(0).brighter(0.2));
-    // gradient1.addColour(0.96,
-    // gradient1.getColour(gradient1.getNumColours()-1).darker(0.3));
-    auto fill1 = juce::FillType{gradient1}.transformed(
-        juce::AffineTransform::translation(-radius * 0.02, radius * 0.018));
-
-    juce::ColourGradient gradient2{
-        insideColour, centre, insideColour.withRotatedHue(0.05).brighter(0.1),
-        corner, true};
-
-    g.setFillType(fill1);
-    g.fillEllipse(juce::Rectangle<float>(rw, rw).withCentre(centre));
-
+    float indicatorStart = dialRadius;
     juce::Path indicator;
     auto roundedCorner = indicatorWidth / 2.f;
     indicator.addRoundedRectangle(
-        juce::Rectangle<float>(radius * 0.97, indicatorWidth)
-            .withPosition(centre.getX(), centre.getY() - indicatorWidth / 2),
+        juce::Rectangle<float>(indicatorLength - outlineSize, indicatorWidth)
+            .withPosition(centre.getX() + indicatorStart - indicatorLength,
+                          centre.getY() - indicatorWidth / 2),
         roundedCorner);
-    g.setColour(juce::Colour::fromFloatRGBA(1.f, 1.f, 1.f, 1.f).darker(0.1));
+    g.setColour(indicColour);
     g.fillPath(indicator, juce::AffineTransform::rotation(
                               posAngle - juce::MathConstants<float>::halfPi,
                               centre.getX(), centre.getY()));
 
-    g.setGradientFill(gradient2);
-    g.fillEllipse(juce::Rectangle<float>(rwSmall, rwSmall).withCentre(centre));
+    if (radius > 20.f) {
+        g.setFillType(juce::FillType{juce::ColourGradient{
+            thumbColour, centre, thumbColour.darker(0.05f),
+            centre + juce::Point<float>(0, centerRadius / 2.f), true}});
+        // g.setColour(thumbColour);
+        g.fillEllipse(
+            juce::Rectangle<float>(2.f * centerRadius, 2.f * centerRadius)
+                .withCentre(centre));
+        g.setColour(outlineColour);
+        g.drawEllipse(
+            juce::Rectangle<float>(2.f * centerRadius, 2.f * centerRadius)
+                .withCentre(centre),
+            outlineSize);
+    }
+
+    g.setColour(outlineColour);
+    g.drawEllipse(juce::Rectangle<float>(2.f * dialRadius, 2.f * dialRadius)
+                      .withCentre(centre),
+                  outlineSize);
 }
 
 void CustomLNF::drawBubble(juce::Graphics &g, juce::BubbleComponent &comp,

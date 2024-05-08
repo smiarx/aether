@@ -41,23 +41,14 @@ void _SpreadSlider::drawSpreadSlider(juce::Graphics &g, int x, int y, int width,
                                       rotaryStartAngle, rotaryEndAngle, *this);
 
     /* spread arc */
-    auto radius       = juce::jmin(width, height) / 2.f * 0.98f;
-    auto lineWidth    = juce::jmax(0.5f, radius * 0.02f);
-    auto arcRadius    = radius - lineWidth / 2.f;
-    auto arcRadiusExt = arcRadius * 0.06f;
+    auto radius    = juce::jmin(width, height) / 2.f;
+    auto lineWidth = juce::jmin(6.f, juce::jmax(2.f, radius * 0.09f));
+    auto arcRadius = radius - lineWidth / 2.f;
 
-    float spreadWidth;
-
-    if (arcRadiusExt < 1.8f) {
-        spreadWidth = radius * 0.16f;
-    } else {
-        arcRadius -= arcRadiusExt;
-        radius      = arcRadius * 0.92f;
-        spreadWidth = arcRadiusExt + lineWidth;
-    }
+    auto thumbColour = findColour(juce::Slider::thumbColourId);
 
     auto centre       = juce::Point<float>(x + width / 2.f, y + height / 2.f);
-    auto spreadRadius = radius + (spreadWidth + 1.f) / 2.f;
+    auto spreadRadius = arcRadius;
 
     /* draw spread value */
     const auto spreadAdd  = 0.f; // std::atan(0.5f * lineW / arcRadius);
@@ -72,13 +63,22 @@ void _SpreadSlider::drawSpreadSlider(juce::Graphics &g, int x, int y, int width,
             (sliderPos + spreadPos) * (rotaryEndAngle - rotaryStartAngle) +
             spreadAdd);
     juce::Path spreadArc;
+    juce::PathStrokeType stroketype(lineWidth, juce::PathStrokeType::curved,
+                                    juce::PathStrokeType::rounded);
+
     spreadArc.addCentredArc(centre.getX(), centre.getY(), spreadRadius,
                             spreadRadius, 0.0f, spreadAngleStart,
                             spreadAngleEnd, true);
-    g.setColour(juce::Colour(0xff9cbcbd));
-    g.strokePath(spreadArc,
-                 juce::PathStrokeType(spreadWidth, juce::PathStrokeType::curved,
-                                      juce::PathStrokeType::rounded));
+    g.setColour(thumbColour.brighter(0.4f).withMultipliedSaturation(0.4f));
+    g.strokePath(spreadArc, stroketype);
+
+    /* outline */
+    juce::Path outline;
+    stroketype.createStrokedPath(outline, spreadArc);
+    g.setColour(thumbColour.darker(1.f));
+    g.strokePath(outline, juce::PathStrokeType(lineWidth / 3.f,
+                                               juce::PathStrokeType::curved,
+                                               juce::PathStrokeType::rounded));
 }
 
 void _SpreadSlider::mouseDown(const juce::MouseEvent &e)

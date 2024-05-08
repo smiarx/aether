@@ -98,6 +98,14 @@ class Slider : public Widget<juce::Slider>
         Widget<juce::Slider>::resized();
     }
 
+    void setTextBoxVisible(bool textBoxVisible)
+    {
+        m_component.setTextBoxStyle(
+            textBoxVisible ? juce::Slider::TextEntryBoxPosition::TextBoxBelow
+                           : juce::Slider::NoTextBox,
+            true, 100, textSize);
+    }
+
     juce::Slider &getSlider() { return getComponent(); }
 
   private:

@@ -19,6 +19,19 @@ DelaySection::DelaySection(juce::AudioProcessorValueTreeState &apvts) :
                                                      getTopLevelComponent());
     }
 
+    // wet dry
+    m_sliders[0].getComponent().setTextValueSuffix("%");
+    // delay time
+    m_sliders[1].getComponent().setTextValueSuffix("s");
+    // feedback
+    m_sliders[2].getComponent().setTextValueSuffix("%");
+    // cutoff
+    m_sliders[3].getComponent().setTextValueSuffix("Hz");
+    // drive
+    m_sliders[4].getComponent().setTextValueSuffix("dB");
+    // drift rate
+    m_sliders[6].getComponent().setTextValueSuffix("Hz");
+
     addAndMakeVisible(m_mode);
     m_mode.addItemList(apvts.getParameter("delay_mode")->getAllValueStrings(),
                        1);

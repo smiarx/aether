@@ -12,17 +12,18 @@ extern "C" {
 
 class SpringsSection : public juce::Component
 {
-    static constexpr std::array<std::tuple<const char *, const char *>, 9>
+    static constexpr std::array<
+        std::tuple<const char *, const char *, const char *>, 9>
         elements{{
-            {"vol", "Volume"},
-            {"pan", "Panning"},
-            {"length", "Length"},
-            {"decay", "Decay"},
-            {"damp", "Damp"},
-            {"hilo", "Lo/Hi"},
-            {"dispersion", "Dispersion"},
-            {"chaos", "Chaos"},
-            {"springness", "Springness"},
+            {"vol", "Volume", "dB"},
+            {"pan", "Panning", ""},
+            {"length", "Length", "s"},
+            {"decay", "Decay", "s"},
+            {"damp", "Damp", "Hz"},
+            {"hilo", "Lo/Hi", ""},
+            {"dispersion", "Dispersion", ""},
+            {"chaos", "Chaos", "s"},
+            {"springness", "Springness", ""},
         }};
 
   public:

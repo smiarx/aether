@@ -164,8 +164,10 @@ SpringsSection::Spring::Spring(juce::AudioProcessorValueTreeState &apvts,
     /* remove label for parameters */
     for (auto &param : params) param.setLabelVisible(false);
 
+    size_t i = 0;
     for (auto &p : params) {
         addAndMakeVisible(p);
+        p.getComponent().setTextValueSuffix(std::get<2>(elements[i++]));
         p.getComponent().setPopupDisplayEnabled(true, false,
                                                 getTopLevelComponent());
     }
@@ -280,13 +282,20 @@ SpringsSection::Macros::Macros(juce::AudioProcessorValueTreeState &apvts) :
     drywet(apvts, "springs_drywet", "Dry/Wet"),
     width(apvts, "springs_width", "Width")
 {
+    size_t i = 2;
     for (auto &macro : params) {
         addAndMakeVisible(macro);
+        macro.getComponent().setTextValueSuffix(std::get<2>(elements[i++]));
         macro.getComponent().setPopupDisplayEnabled(true, false,
                                                     getTopLevelComponent());
     }
     addAndMakeVisible(drywet);
+    drywet.getComponent().setTextValueSuffix("%");
+    drywet.getComponent().setPopupDisplayEnabled(true, false,
+                                                 getTopLevelComponent());
     addAndMakeVisible(width);
+    width.getComponent().setPopupDisplayEnabled(true, false,
+                                                getTopLevelComponent());
 
     // set colours
     drywet.setColour(juce::Slider::thumbColourId, mainColour);

@@ -35,6 +35,10 @@ class _SpreadSlider : public juce::Slider
 class SpreadSlider : public Widget<_SpreadSlider>
 {
   public:
+    enum ColourIDs {
+        spreadColourId = 0x3732712,
+    };
+
     SpreadSlider(APVTS &apvts, const juce::String &id,
                  const juce::String &spreadId, const juce::String &name) :
         Widget<_SpreadSlider>(name, apvts, spreadId),

@@ -41,14 +41,14 @@ void _SpreadSlider::drawSpreadSlider(juce::Graphics &g, int x, int y, int width,
                                       rotaryStartAngle, rotaryEndAngle, *this);
 
     /* spread arc */
-    auto radius    = juce::jmin(width, height) / 2.f;
-    auto lineWidth = juce::jmin(6.f, juce::jmax(2.f, radius * 0.09f));
-    auto arcRadius = radius - lineWidth / 2.f;
-
-    auto thumbColour = findColour(juce::Slider::thumbColourId);
+    auto radius          = juce::jmin(width, height) / 2.f;
+    auto lineWidth       = juce::jmin(6.f, juce::jmax(2.f, radius * 0.09f));
+    auto dialMargin      = juce::jmin(16.f, juce::jmax(4.f, radius * 0.22f));
+    auto dialRadius      = radius - dialMargin;
 
     auto centre       = juce::Point<float>(x + width / 2.f, y + height / 2.f);
-    auto spreadRadius = arcRadius;
+    auto spreadWidth  = (dialMargin - lineWidth)*0.5f;
+    auto spreadRadius = dialRadius + spreadWidth/2.f;
 
     /* draw spread value */
     const auto spreadAdd  = 0.f; // std::atan(0.5f * lineW / arcRadius);
@@ -63,22 +63,14 @@ void _SpreadSlider::drawSpreadSlider(juce::Graphics &g, int x, int y, int width,
             (sliderPos + spreadPos) * (rotaryEndAngle - rotaryStartAngle) +
             spreadAdd);
     juce::Path spreadArc;
-    juce::PathStrokeType stroketype(lineWidth, juce::PathStrokeType::curved,
+    juce::PathStrokeType stroketype(spreadWidth, juce::PathStrokeType::curved,
                                     juce::PathStrokeType::rounded);
 
     spreadArc.addCentredArc(centre.getX(), centre.getY(), spreadRadius,
                             spreadRadius, 0.0f, spreadAngleStart,
                             spreadAngleEnd, true);
-    g.setColour(thumbColour.brighter(0.4f).withMultipliedSaturation(0.4f));
+    g.setColour(juce::Colour(findColour(SpreadSlider::spreadColourId)));
     g.strokePath(spreadArc, stroketype);
-
-    /* outline */
-    juce::Path outline;
-    stroketype.createStrokedPath(outline, spreadArc);
-    g.setColour(thumbColour.darker(1.f));
-    g.strokePath(outline, juce::PathStrokeType(lineWidth / 3.f,
-                                               juce::PathStrokeType::curved,
-                                               juce::PathStrokeType::rounded));
 }
 
 void _SpreadSlider::mouseDown(const juce::MouseEvent &e)

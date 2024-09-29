@@ -52,6 +52,8 @@ DelaySection::DelaySection(juce::AudioProcessorValueTreeState &apvts) :
     m_sliders[4].setColour(juce::Slider::thumbColourId, smallColour);
     m_sliders[5].setColour(juce::Slider::thumbColourId, smallColour);
     m_sliders[6].setColour(juce::Slider::thumbColourId, smallColour);
+
+    setColour(PluginEditor::Separator, juce::Colour{0xff0f3d43});
 }
 
 void DelaySection::resized()

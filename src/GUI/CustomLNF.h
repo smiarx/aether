@@ -8,7 +8,7 @@ class CustomLNF : public juce::LookAndFeel_V4
     static constexpr auto boxRoundSize = 10.f;
     static constexpr auto margin       = 8.f;
     static constexpr auto padding      = 10.f;
-    static constexpr auto sepWidth     = 2.f;
+    static constexpr auto sepWidth     = 1.2f;
     CustomLNF();
 
     void drawRotarySlider(juce::Graphics &g, int x, int y, int width,

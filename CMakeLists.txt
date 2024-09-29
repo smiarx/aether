@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 
-project(Echoes VERSION 0.0.1)
+project(Aether VERSION 0.0.1)
 
 find_package(JUCE CONFIG REQUIRED)
 

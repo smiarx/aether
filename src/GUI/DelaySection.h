@@ -18,6 +18,16 @@ class DelaySection : public juce::Component
             {"delay_driftfreq", "Drift Freq"},
         }};
 
+    enum {
+        DryWet    = 0,
+        Time      = 1,
+        Feedback  = 2,
+        Cutoff    = 3,
+        Drive     = 4,
+        Drift     = 5,
+        DriftFreq = 6,
+    };
+
   public:
     enum ColourIds {
         backgroundColourId = 0x1312000,

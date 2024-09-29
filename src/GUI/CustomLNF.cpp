@@ -24,6 +24,8 @@ CustomLNF::CustomLNF()
         0xff808080,
         juce::Slider::rotarySliderOutlineColourId,
         0xff333333,
+        PluginEditor::Separator,
+        0xff134c54,
     };
 
     for (int i = 0; i < juce::numElementsInArray(definedColours); i += 2)

@@ -26,6 +26,18 @@ class SpringsSection : public juce::Component
             {"springness", "Springness", ""},
         }};
 
+    enum {
+        Vol        = 0,
+        Pan        = 1,
+        Length     = 2,
+        Decay      = 3,
+        Damp       = 4,
+        Hilo       = 5,
+        Dispersion = 6,
+        Chaos      = 7,
+        Springness = 8,
+    };
+
   public:
     enum ColourIDs {
         backgroundColourId    = 0x1610100,
@@ -86,7 +98,9 @@ class SpringsSection : public juce::Component
             {
             }
         };
-        Macro params[elements.size() - 2];
+
+        static constexpr auto numRemoveMacros = 2;
+        Macro params[elements.size() - numRemoveMacros];
 
         Slider drywet;
         Slider width;

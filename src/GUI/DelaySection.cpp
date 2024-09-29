@@ -1,5 +1,6 @@
 #include "DelaySection.h"
 #include "CustomLNF.h"
+#include "PluginEditor.h"
 
 DelaySection::DelaySection(juce::AudioProcessorValueTreeState &apvts) :
     m_sliders{
@@ -83,9 +84,17 @@ void DelaySection::resized()
 
 void DelaySection::paint(juce::Graphics &g)
 {
-    auto bounds = getLocalBounds();
+    auto bounds = getLocalBounds().toFloat();
     bounds.reduce(CustomLNF::padding, CustomLNF::padding);
 
     g.setColour(findColour(backgroundColourId));
     g.fillRoundedRectangle(bounds.toFloat(), CustomLNF::boxRoundSize);
+
+    // separator
+    auto ySep = (m_sliders[Feedback].getBoundsInParent().getBottom() +
+                 m_sliders[Cutoff].getBoundsInParent().getY()) /
+                2.f;
+    g.setColour(findColour(PluginEditor::Separator));
+    g.fillRect(bounds.getX(), ySep - CustomLNF::sepWidth / 2.f,
+               bounds.getWidth(), CustomLNF::sepWidth);
 }

@@ -9,7 +9,7 @@ template <class Comp> class Widget : public juce::Component
 {
   public:
     static constexpr auto textSize    = 13;
-    static constexpr auto labelMargin = 12;
+    static constexpr auto labelMargin = -4;
     static constexpr auto labelSize   = textSize + labelMargin;
 
     template <class... Ts>
@@ -33,7 +33,7 @@ template <class Comp> class Widget : public juce::Component
             textBox.removeFromTop(labelMargin);
             m_label.setBounds(textBox);
         }
-        m_component.setBounds(getLocalBounds());
+        m_component.setBounds(bounds);
     }
 
     void setLabelVisible(bool labelVisible)

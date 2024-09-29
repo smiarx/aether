@@ -7,7 +7,7 @@ PluginProcessor::PluginProcessor() :
         BusesProperties()
             .withInput("Input", juce::AudioChannelSet::stereo(), true)
             .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
-    m_parameters(*this, nullptr, juce::Identifier("Echoes"), createLayout())
+    m_parameters(*this, nullptr, juce::Identifier("Æther"), createLayout())
 {
     for (auto *param : getParameters()) addProcessorAsListener(param);
 }

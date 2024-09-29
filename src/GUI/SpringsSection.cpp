@@ -1,5 +1,6 @@
 #include "SpringsSection.h"
 #include "CustomLNF.h"
+#include "PluginEditor.h"
 
 #include "../PluginProcessor.h"
 
@@ -261,12 +262,27 @@ void SpringsSection::Spring::resized()
 
 void SpringsSection::Spring::paint(juce::Graphics &g)
 {
-    const auto bounds = getLocalBounds();
+    const auto bounds = getLocalBounds().toFloat();
     g.setColour(findColour(backgroundColourId));
     g.fillRoundedRectangle(bounds.toFloat(), CustomLNF::boxRoundSize);
     getLookAndFeel().drawGroupComponentOutline(g, bounds.getWidth(),
                                                bounds.getHeight(), getText(),
                                                getTextLabelPosition(), *this);
+
+    // separators
+    g.setColour(findColour(PluginEditor::Separator));
+
+    auto ySep1 = (params[Vol].getBoundsInParent().getBottom() +
+                  params[Length].getBoundsInParent().getY()) /
+                 2.f;
+    g.fillRect(bounds.getX(), ySep1 - CustomLNF::sepWidth / 2.f,
+               bounds.getWidth(), CustomLNF::sepWidth);
+
+    auto ySep2 = (params[Length].getBoundsInParent().getBottom() +
+                  params[Hilo].getBoundsInParent().getY()) /
+                 2.f;
+    g.fillRect(bounds.getX(), ySep2 - CustomLNF::sepWidth / 2.f,
+               bounds.getWidth(), CustomLNF::sepWidth);
 }
 
 SpringsSection::Macros::Macros(juce::AudioProcessorValueTreeState &apvts) :
@@ -351,4 +367,22 @@ void SpringsSection::Macros::paint(juce::Graphics &g)
     bounds.reduce(CustomLNF::padding, CustomLNF::padding);
     g.setColour(findColour(backgroundColourId));
     g.fillRoundedRectangle(bounds, CustomLNF::boxRoundSize);
+
+    // separators;
+    g.setColour(findColour(PluginEditor::Separator));
+
+    auto xSep =
+        (params[Springness - numRemoveMacros].getBoundsInParent().getRight() +
+         width.getBoundsInParent().getX()) /
+        2.f;
+    g.fillRect(xSep - CustomLNF::sepWidth / 2.f, bounds.getY(),
+               CustomLNF::sepWidth, bounds.getHeight());
+
+    auto ySep =
+        (params[Damp - numRemoveMacros].getBoundsInParent().getBottom() +
+         params[Hilo - numRemoveMacros].getBoundsInParent().getY()) /
+        2.f;
+    auto yWidth = xSep - bounds.getX();
+    g.fillRect(bounds.getX(), ySep - CustomLNF::sepWidth / 2.f, yWidth,
+               CustomLNF::sepWidth);
 }

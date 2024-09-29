@@ -12,6 +12,7 @@ class PluginEditor : public juce::AudioProcessorEditor
   public:
     enum ColourIDs {
         backgroundColourId = 0x1610200,
+        Separator          = 0x1312039,
     };
 
     PluginEditor(PluginProcessor &);

@@ -870,25 +870,20 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
         }
 
         // sum high and low
-#define sum_hilo(inc)                                                        \
-    {                                                                        \
-        struct springparam glow  = springs->glow;                            \
-        struct springparam ghigh = springs->ghigh;                           \
-        loopsamples(n) _Pragma("omp simd") loopsprings(i)                    \
-        {                                                                    \
-            if (inc) {                                                       \
-                addinc(glow, i);                                             \
-                addinc(ghigh, i);                                            \
-            }                                                                \
-            y[n][i] = glow.val[i] * ylow[n][i] + ghigh.val[i] * yhigh[n][i]; \
-        }                                                                    \
-        if (inc) {                                                           \
-            springs->glow  = glow;                                           \
-            springs->ghigh = ghigh;                                          \
-        }                                                                    \
-    }
-
-        sum_hilo(springs->increment_glowhigh);
+        {
+            enum inc inc              = springs->increment_glowhigh;
+            struct springparam *glow  = &springs->glow;
+            struct springparam *ghigh = &springs->ghigh;
+            loopsamples(n) _Pragma("omp simd") loopsprings(i)
+            {
+                if (inc) {
+                    addinc(*glow, i);
+                    addinc(*ghigh, i);
+                }
+                y[n][i] =
+                    glow->val[i] * ylow[n][i] + ghigh->val[i] * yhigh[n][i];
+            }
+        }
 
         /* rms */
         rms_process(&springs->rms, y, blocksize);

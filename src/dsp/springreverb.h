@@ -1,6 +1,10 @@
 #ifndef _SPRINGREVERB_H
 #define _SPRINGREVERB_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef MAXSPRINGS
 #define MAXSPRINGS 8
 
@@ -68,6 +72,8 @@
 #define RMS_OVERLAP_SIZE (128)
 #define RMS_OVERLAP_MASK (RMS_OVERLAP_SIZE - 1)
 #define RMS_NOVERLAPS    (RMS_SIZE / RMS_OVERLAP_SIZE)
+
+#define SPRINGS_ALIGN (sizeof(float) * MAXSPRINGS)
 
 typedef float springsfloat[MAXSPRINGS]
     __attribute__((aligned(sizeof(float) * MAXSPRINGS)));
@@ -285,5 +291,9 @@ void high_delayline_process(struct high_delayline *dl, float y[MAXSPRINGS],
 void rms_process(struct rms *rms, const float y[][MAXSPRINGS], int count);
 void springs_process(springs_t *springs, const float *const *in,
                      float *const *out, int count);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

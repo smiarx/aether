@@ -1,6 +1,10 @@
 #ifndef _TAPEDELAY_H
 #define _TAPEDELAY_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 #include <string.h>
 
@@ -96,16 +100,13 @@ typedef struct {
     int twobuffers;
 } tapedelay_t;
 
-#ifdef __cplusplus
-#define restrict
-#endif
-
-void tapedelay_initlut();
 void tapedelay_init(tapedelay_t *tapedelay, tapedelay_desc_t *desc,
                     float samplerate);
 void tapedelay_update(tapedelay_t *tapedelay, tapedelay_desc_t *desc);
 void tapedelay_set_delay(tapedelay_t *tapedelay, float delay);
 void tapedelay_set_fmode(tapedelay_t *tapedelay, float fmode);
+void tapedelay_set_feedback(tapedelay_t *tapedelay, float feedback);
+void tapedelay_set_drywet(tapedelay_t *tapedelay, float drywet);
 void tapedelay_set_cutoff(tapedelay_t *tapedelay, float cutoff);
 void tapedelay_set_drive(tapedelay_t *tapedelay, float drive);
 void tapedelay_set_drift(tapedelay_t *tapedelay, float drift);
@@ -113,6 +114,8 @@ void tapedelay_set_drift_freq(tapedelay_t *tapedelay, float drift_freq);
 void tapedelay_process(tapedelay_t *restrict tapedelay, const float *const *in,
                        float *const *out, int count);
 
-#undef restrict
+#ifdef __cplusplus
+}
+#endif
 
 #endif

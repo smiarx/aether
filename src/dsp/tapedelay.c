@@ -58,6 +58,10 @@ void tapedelay_init(tapedelay_t *tapedelay, tapedelay_desc_t *desc,
 
     tapedelay->desc = *desc;
     tapedelay_set_delay(tapedelay, desc->delay);
+    tapedelay_set_cutoff(tapedelay, desc->cutoff);
+    tapedelay_set_drive(tapedelay, desc->drive);
+    tapedelay_set_drift(tapedelay, desc->drift);
+    tapedelay_set_drift_freq(tapedelay, desc->drift_freq);
 
     hann_init(hannwin, FADESIZE);
 }
@@ -107,6 +111,8 @@ void tapedelay_update(tapedelay_t *tapedelay, tapedelay_desc_t *desc)
             tapedelay_set_##name(tapedelay, desc->name); \
     }
     param_update(delay);
+    param_update(feedback);
+    param_update(drywet);
     param_update(fmode);
     param_update(cutoff);
     param_update(drive);
@@ -166,6 +172,16 @@ void tapedelay_set_fmode(tapedelay_t *tapedelay, float fmode)
         tapedelay->fade    = 1;
         tapedelay->fadepos = 0;
     }
+}
+
+void tapedelay_set_feedback(tapedelay_t *tapedelay, float feedback)
+{
+    tapedelay->desc.feedback = feedback;
+}
+
+void tapedelay_set_drywet(tapedelay_t *tapedelay, float drywet)
+{
+    tapedelay->desc.drywet = drywet;
 }
 
 void tapedelay_set_cutoff(tapedelay_t *tapedelay, float cutoff)
@@ -433,9 +449,17 @@ void tapedelay_process(tapedelay_t *restrict tapedelay, const float *const *in,
                     in[c][n] + (tapedelay->desc.feedback * y[c]);
                 tapedelay->ringbuffer[tapedelay->nwrite].y[bufid ^ 1][c0] = 0.f;
             }
+        }
 
-            float drywet = tapedelay->desc.drywet;
-            out[c][n]    = drywet * y[c] + (1.f - drywet) * in[c][n];
+        float drywet = tapedelay->desc.drywet;
+        /* copy input, because sometimes inputs and outputs are the same */
+        float incopy[NCHANNELS];
+        for (int c = 0; c < NCHANNELS; ++c) {
+            incopy[c] = in[c][n];
+        }
+        /* copy to output */
+        for (int c = 0; c < NCHANNELS; ++c) {
+            out[c][n] = drywet * y[c] + (1.f - drywet) * incopy[c];
         }
         tapedelay->nwrite = (tapedelay->nwrite + 1) & DELAYMASK;
         tapedelay->ringbuffer[tapedelay->nwrite].V = xwrite;

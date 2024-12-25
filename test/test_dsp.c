@@ -30,7 +30,7 @@ void test_hann(void)
 
 void test_rms(void)
 {
-#define TESTSIZE RMS_SIZE*RMS_NOVERLAPS
+#define TESTSIZE RMS_SIZE *RMS_NOVERLAPS
     /* test input */
     springsfloat y[TESTSIZE];
     for (int n = 0; n < TESTSIZE; ++n) {

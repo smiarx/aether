@@ -41,14 +41,14 @@ void _SpreadSlider::drawSpreadSlider(juce::Graphics &g, int x, int y, int width,
                                       rotaryStartAngle, rotaryEndAngle, *this);
 
     /* spread arc */
-    auto radius          = juce::jmin(width, height) / 2.f;
-    auto lineWidth       = juce::jmin(6.f, juce::jmax(2.f, radius * 0.09f));
-    auto dialMargin      = juce::jmin(16.f, juce::jmax(4.f, radius * 0.22f));
-    auto dialRadius      = radius - dialMargin;
+    auto radius     = juce::jmin(width, height) / 2.f;
+    auto lineWidth  = juce::jmin(6.f, juce::jmax(2.f, radius * 0.09f));
+    auto dialMargin = juce::jmin(16.f, juce::jmax(4.f, radius * 0.22f));
+    auto dialRadius = radius - dialMargin;
 
     auto centre       = juce::Point<float>(x + width / 2.f, y + height / 2.f);
-    auto spreadWidth  = (dialMargin - lineWidth)*0.5f;
-    auto spreadRadius = dialRadius + spreadWidth/2.f;
+    auto spreadWidth  = (dialMargin - lineWidth) * 0.5f;
+    auto spreadRadius = dialRadius + spreadWidth / 2.f;
 
     /* draw spread value */
     const auto spreadAdd  = 0.f; // std::atan(0.5f * lineW / arcRadius);

@@ -99,8 +99,7 @@ PluginProcessor::createLayout()
     }
 
     for (int i = 0; i < MAXSPRINGS; ++i) {
-#define paramname(name) \
-    (juce::String("spring") + juce::String(i) + "_" + name)
+#define paramname(name) (juce::String("spring") + juce::String(i) + "_" + name)
         springs->addChild(std::make_unique<juce::AudioProcessorParameterGroup>(
             juce::String("spring") + juce::String(i),
             juce::String("Spring ") + juce::String(i), "|",

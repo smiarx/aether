@@ -7,9 +7,9 @@
 #include "fastmath.h"
 #include "springreverb.h"
 
-#define NRIPPLE 0.5f
-#define T60_HILO_RATIO 0.8f
-#define NOISE_FREQ     400.f
+#define NRIPPLE           0.5f
+#define T60_HILO_RATIO    0.8f
+#define NOISE_FREQ        400.f
 #define LENGTH_HILO_RATIO (1.f / 1.8f)
 
 #define loopsprings(i) for (int i = 0; i < NSPRINGS; ++i)
@@ -17,8 +17,8 @@
 // inc macros
 #define setinc(param, new, count, i) \
     (param).inc[i] = (new - (param).val[i]) / count
-#define addinc(param, i)      (param).val[i] += (param).inc[i]
-#define resetinc(param)       loopsprings(i)(param).inc[i] = 0.f
+#define addinc(param, i) (param).val[i] += (param).inc[i]
+#define resetinc(param)  loopsprings(i)(param).inc[i] = 0.f
 
 /* set int & frac delay values */
 #pragma omp declare simd linear(i) uniform(tap)
@@ -37,8 +37,8 @@ void springs_init(springs_t *springs, springs_desc_t *desc, float samplerate,
     memset(springs, 0, sizeof(springs_t));
     loopsprings(i) springs->low_delayline.noise.seed[i]  = rand();
     loopsprings(i) springs->high_delayline.noise.seed[i] = rand();
-    springs->desc                        = *desc;
-    springs->samplerate                  = samplerate;
+    springs->desc                                        = *desc;
+    springs->samplerate                                  = samplerate;
 
     springs_set_stages(springs, springs->desc.stages);
     springs_set_ftr(springs, springs->desc.ftr, count);
@@ -250,7 +250,7 @@ void springs_set_length(springs_t *springs, float length[restrict MAXSPRINGS],
         struct low_delayline *ldl = &springs->low_delayline;
         float Lecho               = L / 5.f;
         float Lripple             = 2.f * springs->K[i] * NRIPPLE;
-        float L1      = L - Lecho - Lripple;
+        float L1                  = L - Lecho - Lripple;
 
         struct high_delayline *hdl = &springs->high_delayline;
         Lhigh[i] = L * LENGTH_HILO_RATIO * (float)springs->downsampleM;
@@ -273,9 +273,9 @@ void springs_set_length(springs_t *springs, float length[restrict MAXSPRINGS],
     springs_set_chaos(springs, springs->desc.chaos, count);
 
     /* find block size */
-    int blocksize = MAXBLOCKSIZE;
+    int blocksize                                      = MAXBLOCKSIZE;
     loopsprings(i) if (Lhigh[i] < blocksize) blocksize = (int)Lhigh[i];
-    springs->blocksize = blocksize;
+    springs->blocksize                                 = blocksize;
 }
 
 #define gfunc(gname, part)                                     \
@@ -336,8 +336,8 @@ void springs_set_chaos(springs_t *springs, float chaos[restrict MAXSPRINGS],
     }
 }
 
-    void springs_set_vol(springs_t *springs, float vol[restrict MAXSPRINGS],
-                         int count)
+void springs_set_vol(springs_t *springs, float vol[restrict MAXSPRINGS],
+                     int count)
 {
     int use_solo = 0;
     loopsprings(i) use_solo |= springs->desc.solo[i] != 0;
@@ -345,7 +345,7 @@ void springs_set_chaos(springs_t *springs, float chaos[restrict MAXSPRINGS],
     loopsprings(i)
     {
         float db = springs->desc.vol[i] = vol[i];
-        float ratio          = springs->desc.hilomix[i];
+        float ratio                     = springs->desc.hilomix[i];
 
         /* set gain from db, solo & mute */
         float gain;
@@ -393,9 +393,9 @@ void springs_set_pan(springs_t *springs, float pan[restrict MAXSPRINGS],
     {
         springs->desc.pan[i] = pan[i];
 #if NCHANNELS == 2
-        float theta             = (1.f + pan[i]) * M_PI / 4.f;
-        float gleft             = cosf(theta);
-        float gright            = sinf(theta);
+        float theta  = (1.f + pan[i]) * M_PI / 4.f;
+        float gleft  = cosf(theta);
+        float gright = sinf(theta);
 
         setinc(springs->gchannel[0], gleft, count, i);
         setinc(springs->gchannel[1], gright, count, i);
@@ -458,8 +458,8 @@ static void noise_process(struct noise *restrict ns, float y[MAXSPRINGS])
 
 /* delay line */
 #pragma omp declare simd linear(i) uniform(tap, buffer, mask)
-static inline float tap_linear(struct delay_tap *tap,
-                               springsfloat buffer[], int mask, int i)
+static inline float tap_linear(struct delay_tap *tap, springsfloat buffer[],
+                               int mask, int i)
 {
     int id  = (tap->id - tap->idelay[i]) & mask;
     int id1 = (id - 1) & mask;
@@ -780,8 +780,8 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
                 float sources[NCHANNELS + 1];
                 sources[NCHANNELS] = 0.f;
                 for (int c = 0; c < NCHANNELS; ++c) {
-                    sources[c] = in[c][nbase+n];
-                    sources[NCHANNELS] += in[c][nbase+n] / NCHANNELS;
+                    sources[c] = in[c][nbase + n];
+                    sources[NCHANNELS] += in[c][nbase + n] / NCHANNELS;
                 }
 
                 float ylowin[MAXSPRINGS];
@@ -809,8 +809,8 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
                 float sources[NCHANNELS + 1];
                 sources[NCHANNELS] = 0.f;
                 for (int c = 0; c < NCHANNELS; ++c) {
-                    sources[c] = in[c][nbase+n];
-                    sources[NCHANNELS] += in[c][nbase+n] / NCHANNELS;
+                    sources[c] = in[c][nbase + n];
+                    sources[NCHANNELS] += in[c][nbase + n] / NCHANNELS;
                 }
 #pragma omp simd
                 loopsprings(i) ylow[n][i] = yhigh[n][i] =
@@ -821,14 +821,16 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
         /* low chirps */
         // get delay tap
         int lowdelay1id = springs->low_delayline.tap1.id;
-            loopdownsamples(n) low_delayline_process(
-                &springs->low_delayline, ylow[n], springs->increment_delaytime, springs->increment_t60);
+        loopdownsamples(n) low_delayline_process(
+            &springs->low_delayline, ylow[n], springs->increment_delaytime,
+            springs->increment_t60);
         springs->low_delayline.tap1.id = lowdelay1id;
 
         // get delay tap
         int highdelayid = springs->high_delayline.tap.id;
         loopsamples(n) high_delayline_process(
-            &springs->high_delayline, yhigh[n], springs->increment_delaytime, springs->increment_t60);
+            &springs->high_delayline, yhigh[n], springs->increment_delaytime,
+            springs->increment_t60);
         springs->high_delayline.tap.id = highdelayid;
 
         // dc filter
@@ -916,7 +918,7 @@ __attribute__((flatten)) void springs_process(springs_t *restrict springs,
         sum_springs(drywet_inc != 0.f, springs->increment_gchannel)
 #undef sum_springs
 
-        nbase += blocksize;
+            nbase += blocksize;
         count -= blocksize;
     }
 

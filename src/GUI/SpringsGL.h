@@ -24,8 +24,8 @@ class SpringsGL : public juce::Component,
                             const int *t_rmspos, const springsfloat *t_length,
                             const springsfloat *t_density)
     {
-        rms    = t_rms;
-        rmspos = t_rmspos;
+        rms     = t_rms;
+        rmspos  = t_rmspos;
         length  = t_length;
         density = t_density;
     }

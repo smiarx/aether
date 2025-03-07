@@ -2,10 +2,8 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 
-extern "C" {
-#include "dsp/springreverb.h"
-#include "dsp/tapedelay.h"
-}
+#include "Springs.h"
+#include "TapeDelay.h"
 
 //==============================================================================
 class PluginProcessor final : public juce::AudioProcessor,
@@ -52,56 +50,19 @@ class PluginProcessor final : public juce::AudioProcessor,
         DelayDrywet,
         DelayTime,
         DelayFeedback,
-        DelayCutoff,
-        DelayDrive,
+        DelayCutLow,
+        DelayCutHi,
+        DelaySaturation,
         DelayDrift,
-        DelayDriftFreq,
         DelayMode,
         SpringsDryWet,
         SpringsWidth,
-        /* springs macro */
-        SpringsHiLo,
         SpringsLength,
         SpringsDecay,
-        SpringsDispersion,
         SpringsDamp,
+        SpringsShape,
+        SpringsDiff,
         SpringsChaos,
-        SpringsSpringness,
-        _SpringsMacroEnd,
-        /* spring individual params,
-         * (there are two sets of macros, one normal and one for spread) */
-        SpringVolume = 2 * _SpringsMacroEnd - SpringsHiLo,
-        SpringSolo,
-        SpringMute,
-        SpringSource,
-        SpringPan,
-        /* spring param controlled by macro */
-        SpringHiLo,
-        SpringLength,
-        SpringDecay,
-        SpringDispersion,
-        SpringDamp,
-        SpringChaos,
-        SpringSpringness,
-        _SpringParamEnd,
-    };
-    static constexpr auto macroBegin       = ParamId::SpringsHiLo;
-    static constexpr auto macroEnd         = ParamId::_SpringsMacroEnd;
-    static constexpr auto springParamBegin = ParamId::SpringVolume;
-    static constexpr auto springParamEnd   = ParamId::_SpringParamEnd;
-    static constexpr auto macroSpringBegin = ParamId::SpringHiLo;
-    static constexpr auto macroSpringEnd   = springParamEnd;
-
-    static_assert(static_cast<int>(macroEnd) - static_cast<int>(macroBegin) ==
-                  static_cast<int>(macroSpringEnd) -
-                      static_cast<int>(macroSpringBegin));
-    static constexpr auto numMacros =
-        static_cast<int>(macroEnd) - static_cast<int>(macroBegin);
-
-    enum class Source {
-        Left  = 0,
-        Right = 1,
-        Mono  = 2,
     };
 
     struct ParamEvent {
@@ -126,12 +87,9 @@ class PluginProcessor final : public juce::AudioProcessor,
   private:
     juce::AudioProcessorValueTreeState m_parameters;
     std::deque<ParamEvent> m_paramEvents;
-    float m_paramMacros[numMacros];
-    float m_paramSpreads[numMacros];
-    float m_paramRands[numMacros][MAXSPRINGS];
 
-    tapedelay_t m_tapedelay;
-    springs_t m_springreverb;
+    processors::TapeDelay m_tapedelay;
+    processors::Springs m_springs;
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginProcessor)

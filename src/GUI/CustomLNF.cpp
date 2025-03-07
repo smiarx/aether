@@ -26,8 +26,6 @@ CustomLNF::CustomLNF()
         0xff333333,
         PluginEditor::Separator,
         0xff011b2d,
-        SpreadSlider::spreadColourId,
-        0xffACFF01,
     };
 
     for (int i = 0; i < juce::numElementsInArray(definedColours); i += 2)

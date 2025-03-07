@@ -4,8 +4,6 @@ project(Aether VERSION 0.0.1)
 
 find_package(JUCE CONFIG REQUIRED)
 
-add_subdirectory(submodules/Unity/)
-
 juce_add_plugin(${PROJECT_NAME}
     # VERSION ...
     # ICON_BIG ...
@@ -32,11 +30,18 @@ target_sources(${PROJECT_NAME}
         src/PluginProcessor.cpp
         src/GUI/PluginEditor.cpp
         src/GUI/CustomLNF.cpp
-        src/GUI/SpringsSection.cpp
         src/GUI/DelaySection.cpp
-        src/GUI/SpringsGL.cpp
-        src/GUI/SpreadSlider.cpp
+        src/GUI/SpringsSection.cpp
+        submodules/dsp/processors/springs/Springs.cpp
+        submodules/dsp/processors/tapedelay/TapeDelay.cpp
     )
+
+target_include_directories(${PROJECT_NAME} PRIVATE
+    submodules/dsp/include/
+    submodules/dsp/processors/tapedelay/
+    submodules/dsp/processors/springs/
+)
+
 
 target_compile_definitions(${PROJECT_NAME}
     PUBLIC
@@ -49,14 +54,8 @@ target_compile_options(${PROJECT_NAME} PRIVATE
        -fopenmp-simd
    )
 
-add_subdirectory(src/dsp/)
-
-include(CTest)
-add_subdirectory(test/)
-
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
-        dsp
         ${PROJECT_NAME}_data
         juce::juce_audio_utils
         juce::juce_opengl

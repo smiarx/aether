@@ -7,26 +7,28 @@
 
 class DelaySection : public juce::Component
 {
-    static constexpr std::array<std::tuple<const char *, const char *>, 7>
+    enum {
+        DryWet     = 0,
+        Time       = 1,
+        Feedback   = 2,
+        CutLow     = 3,
+        CutHi      = 4,
+        Saturation = 5,
+        Drift      = 6,
+        _NumParams,
+    };
+
+    static constexpr std::array<std::tuple<const char *, const char *>,
+                                _NumParams>
         elements{{
             {"delay_drywet", "Dry/Wet"},
             {"delay_time", "Time"},
             {"delay_feedback", "Feedback"},
-            {"delay_cutoff", "Cutoff"},
-            {"delay_drive", "Drive"},
+            {"delay_cutoff_low", "Low Pass"},
+            {"delay_cutoff_hi", "High Pass"},
+            {"delay_saturation", "Saturation"},
             {"delay_drift", "Drift"},
-            {"delay_driftfreq", "Drift Freq"},
         }};
-
-    enum {
-        DryWet    = 0,
-        Time      = 1,
-        Feedback  = 2,
-        Cutoff    = 3,
-        Drive     = 4,
-        Drift     = 5,
-        DriftFreq = 6,
-    };
 
   public:
     enum ColourIds {

@@ -94,7 +94,7 @@ void DelaySection::paint(juce::Graphics &g)
 
     // separator
     auto ySep = (m_sliders[Feedback].getBoundsInParent().getBottom() +
-                 m_sliders[Cutoff].getBoundsInParent().getY()) /
+                 m_sliders[CutLow].getBoundsInParent().getY()) /
                 2.f;
     g.setColour(findColour(PluginEditor::Separator));
     g.fillRect(bounds.getX(), ySep - CustomLNF::sepWidth / 2.f,

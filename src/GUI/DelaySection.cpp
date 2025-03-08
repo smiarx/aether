@@ -20,18 +20,13 @@ DelaySection::DelaySection(juce::AudioProcessorValueTreeState &apvts) :
                                                      getTopLevelComponent());
     }
 
-    // wet dry
-    m_sliders[0].getComponent().setTextValueSuffix("%");
-    // delay time
-    m_sliders[1].getComponent().setTextValueSuffix("s");
-    // feedback
-    m_sliders[2].getComponent().setTextValueSuffix("%");
-    // cutoff
-    m_sliders[3].getComponent().setTextValueSuffix("Hz");
-    // drive
-    m_sliders[4].getComponent().setTextValueSuffix("dB");
-    // drift rate
-    m_sliders[6].getComponent().setTextValueSuffix("Hz");
+    m_sliders[DryWet].getComponent().setTextValueSuffix("%");
+    m_sliders[Time].getComponent().setTextValueSuffix("s");
+    m_sliders[Feedback].getComponent().setTextValueSuffix("%");
+    m_sliders[CutLow].getComponent().setTextValueSuffix("Hz");
+    m_sliders[CutHi].getComponent().setTextValueSuffix("Hz");
+    m_sliders[Saturation].getComponent().setTextValueSuffix("dB");
+    m_sliders[Drift].getComponent().setTextValueSuffix("%");
 
     addAndMakeVisible(m_mode);
     m_mode.addItemList(apvts.getParameter("delay_mode")->getAllValueStrings(),
@@ -45,13 +40,13 @@ DelaySection::DelaySection(juce::AudioProcessorValueTreeState &apvts) :
     // set colours
     const auto mainColour  = juce::Colour(0xffffef03);
     const auto smallColour = juce::Colour(0xffffa301);
-    m_sliders[0].setColour(juce::Slider::thumbColourId, mainColour);
-    m_sliders[1].setColour(juce::Slider::thumbColourId, mainColour);
-    m_sliders[2].setColour(juce::Slider::thumbColourId, mainColour);
-    m_sliders[3].setColour(juce::Slider::thumbColourId, smallColour);
-    m_sliders[4].setColour(juce::Slider::thumbColourId, smallColour);
-    m_sliders[5].setColour(juce::Slider::thumbColourId, smallColour);
-    m_sliders[6].setColour(juce::Slider::thumbColourId, smallColour);
+    m_sliders[DryWet].setColour(juce::Slider::thumbColourId, mainColour);
+    m_sliders[Time].setColour(juce::Slider::thumbColourId, mainColour);
+    m_sliders[Feedback].setColour(juce::Slider::thumbColourId, mainColour);
+    m_sliders[CutLow].setColour(juce::Slider::thumbColourId, smallColour);
+    m_sliders[CutHi].setColour(juce::Slider::thumbColourId, smallColour);
+    m_sliders[Saturation].setColour(juce::Slider::thumbColourId, smallColour);
+    m_sliders[Drift].setColour(juce::Slider::thumbColourId, smallColour);
 
     setColour(PluginEditor::Separator, juce::Colour{0xff0f3d43});
 }

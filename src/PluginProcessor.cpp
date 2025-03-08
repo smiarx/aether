@@ -21,43 +21,54 @@ PluginProcessor::createLayout()
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
     layout.add(std::make_unique<juce::AudioProcessorParameterGroup>(
         "delay", "Delay", "|",
-        std::make_unique<juce::AudioParameterFloat>("delay_drywet", "Dry/Wet",
-                                                    0.f, 1.f, 0.2f),
-        std::make_unique<juce::AudioParameterFloat>("delay_time", "Delay",
-                                                    0.01f, 1.f, 0.12f),
         std::make_unique<juce::AudioParameterFloat>(
-            "delay_feedback", "Feedback", 0.0f, 1.f, 0.8f),
+            "delay_drywet", "Dry/Wet",
+            juce::NormalisableRange<float>{0.f, 100.f, 0.1f}, 20.f),
         std::make_unique<juce::AudioParameterFloat>(
-            "delay_cutoff_low", "Cut Low", 20.f, 13000.f, 2000.f),
+            "delay_time", "Delay",
+            juce::NormalisableRange<float>{0.01f, 1.f, 0.001f, 0.5f}, 0.12f),
         std::make_unique<juce::AudioParameterFloat>(
-            "delay_cutoff_hi", "Cut High", 20.f, 13000.f, 20.f),
+            "delay_feedback", "Feedback",
+            juce::NormalisableRange{0.0f, 100.f, 0.01f}, 80.f),
+        std::make_unique<juce::AudioParameterFloat>(
+            "delay_cutoff_low", "Cut Low",
+            juce::NormalisableRange{20.f, 20000.f, 0.1f, 0.34f}, 20000.f),
+        std::make_unique<juce::AudioParameterFloat>(
+            "delay_cutoff_hi", "Cut High",
+            juce::NormalisableRange{20.f, 20000.f, 0.1f, 0.34f}, 20.f),
         std::make_unique<juce::AudioParameterFloat>(
             "delay_saturation", "saturation", -40.f, 15.f, -40.f),
-        std::make_unique<juce::AudioParameterFloat>("delay_drift", "Drift", 0.f,
-                                                    1.f, 0.f),
+        std::make_unique<juce::AudioParameterFloat>(
+            "delay_drift", "Drift", juce::NormalisableRange{0.f, 100.f, 0.1f},
+            0.f),
         std::make_unique<juce::AudioParameterChoice>(
             "delay_mode", "Mode",
             juce::StringArray{"Normal", "Back&Forth", "Reverse"}, 0)));
 
     layout.add(std::make_unique<juce::AudioProcessorParameterGroup>(
         "springs", "Reverb", "|",
-        std::make_unique<juce::AudioParameterFloat>("springs_drywet", "Dry/Wet",
-                                                    0.f, 1.f, 0.2f),
-        std::make_unique<juce::AudioParameterFloat>("springs_width", "Width",
-                                                    0.01f, 1.f, 1.f),
-        std::make_unique<juce::AudioParameterFloat>("springs_length", "Length",
-                                                    0.02f, 0.2f, 0.05f),
-        std::make_unique<juce::AudioParameterFloat>("springs_decay", "Decay",
-                                                    0.02f, 10.f, 3.f),
+        std::make_unique<juce::AudioParameterFloat>(
+            "springs_drywet", "Dry/Wet",
+            juce::NormalisableRange<float>{0.f, 100.f, 0.1f}, 20.f),
+        std::make_unique<juce::AudioParameterFloat>(
+            "springs_width", "Width",
+            juce::NormalisableRange<float>{0.f, 100.f, 0.1f}, 100.f),
+        std::make_unique<juce::AudioParameterFloat>(
+            "springs_length", "Length",
+            juce::NormalisableRange<float>{0.02f, 0.2f, 0.001f, 0.6f}, 0.05f),
+        std::make_unique<juce::AudioParameterFloat>(
+            "springs_decay", "Decay",
+            juce::NormalisableRange<float>{0.01f, 10.f, 0.001f, 0.6f}, 3.f),
         std::make_unique<juce::AudioParameterFloat>(
             "springs_damp", "Damp",
-            juce::NormalisableRange<float>{200.f, 12000.f, 0.f, 0.5f}, 4500.f),
-        std::make_unique<juce::AudioParameterFloat>("springs_shape", "Shape",
-                                                    -1.f, 5.f, 0.5f),
+            juce::NormalisableRange<float>{200.f, 12000.f, 1.f, 0.5f}, 4500.f),
+        std::make_unique<juce::AudioParameterFloat>(
+            "springs_shape", "Shape",
+            juce::NormalisableRange<float>{-5.f, 5.f, 0.01f, 0.3f, true}, 0.5f),
         std::make_unique<juce::AudioParameterFloat>("springs_diff", "Diffusion",
-                                                    0.f, 1.f, 0.f),
+                                                    0.f, 1.f, 0.01f),
         std::make_unique<juce::AudioParameterFloat>("springs_chaos", "Chaos",
-                                                    0.f, 1.f, 0.f)));
+                                                    0.f, 100.f, 0.1f)));
     return layout;
 }
 
@@ -155,13 +166,13 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
         m_paramEvents.pop_front();
         switch (event.id) {
         case ParamId::DelayDrywet:
-            m_tapedelay.setDryWet(event.value);
+            m_tapedelay.setDryWet(event.value / 100.f);
             break;
         case ParamId::DelayTime:
             m_tapedelay.setDelay(event.value);
             break;
         case ParamId::DelayFeedback:
-            m_tapedelay.setFeedback(event.value);
+            m_tapedelay.setFeedback(event.value / 100.f);
             break;
         case ParamId::DelayCutLow:
             m_tapedelay.setCutLowPass(event.value);
@@ -173,17 +184,17 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
             m_tapedelay.setSaturation(event.value);
             break;
         case ParamId::DelayDrift:
-            m_tapedelay.setDrift(event.value);
+            m_tapedelay.setDrift(event.value / 100.f);
             break;
         case ParamId::DelayMode:
             m_tapedelay.switchTap(
                 static_cast<decltype(m_tapedelay)::Mode>(event.value));
             break;
         case ParamId::SpringsDryWet:
-            m_springs.setDryWet(event.value);
+            m_springs.setDryWet(event.value / 100.f);
             break;
         case ParamId::SpringsWidth:
-            m_springs.setWidth(event.value);
+            m_springs.setWidth(event.value / 100.f);
             break;
         case ParamId::SpringsLength:
             m_springs.setTd(event.value, m_springs.getChaos());
@@ -198,7 +209,7 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
             m_springs.setFreq(m_springs.getR(), event.value);
             break;
         case ParamId::SpringsChaos:
-            m_springs.setTd(m_springs.getTd(), event.value);
+            m_springs.setTd(m_springs.getTd(), event.value / 100.f);
             break;
         case ParamId::SpringsShape:
             m_springs.setFreq(event.value, m_springs.getFreq());

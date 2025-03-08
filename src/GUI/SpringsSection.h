@@ -19,17 +19,17 @@ class SpringsSection : public juce::Component
         _NumParams,
     };
 
-    static constexpr std::array<
-        std::tuple<const char *, const char *, const char *>, _NumParams>
+    static constexpr std::array<std::tuple<const char *, const char *>,
+                                _NumParams>
         elements{{
-            {"springs_drywet", "Dry/Wet", ""},
-            {"springs_width", "Width", ""},
-            {"springs_length", "Length", "s"},
-            {"springs_decay", "Decay", "s"},
-            {"springs_damp", "Damp", "Hz"},
-            {"springs_shape", "Shape", ""},
-            {"springs_diff", "Diffusion", ""},
-            {"springs_chaos", "Chaos", ""},
+            {"springs_drywet", "Dry/Wet"},
+            {"springs_width", "Width"},
+            {"springs_length", "Length"},
+            {"springs_decay", "Decay"},
+            {"springs_damp", "Damp"},
+            {"springs_shape", "Shape"},
+            {"springs_diff", "Diffusion"},
+            {"springs_chaos", "Chaos"},
         }};
 
   public:

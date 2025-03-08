@@ -25,6 +25,13 @@ SpringsSection::SpringsSection(juce::AudioProcessorValueTreeState &apvts) :
                                                      getTopLevelComponent());
     }
 
+    m_sliders[DryWet].getComponent().setTextValueSuffix("%");
+    m_sliders[Width].getComponent().setTextValueSuffix("%");
+    m_sliders[Length].getComponent().setTextValueSuffix("s");
+    m_sliders[Decay].getComponent().setTextValueSuffix("s");
+    m_sliders[Damp].getComponent().setTextValueSuffix("Hz");
+    m_sliders[Chaos].getComponent().setTextValueSuffix("%");
+
     m_sliders[DryWet].setColour(juce::Slider::thumbColourId, mainColour);
     m_sliders[Width].setColour(juce::Slider::thumbColourId, mainColour);
     m_sliders[Length].setColour(juce::Slider::thumbColourId, mainColour);

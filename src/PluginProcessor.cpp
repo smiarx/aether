@@ -49,11 +49,11 @@ PluginProcessor::createLayout()
                                                     0.02f, 0.2f, 0.05f),
         std::make_unique<juce::AudioParameterFloat>("springs_decay", "Decay",
                                                     0.02f, 10.f, 3.f),
-        std::make_unique<juce::AudioParameterFloat>("springs_shape", "Shape",
-                                                    -1.f, 5.f, 0.5f),
         std::make_unique<juce::AudioParameterFloat>(
             "springs_damp", "Damp",
             juce::NormalisableRange<float>{200.f, 12000.f, 0.f, 0.5f}, 4500.f),
+        std::make_unique<juce::AudioParameterFloat>("springs_shape", "Shape",
+                                                    -1.f, 5.f, 0.5f),
         std::make_unique<juce::AudioParameterFloat>("springs_diff", "Diffusion",
                                                     0.f, 1.f, 0.f),
         std::make_unique<juce::AudioParameterFloat>("springs_chaos", "Chaos",
@@ -122,6 +122,7 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     m_springs.setSampleRate(sampleRate);
     m_tapedelay.setSampleRate(sampleRate);
     m_tapedelay.setBlockSize(samplesPerBlock);
+
     ///* Set springgl uniform values */
     // SpringsGL::setUniforms(m_springs.rms.rms, &m_springs.rms.rms_id,
     //                        &m_springs.desc.length,
@@ -197,7 +198,7 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
             m_springs.setFreq(m_springs.getR(), event.value);
             break;
         case ParamId::SpringsChaos:
-            m_springs.setTd(m_springs.getChaos(), event.value);
+            m_springs.setTd(m_springs.getTd(), event.value);
             break;
         case ParamId::SpringsShape:
             m_springs.setFreq(event.value, m_springs.getFreq());

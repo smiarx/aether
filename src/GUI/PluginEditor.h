@@ -10,6 +10,10 @@
 class PluginEditor : public juce::AudioProcessorEditor
 {
   public:
+    static constexpr auto titleHeight  = 38.f;
+    static constexpr auto titleMargin  = 5.f;
+    static constexpr auto headerHeight = titleHeight + 2.f;
+
     enum ColourIDs {
         backgroundColourId = 0x1610200,
         Separator          = 0x1312039,
@@ -26,6 +30,7 @@ class PluginEditor : public juce::AudioProcessorEditor
     PluginProcessor &audioProcessor;
 
     CustomLNF lookandfeel;
+    juce::Label title;
     DelaySection delaySection;
     SpringsSection springsSection;
     // SpringsGL springsGL;

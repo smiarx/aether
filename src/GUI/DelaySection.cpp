@@ -62,16 +62,31 @@ void DelaySection::resized()
                             Track(Fr(1))};
     grid.templateRows    = {Track(Fr(1)), Track(Fr(1)), Track(Fr(1))};
 
+    constexpr auto margin  = CustomLNF::sliderMargin;
+    constexpr auto margin2 = 2.f * margin;
+
     grid.items = {
-        juce::GridItem(m_sliders[0])
-            .withArea(1, 3, Span(2), Span(2)), // dry/wet
-        juce::GridItem(m_sliders[1]).withArea(1, 1, Span(1), Span(2)), // time
-        juce::GridItem(m_sliders[2])
-            .withArea(2, 1, Span(1), Span(2)),       // feedback
-        juce::GridItem(m_sliders[3]).withArea(3, 1), // cutoff
-        juce::GridItem(m_sliders[4]).withArea(3, 2), // drive
-        juce::GridItem(m_sliders[5]).withArea(3, 3), // drift
-        juce::GridItem(m_sliders[6]).withArea(3, 4), // drift freq
+        juce::GridItem(m_sliders[DryWet])
+            .withArea(1, 3, Span(2), Span(2))
+            .withMargin({0, 0, 0, margin}),
+        juce::GridItem(m_sliders[Time])
+            .withArea(1, 1, Span(1), Span(2))
+            .withMargin({0, margin, margin, 0}),
+        juce::GridItem(m_sliders[Feedback])
+            .withArea(2, 1, Span(1), Span(2))
+            .withMargin({margin2, margin, 0, 0}),
+        juce::GridItem(m_sliders[CutLow])
+            .withArea(3, 1)
+            .withMargin({margin2, margin, 0, 0}),
+        juce::GridItem(m_sliders[CutHi])
+            .withArea(3, 2)
+            .withMargin({margin2, margin, 0, 0}),
+        juce::GridItem(m_sliders[Saturation])
+            .withArea(3, 3)
+            .withMargin({margin2, margin, 0, 0}),
+        juce::GridItem(m_sliders[Drift])
+            .withArea(3, 4)
+            .withMargin({margin2, 0, 0, 0}),
     };
 
     auto bounds = getLocalBounds();
@@ -82,10 +97,13 @@ void DelaySection::resized()
 void DelaySection::paint(juce::Graphics &g)
 {
     auto bounds = getLocalBounds().toFloat();
-    bounds.reduce(CustomLNF::padding, CustomLNF::padding);
 
     g.setColour(findColour(backgroundColourId));
-    g.fillRoundedRectangle(bounds.toFloat(), CustomLNF::boxRoundSize);
+    juce::Path box;
+    box.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(),
+                            bounds.getHeight(), CustomLNF::boxRoundSize,
+                            CustomLNF::boxRoundSize, true, false, true, false);
+    g.fillPath(box);
 
     // separator
     auto ySep = (m_sliders[Feedback].getBoundsInParent().getBottom() +

@@ -53,16 +53,34 @@ void SpringsSection::resized()
                             Track(Fr(1)), Track(Fr(2))};
     grid.templateRows    = {Track(Fr(1)), Track(Fr(1)), Track(Fr(1))};
 
+    constexpr auto margin = CustomLNF::sliderMargin;
+
     grid.items = {
-        juce::GridItem(m_sliders[Length]).withArea(1, 1, Span(2), Span(2)),
-        juce::GridItem(m_sliders[Decay]).withArea(1, 3, Span(1), Span(2)),
-        juce::GridItem(m_sliders[Damp]).withArea(2, 3, Span(1), Span(2)),
-        juce::GridItem(m_sliders[Shape]).withArea(3, 1),
-        juce::GridItem(m_sliders[Diff]).withArea(3, 2),
-        juce::GridItem(m_sliders[Chaos]).withArea(3, 3),
+        juce::GridItem(m_sliders[Length])
+            .withArea(1, 1, Span(2), Span(2))
+            .withMargin({0, margin, margin, 0}),
+        juce::GridItem(m_sliders[Decay])
+            .withArea(1, 3, Span(1), Span(2))
+            .withMargin({0, margin, margin, 0}),
+        juce::GridItem(m_sliders[Damp])
+            .withArea(2, 3, Span(1), Span(2))
+            .withMargin({margin, margin, 0, 0}),
+        juce::GridItem(m_sliders[Shape])
+            .withArea(3, 1)
+            .withMargin({margin, margin, 0, 0}),
+        juce::GridItem(m_sliders[Diff])
+            .withArea(3, 2)
+            .withMargin({margin, margin, 0, 0}),
+        juce::GridItem(m_sliders[Chaos])
+            .withArea(3, 3)
+            .withMargin({margin, margin, 0, 0}),
         // juce::GridItem(m_sliders[6]).withArea(3, 4), // springness
-        juce::GridItem(m_sliders[Width]).withArea(2, 5),
-        juce::GridItem(m_sliders[DryWet]).withArea(3, 5),
+        juce::GridItem(m_sliders[Width])
+            .withArea(2, 5)
+            .withMargin({margin, 0, margin, margin}),
+        juce::GridItem(m_sliders[DryWet])
+            .withArea(3, 5)
+            .withMargin({margin, 0, 0, margin}),
     };
 
     auto bounds = getLocalBounds();
@@ -73,21 +91,19 @@ void SpringsSection::resized()
 void SpringsSection::paint(juce::Graphics &g)
 {
     auto bounds = getLocalBounds().toFloat();
+
     g.setColour(findColour(backgroundColourId));
+
     juce::Path box;
     box.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(),
                             bounds.getHeight(), CustomLNF::boxRoundSize,
-                            CustomLNF::boxRoundSize, true, true, false, true);
+                            CustomLNF::boxRoundSize, false, true, false, true);
     g.fillPath(box);
-
-    bounds.reduce(CustomLNF::padding, CustomLNF::padding);
-    g.setColour(findColour(backgroundColourId));
-    g.fillRoundedRectangle(bounds, CustomLNF::boxRoundSize);
 
     // separators;
     g.setColour(findColour(PluginEditor::Separator));
 
-    auto xSep = (m_sliders[Shape].getBoundsInParent().getRight() +
+    auto xSep = (m_sliders[Chaos].getBoundsInParent().getRight() +
                  m_sliders[Width].getBoundsInParent().getX()) /
                 2.f;
     g.fillRect(xSep - CustomLNF::sepWidth / 2.f, bounds.getY(),

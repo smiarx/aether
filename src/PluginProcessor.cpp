@@ -26,10 +26,10 @@ PluginProcessor::createLayout()
             juce::NormalisableRange<float>{0.f, 100.f, 0.1f}, 20.f),
         std::make_unique<juce::AudioParameterFloat>(
             "delay_time", "Delay",
-            juce::NormalisableRange<float>{0.01f, 1.f, 0.001f, 0.5f}, 0.12f),
+            juce::NormalisableRange<float>{0.01f, 2.f, 0.001f, 0.5f}, 0.12f),
         std::make_unique<juce::AudioParameterFloat>(
             "delay_feedback", "Feedback",
-            juce::NormalisableRange{0.0f, 100.f, 0.01f}, 80.f),
+            juce::NormalisableRange{0.0f, 120.f, 0.01f}, 80.f),
         std::make_unique<juce::AudioParameterFloat>(
             "delay_cutoff_low", "Cut Low",
             juce::NormalisableRange{20.f, 20000.f, 0.1f, 0.34f}, 20000.f),
@@ -187,7 +187,7 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
             m_tapedelay.setDrift(event.value / 100.f);
             break;
         case ParamId::DelayMode:
-            m_tapedelay.switchTap(
+            m_tapedelay.setMode(
                 static_cast<decltype(m_tapedelay)::Mode>(event.value));
             break;
         case ParamId::SpringsDryWet:

@@ -42,11 +42,6 @@ DelaySection::DelaySection(juce::AudioProcessorValueTreeState &apvts) :
     m_mode.addItemList(apvts.getParameter("delay_mode")->getAllValueStrings(),
                        1);
 
-    addAndMakeVisible(m_modeLabel);
-    m_modeLabel.setText("Mode", juce::NotificationType::dontSendNotification);
-    m_modeLabel.attachToComponent(&m_mode, false);
-    m_modeLabel.setJustificationType(juce::Justification::centred);
-
     // set colours
     const auto mainColour  = juce::Colour(0xffffef03);
     const auto smallColour = juce::Colour(0xffffa301);
@@ -78,6 +73,7 @@ void DelaySection::resized()
             .withMinWidth(activeWidth)
             .withMaxWidth(activeWidth),
         juce::FlexItem(m_title).withFlex(1.f),
+        juce::FlexItem(m_mode).withFlex(1.f),
     };
     titleFb.performLayout(titleBounds);
 

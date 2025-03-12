@@ -45,7 +45,7 @@ PluginProcessor::createLayout()
             0.f),
         std::make_unique<juce::AudioParameterChoice>(
             "delay_mode", "Mode",
-            juce::StringArray{"Normal", "Back&Forth", "Reverse"}, 0)));
+            juce::StringArray{"Normal", "Back & Forth", "Reverse"}, 0)));
 
     layout.add(std::make_unique<juce::AudioProcessorParameterGroup>(
         "springs", "Reverb", "|",

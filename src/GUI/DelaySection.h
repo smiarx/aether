@@ -50,5 +50,4 @@ class DelaySection : public juce::Component
 
     juce::ComboBox m_mode;
     juce::AudioProcessorValueTreeState::ComboBoxAttachment m_modeAttachment;
-    juce::Label m_modeLabel;
 };

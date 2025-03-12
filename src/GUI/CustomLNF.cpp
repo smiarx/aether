@@ -26,6 +26,10 @@ CustomLNF::CustomLNF()
         0xff333333,
         PluginEditor::Separator,
         0xff011b2d,
+        juce::TextButton::ColourIds::textColourOnId,
+        0xffe4f897,
+        juce::TextButton::ColourIds::textColourOffId,
+        0xffde4a57,
     };
 
     for (int i = 0; i < juce::numElementsInArray(definedColours); i += 2)
@@ -135,4 +139,48 @@ void CustomLNF::drawBubble(juce::Graphics &g, juce::BubbleComponent &comp,
 void CustomLNF::setComponentEffectForBubbleComponent(
     juce::BubbleComponent & /*bubbleComponent*/)
 {
+}
+
+void CustomLNF::drawButtonBackground(juce::Graphics &g, juce::Button &button,
+                                     const juce::Colour &backgroundColour,
+                                     bool shouldDrawButtonAsHighlighted,
+                                     bool shouldDrawButtonAsDown)
+{
+    (void)g;
+    (void)button;
+    (void)backgroundColour;
+    (void)shouldDrawButtonAsHighlighted;
+    (void)shouldDrawButtonAsDown;
+}
+
+juce::Font CustomLNF::getTextButtonFont(juce::TextButton &button,
+                                        int buttonHeight)
+{
+    (void)button;
+    // TODO use imported font
+    return juce::Font("Fira Sans", buttonHeight, juce::Font::plain);
+}
+
+int CustomLNF::getTextButtonWidthToFitText(juce::TextButton &b,
+                                           int buttonHeight)
+{
+    return getTextButtonFont(b, buttonHeight).getStringWidth(b.getButtonText());
+}
+
+void CustomLNF::drawButtonText(juce::Graphics &g, juce::TextButton &button,
+                               bool /*shouldDrawButtonAsHighlighted*/,
+                               bool /*shouldDrawButtonAsDown*/)
+{
+    juce::Font font(getTextButtonFont(button, button.getHeight()));
+    g.setFont(font);
+    g.setColour(button
+                    .findColour(button.getToggleState()
+                                    ? juce::TextButton::textColourOnId
+                                    : juce::TextButton::textColourOffId)
+                    .withMultipliedAlpha(button.isEnabled() ? 1.0f : 0.5f));
+
+    const int textWidth = button.getWidth();
+    if (textWidth > 0)
+        g.drawFittedText(button.getButtonText(), 0, 0, textWidth,
+                         button.getHeight(), juce::Justification::centred, 1);
 }

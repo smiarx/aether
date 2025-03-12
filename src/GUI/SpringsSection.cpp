@@ -2,8 +2,6 @@
 #include "CustomLNF.h"
 #include "PluginEditor.h"
 
-#include "../PluginProcessor.h"
-
 static const auto mainColour  = juce::Colour(0xff8fe7f3);
 static const auto smallColour = juce::Colour(0xfff130f1);
 
@@ -17,8 +15,18 @@ SpringsSection::SpringsSection(juce::AudioProcessorValueTreeState &apvts) :
         Slider(apvts, std::get<0>(elements[5]), std::get<1>(elements[5])),
         Slider(apvts, std::get<0>(elements[6]), std::get<1>(elements[6])),
         Slider(apvts, std::get<0>(elements[7]), std::get<1>(elements[7])),
-    }
+    },
+    m_activeAttachment(apvts, "springs_active", m_active)
 {
+    addAndMakeVisible(m_title);
+    m_title.setText(u8"Reverb", juce::dontSendNotification);
+    m_title.setFont(juce::Font(CustomLNF::subtitleSize));
+
+    addAndMakeVisible(m_active);
+    m_active.setButtonText(juce::String::fromUTF8(u8"⏻"));
+    m_active.setToggleable(true);
+    m_active.setClickingTogglesState(true);
+
     for (auto &slider : m_sliders) {
         addAndMakeVisible(slider);
         slider.getComponent().setPopupDisplayEnabled(true, false,
@@ -44,6 +52,25 @@ SpringsSection::SpringsSection(juce::AudioProcessorValueTreeState &apvts) :
 
 void SpringsSection::resized()
 {
+    auto bounds = getLocalBounds();
+    bounds.reduce(CustomLNF::padding, CustomLNF::padding);
+
+    auto titleBounds = bounds.removeFromTop(CustomLNF::subtitleSize);
+
+    juce::FlexBox titleFb;
+    titleFb.flexDirection = juce::FlexBox::Direction::row;
+    titleFb.alignContent  = juce::FlexBox::AlignContent::center;
+    auto activeWidth = m_active.getBestWidthForHeight(CustomLNF::subtitleSize);
+    titleFb.items    = {
+        juce::FlexItem(m_active)
+            .withFlex(0.1f)
+            .withMinWidth(activeWidth)
+            .withMaxWidth(activeWidth),
+        juce::FlexItem(m_title).withFlex(1.f),
+    };
+    titleFb.performLayout(titleBounds);
+
+    bounds.removeFromTop(CustomLNF::padding);
     juce::Grid grid;
     using Track = juce::Grid::TrackInfo;
     using Fr    = juce::Grid::Fr;
@@ -82,9 +109,6 @@ void SpringsSection::resized()
             .withArea(3, 5)
             .withMargin({margin, 0, 0, margin}),
     };
-
-    auto bounds = getLocalBounds();
-    bounds.reduce(CustomLNF::padding, CustomLNF::padding);
     grid.performLayout(bounds);
 }
 

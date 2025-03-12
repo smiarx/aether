@@ -21,6 +21,8 @@ PluginProcessor::createLayout()
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
     layout.add(std::make_unique<juce::AudioProcessorParameterGroup>(
         "delay", "Delay", "|",
+        std::make_unique<juce::AudioParameterBool>("delay_active", "Active",
+                                                   true),
         std::make_unique<juce::AudioParameterFloat>(
             "delay_drywet", "Dry/Wet",
             juce::NormalisableRange<float>{0.f, 100.f, 0.1f}, 20.f),
@@ -47,6 +49,8 @@ PluginProcessor::createLayout()
 
     layout.add(std::make_unique<juce::AudioProcessorParameterGroup>(
         "springs", "Reverb", "|",
+        std::make_unique<juce::AudioParameterBool>("springs_active", "Active",
+                                                   true),
         std::make_unique<juce::AudioParameterFloat>(
             "springs_drywet", "Dry/Wet",
             juce::NormalisableRange<float>{0.f, 100.f, 0.1f}, 20.f),
@@ -165,6 +169,9 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
         auto event = m_paramEvents.front();
         m_paramEvents.pop_front();
         switch (event.id) {
+        case ParamId::DelayActive:
+            m_activeTapeDelay = event.value > 0.f;
+            break;
         case ParamId::DelayDrywet:
             m_tapedelay.setDryWet(event.value / 100.f);
             break;
@@ -189,6 +196,9 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
         case ParamId::DelayMode:
             m_tapedelay.setMode(
                 static_cast<decltype(m_tapedelay)::Mode>(event.value));
+            break;
+        case ParamId::SpringsActive:
+            m_activeSprings = event.value > 0;
             break;
         case ParamId::SpringsDryWet:
             m_springs.setDryWet(event.value / 100.f);
@@ -222,8 +232,15 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
     const float *const *ins = buffer.getArrayOfReadPointers();
     float *const *outs      = buffer.getArrayOfWritePointers();
 
-    m_tapedelay.process(ins, outs, count);
-    m_springs.process(outs, outs, count);
+    if (m_activeTapeDelay) {
+        m_tapedelay.process(ins, outs, count);
+        ins = outs;
+    }
+    if (m_activeSprings) {
+        m_springs.process(ins, outs, count);
+        ins = outs;
+    }
+    assert(ins == outs);
 }
 
 //==============================================================================

@@ -47,6 +47,7 @@ class PluginProcessor final : public juce::AudioProcessor,
 
     //=============================================================================
     enum class ParamId {
+        DelayActive,
         DelayDrywet,
         DelayTime,
         DelayFeedback,
@@ -55,6 +56,7 @@ class PluginProcessor final : public juce::AudioProcessor,
         DelaySaturation,
         DelayDrift,
         DelayMode,
+        SpringsActive,
         SpringsDryWet,
         SpringsWidth,
         SpringsLength,
@@ -87,6 +89,9 @@ class PluginProcessor final : public juce::AudioProcessor,
   private:
     juce::AudioProcessorValueTreeState m_parameters;
     std::deque<ParamEvent> m_paramEvents;
+
+    bool m_activeTapeDelay{true};
+    bool m_activeSprings{true};
 
     processors::TapeDelay m_tapedelay;
     processors::Springs m_springs;

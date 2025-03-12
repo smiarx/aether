@@ -41,7 +41,12 @@ class DelaySection : public juce::Component
     virtual void paint(juce::Graphics &g) override;
 
   private:
+    juce::Label m_title;
+
     Slider m_sliders[elements.size()];
+
+    juce::TextButton m_active;
+    juce::AudioProcessorValueTreeState::ButtonAttachment m_activeAttachment;
 
     juce::ComboBox m_mode;
     juce::AudioProcessorValueTreeState::ComboBoxAttachment m_modeAttachment;

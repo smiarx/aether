@@ -10,6 +10,7 @@ class CustomLNF : public juce::LookAndFeel_V4
     static constexpr auto padding      = 10.f;
     static constexpr auto sliderMargin = 4.f;
     static constexpr auto sepWidth     = 1.2f;
+    static constexpr auto subtitleSize = 18.f;
     CustomLNF();
 
     void drawRotarySlider(juce::Graphics &g, int x, int y, int width,
@@ -22,4 +23,15 @@ class CustomLNF : public juce::LookAndFeel_V4
                     const juce::Rectangle<float> &body) override;
     void setComponentEffectForBubbleComponent(
         juce::BubbleComponent &bubbleComponent) override;
+
+    void drawButtonBackground(juce::Graphics &, juce::Button &,
+                              const juce::Colour &backgroundColour,
+                              bool shouldDrawButtonAsHighlighted,
+                              bool shouldDrawButtonAsDown) override;
+    juce::Font getTextButtonFont(juce::TextButton &, int buttonHeight) override;
+    int getTextButtonWidthToFitText(juce::TextButton &b,
+                                    int buttonHeight) override;
+    void drawButtonText(juce::Graphics &g, juce::TextButton &button,
+                        bool shouldDrawButtonAsHighlighted,
+                        bool shouldDrawButtonAsDown) override;
 };

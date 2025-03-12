@@ -95,15 +95,15 @@ void DelaySection::resized()
     constexpr auto margin2 = 2.f * margin;
 
     grid.items = {
-        juce::GridItem(m_sliders[DryWet])
-            .withArea(1, 3, Span(2), Span(2))
-            .withMargin({0, 0, 0, margin}),
         juce::GridItem(m_sliders[Time])
-            .withArea(1, 1, Span(1), Span(2))
+            .withArea(1, 1, Span(2), Span(2))
             .withMargin({0, margin, margin, 0}),
         juce::GridItem(m_sliders[Feedback])
-            .withArea(2, 1, Span(1), Span(2))
-            .withMargin({margin2, margin, 0, 0}),
+            .withArea(1, 3, Span(1), Span(2))
+            .withMargin({0, 0, margin, margin}),
+        juce::GridItem(m_sliders[DryWet])
+            .withArea(2, 3, Span(1), Span(2))
+            .withMargin({margin, 0, 0, margin}),
         juce::GridItem(m_sliders[CutLow])
             .withArea(3, 1)
             .withMargin({margin2, margin, 0, 0}),
@@ -132,7 +132,7 @@ void DelaySection::paint(juce::Graphics &g)
     g.fillPath(box);
 
     // separator
-    auto ySep = (m_sliders[Feedback].getBoundsInParent().getBottom() +
+    auto ySep = (m_sliders[DryWet].getBoundsInParent().getBottom() +
                  m_sliders[CutLow].getBoundsInParent().getY()) /
                 2.f;
     g.setColour(findColour(PluginEditor::Separator));

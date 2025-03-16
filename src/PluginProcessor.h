@@ -64,6 +64,7 @@ class PluginProcessor final : public juce::AudioProcessor,
         SpringsDamp,
         SpringsShape,
         SpringsDiff,
+        SpringsScatter,
         SpringsChaos,
     };
 

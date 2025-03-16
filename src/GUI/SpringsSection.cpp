@@ -15,6 +15,7 @@ SpringsSection::SpringsSection(juce::AudioProcessorValueTreeState &apvts) :
         Slider(apvts, std::get<0>(elements[5]), std::get<1>(elements[5])),
         Slider(apvts, std::get<0>(elements[6]), std::get<1>(elements[6])),
         Slider(apvts, std::get<0>(elements[7]), std::get<1>(elements[7])),
+        Slider(apvts, std::get<0>(elements[8]), std::get<1>(elements[8])),
     },
     m_activeAttachment(apvts, "springs_active", m_active)
 {
@@ -39,6 +40,7 @@ SpringsSection::SpringsSection(juce::AudioProcessorValueTreeState &apvts) :
     m_sliders[Decay].getComponent().setTextValueSuffix("s");
     m_sliders[Damp].getComponent().setTextValueSuffix("Hz");
     m_sliders[Chaos].getComponent().setTextValueSuffix("%");
+    m_sliders[Scatter].getComponent().setTextValueSuffix("%");
 
     m_sliders[DryWet].setColour(juce::Slider::thumbColourId, mainColour);
     m_sliders[Width].setColour(juce::Slider::thumbColourId, mainColour);
@@ -47,6 +49,7 @@ SpringsSection::SpringsSection(juce::AudioProcessorValueTreeState &apvts) :
     m_sliders[Damp].setColour(juce::Slider::thumbColourId, mainColour);
     m_sliders[Shape].setColour(juce::Slider::thumbColourId, smallColour);
     m_sliders[Diff].setColour(juce::Slider::thumbColourId, smallColour);
+    m_sliders[Scatter].setColour(juce::Slider::thumbColourId, smallColour);
     m_sliders[Chaos].setColour(juce::Slider::thumbColourId, smallColour);
 }
 
@@ -98,8 +101,11 @@ void SpringsSection::resized()
         juce::GridItem(m_sliders[Diff])
             .withArea(3, 2)
             .withMargin({margin, margin, 0, 0}),
-        juce::GridItem(m_sliders[Chaos])
+        juce::GridItem(m_sliders[Scatter])
             .withArea(3, 3)
+            .withMargin({margin, margin, 0, 0}),
+        juce::GridItem(m_sliders[Chaos])
+            .withArea(3, 4)
             .withMargin({margin, margin, 0, 0}),
         // juce::GridItem(m_sliders[6]).withArea(3, 4), // springness
         juce::GridItem(m_sliders[Width])

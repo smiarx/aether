@@ -8,14 +8,15 @@
 class SpringsSection : public juce::Component
 {
     enum {
-        DryWet = 0,
-        Width  = 1,
-        Length = 2,
-        Decay  = 3,
-        Damp   = 4,
-        Shape  = 5,
-        Diff   = 6,
-        Chaos  = 7,
+        DryWet  = 0,
+        Width   = 1,
+        Length  = 2,
+        Decay   = 3,
+        Damp    = 4,
+        Shape   = 5,
+        Diff    = 6,
+        Scatter = 7,
+        Chaos   = 8,
         _NumParams,
     };
 
@@ -29,6 +30,7 @@ class SpringsSection : public juce::Component
             {"springs_damp", "Damp"},
             {"springs_shape", "Shape"},
             {"springs_diff", "Diffusion"},
+            {"springs_scatter", "Scatter"},
             {"springs_chaos", "Chaos"},
         }};
 

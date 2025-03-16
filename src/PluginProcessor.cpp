@@ -71,6 +71,8 @@ PluginProcessor::createLayout()
             juce::NormalisableRange<float>{-5.f, 5.f, 0.01f, 0.3f, true}, 0.5f),
         std::make_unique<juce::AudioParameterFloat>("springs_diff", "Diffusion",
                                                     0.f, 1.f, 0.01f),
+        std::make_unique<juce::AudioParameterFloat>(
+            "springs_scatter", "Scatter", 0.f, 120.f, 0.1f),
         std::make_unique<juce::AudioParameterFloat>("springs_chaos", "Chaos",
                                                     0.f, 100.f, 0.1f)));
     return layout;
@@ -135,6 +137,7 @@ void PluginProcessor::setStateInformation(const void *data, int sizeInBytes)
 void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     m_springs.setSampleRate(sampleRate);
+    m_springs.setBlockSize(samplesPerBlock);
     m_tapedelay.setSampleRate(sampleRate);
     m_tapedelay.setBlockSize(samplesPerBlock);
 
@@ -214,6 +217,9 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
             break;
         case ParamId::SpringsDiff:
             m_springs.setDiffusion(event.value);
+            break;
+        case ParamId::SpringsScatter:
+            m_springs.setScatter(event.value / 100.f);
             break;
         case ParamId::SpringsDamp:
             m_springs.setFreq(m_springs.getR(), event.value);

@@ -4,6 +4,7 @@
 #include "juce_gui_basics/juce_gui_basics.h"
 
 #include "Widgets.h"
+#include "SpringsGL.h"
 
 class SpringsSection : public juce::Component
 {
@@ -53,4 +54,6 @@ class SpringsSection : public juce::Component
 
     juce::TextButton m_active;
     juce::AudioProcessorValueTreeState::ButtonAttachment m_activeAttachment;
+
+    SpringsGL m_springsGL;
 };

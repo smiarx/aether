@@ -19,6 +19,8 @@ SpringsSection::SpringsSection(juce::AudioProcessorValueTreeState &apvts) :
     },
     m_activeAttachment(apvts, "springs_active", m_active)
 {
+    addAndMakeVisible(m_springsGL);
+
     addAndMakeVisible(m_title);
     m_title.setText(u8"Reverb", juce::dontSendNotification);
     m_title.setFont(juce::Font(CustomLNF::subtitleSize));
@@ -107,7 +109,9 @@ void SpringsSection::resized()
         juce::GridItem(m_sliders[Chaos])
             .withArea(3, 4)
             .withMargin({margin, margin, 0, 0}),
-        // juce::GridItem(m_sliders[6]).withArea(3, 4), // springness
+        juce::GridItem(m_springsGL)
+            .withArea(1, 5)
+            .withMargin({0, 0, margin*2, margin}),
         juce::GridItem(m_sliders[Width])
             .withArea(2, 5)
             .withMargin({margin, 0, margin, margin}),
@@ -134,7 +138,7 @@ void SpringsSection::paint(juce::Graphics &g)
     g.setColour(findColour(PluginEditor::Separator));
 
     auto xSep = (m_sliders[Chaos].getBoundsInParent().getRight() +
-                 m_sliders[Width].getBoundsInParent().getX()) /
+                 m_springsGL.getBoundsInParent().getX()) /
                 2.f;
     g.fillRect(xSep - CustomLNF::sepWidth / 2.f, bounds.getY(),
                CustomLNF::sepWidth, bounds.getHeight());

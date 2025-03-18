@@ -10,6 +10,8 @@ PluginProcessor::PluginProcessor() :
     m_parameters(*this, nullptr, juce::Identifier("Æther"), createLayout())
 {
     for (auto *param : getParameters()) addProcessorAsListener(param);
+
+    SpringsGL::setRMS(m_springs.getRMSStack(), m_springs.getRMSStackPos());
 }
 
 PluginProcessor::~PluginProcessor() {}
@@ -211,6 +213,7 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
             break;
         case ParamId::SpringsLength:
             m_springs.setTd(event.value, m_springs.getChaos());
+            SpringsGL::setLength(event.value);
             break;
         case ParamId::SpringsDecay:
             m_springs.setT60(event.value);
@@ -223,6 +226,7 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
             break;
         case ParamId::SpringsDamp:
             m_springs.setFreq(m_springs.getR(), event.value);
+            SpringsGL::setDamp(event.value);
             break;
         case ParamId::SpringsChaos:
             m_springs.setTd(m_springs.getTd(), event.value / 100.f);

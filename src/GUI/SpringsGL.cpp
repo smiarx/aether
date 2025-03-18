@@ -3,10 +3,10 @@
 
 static constexpr auto refreshTimeMs = 40;
 
-const springsfloat *SpringsGL::rms;
-const int *SpringsGL::rmspos;
-const springsfloat *SpringsGL::length;
-const springsfloat *SpringsGL::density;
+const dsp::fSample<SpringsGL::N> *SpringsGL::rms{};
+const size_t *SpringsGL::rmspos{};
+float SpringsGL::length{};
+float SpringsGL::density{};
 
 SpringsGL::SpringsGL()
 {
@@ -73,13 +73,11 @@ void SpringsGL::renderOpenGL()
     if (uniforms->resolution != nullptr)
         uniforms->resolution->set((GLfloat)renderingScale * getWidth(),
                                   (GLfloat)renderingScale * getHeight());
-    if (uniforms->length != nullptr)
-        uniforms->length->set((GLfloat *)length, MAXSPRINGS);
-    if (uniforms->density != nullptr)
-        uniforms->density->set((GLfloat *)density, MAXSPRINGS);
+    if (uniforms->length != nullptr) uniforms->length->set((GLfloat)length);
+    if (uniforms->density != nullptr) uniforms->density->set((GLfloat)density);
 
     if (uniforms->rms != nullptr)
-        uniforms->rms->set((GLfloat *)&rms[0][0], RMS_BUFFER_SIZE * MAXSPRINGS);
+        uniforms->rms->set((GLfloat *)&rms[0][0], RMSStackSize * N);
 
     if (uniforms->rmspos != nullptr) uniforms->rmspos->set((GLint)*rmspos);
 
@@ -125,15 +123,15 @@ void SpringsGL::renderOpenGL()
     // Setup Vertex Attributes
     openGLContext.extensions.glVertexAttribPointer(
         0, 3, juce::gl::GL_FLOAT, juce::gl::GL_FALSE, 3 * sizeof(GLfloat),
-        (GLvoid *)0);
+        (GLvoid *)nullptr);
     openGLContext.extensions.glEnableVertexAttribArray(0);
 
     // Draw Vertices
     // glDrawArrays (GL_TRIANGLES, 0, 6); // For just VBO's (Vertex Buffer
     // Objects)
-    juce::gl::glDrawElements(juce::gl::GL_TRIANGLES, 6,
-                             juce::gl::GL_UNSIGNED_INT,
-                             0); // For EBO's (Element Buffer Objects) (Indices)
+    juce::gl::glDrawElements(
+        juce::gl::GL_TRIANGLES, 6, juce::gl::GL_UNSIGNED_INT,
+        nullptr); // For EBO's (Element Buffer Objects) (Indices)
 
     // Reset the element buffers so child Components draw correctly
     openGLContext.extensions.glBindBuffer(juce::gl::GL_ARRAY_BUFFER, 0);
@@ -158,8 +156,8 @@ void SpringsGL::createShaders()
             juce::OpenGLHelpers::translateVertexShaderToV3(vertexShader)) &&
         shaderProgramAttempt->addFragmentShader(
             juce::OpenGLHelpers::translateFragmentShaderToV3(
-                "#define RMS_BUFFER_SIZE " + juce::String(RMS_BUFFER_SIZE) +
-                "\n#define MAXSPRINGS " + juce::String(MAXSPRINGS) + "\n" +
+                "#define RMS_BUFFER_SIZE " + juce::String(RMSStackSize) +
+                "\n#define MAXSPRINGS " + juce::String(N) + "\n" +
                 juce::String(BinaryData::spring_shader))) &&
         shaderProgramAttempt->link()) {
         uniforms.reset();

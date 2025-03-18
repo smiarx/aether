@@ -32,6 +32,7 @@ target_sources(${PROJECT_NAME}
         src/GUI/CustomLNF.cpp
         src/GUI/DelaySection.cpp
         src/GUI/SpringsSection.cpp
+        src/GUI/SpringsGL.cpp
         submodules/dsp/processors/springs/Springs.cpp
         submodules/dsp/processors/tapedelay/TapeDelay.cpp
     )
@@ -52,6 +53,7 @@ target_compile_definitions(${PROJECT_NAME}
 
 target_compile_options(${PROJECT_NAME} PRIVATE
        -fopenmp-simd
+       -DSPRINGS_RMS
    )
 
 target_link_libraries(${PROJECT_NAME}

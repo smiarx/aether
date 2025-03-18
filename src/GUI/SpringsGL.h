@@ -2,9 +2,7 @@
 
 #include <juce_opengl/juce_opengl.h>
 
-extern "C" {
-#include "springreverb.h"
-}
+#include <Springs.h>
 
 class SpringsGL : public juce::Component,
                   public juce::OpenGLRenderer,
@@ -15,20 +13,24 @@ class SpringsGL : public juce::Component,
     SpringsGL();
     ~SpringsGL();
 
-    static const springsfloat *rms;
-    static const int *rmspos;
-    static const springsfloat *length;
-    static const springsfloat *density;
+    static constexpr auto N            = processors::Springs::N;
+    static constexpr auto RMSStackSize = processors::Springs::RMSStackSize;
+    static const dsp::fSample<N> *rms;
+    static const size_t *rmspos;
+    static float length;
+    static float density;
+    static constexpr float Damp2Density = 4500.f;
 
-    static void setUniforms(const springsfloat t_rms[RMS_BUFFER_SIZE],
-                            const int *t_rmspos, const springsfloat *t_length,
-                            const springsfloat *t_density)
+    static void setRMS(const dsp::fSample<N> t_rms[RMSStackSize],
+                       const size_t *t_rmspos)
     {
-        rms     = t_rms;
-        rmspos  = t_rmspos;
-        length  = t_length;
-        density = t_density;
+        rms    = t_rms;
+        rmspos = t_rmspos;
     }
+
+    static void setLength(float _length) { length = _length / 0.2f; }
+
+    static void setDamp(float _damp) { density = _damp / Damp2Density; }
 
     virtual void timerCallback() override;
 

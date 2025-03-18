@@ -8,7 +8,6 @@ PluginEditor::PluginEditor(PluginProcessor &p) :
     addAndMakeVisible(title);
     addAndMakeVisible(delaySection);
     addAndMakeVisible(springsSection);
-    // addAndMakeVisible(springsGL);
     addAndMakeVisible(resizableCorner);
 
     setSize(600, 280);
@@ -41,9 +40,6 @@ void PluginEditor::resized()
             .withMargin({0, 0, 0, titleMargin}),
         juce::FlexItem(fb).withFlex(1.f),
     });
-
-    // fb.items.add(
-    //      juce::FlexItem(springsGL).withFlex(1.f).withMargin(0.f));
 
     auto bounds = getLocalBounds();
     bounds.reduce(CustomLNF::margin, CustomLNF::margin);

@@ -157,7 +157,10 @@ void SpringsGL::createShaders()
         shaderProgramAttempt->addFragmentShader(
             juce::OpenGLHelpers::translateFragmentShaderToV3(
                 "#define RMS_BUFFER_SIZE " + juce::String(RMSStackSize) +
-                "\n#define MAXSPRINGS " + juce::String(N) + "\n" +
+                "\n#define N " + juce::String(N) + "\n" +
+                "\n#define BORDER_COLOR "
+                "vec3(0.00392156862745098,0.20784313725490197, "
+                "0.34901960784313724)" + // TODO compute this automatically
                 juce::String(BinaryData::spring_shader))) &&
         shaderProgramAttempt->link()) {
         uniforms.reset();

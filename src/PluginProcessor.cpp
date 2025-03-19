@@ -28,9 +28,16 @@ PluginProcessor::createLayout()
         std::make_unique<juce::AudioParameterFloat>(
             "delay_drywet", "Dry/Wet",
             juce::NormalisableRange<float>{0.f, 100.f, 0.1f}, 20.f),
+        std::make_unique<juce::AudioParameterChoice>(
+            "delay_time_type", "Type", juce::StringArray{"secs", "beat"}, 0),
         std::make_unique<juce::AudioParameterFloat>(
-            "delay_time", "Delay",
+            "delay_seconds", "Delay",
             juce::NormalisableRange<float>{0.01f, 2.f, 0.001f, 0.5f}, 0.12f),
+        std::make_unique<juce::AudioParameterChoice>(
+            "delay_beats", "Delay",
+            juce::StringArray{"1/32", "1/16", "1/8", "1/4", "1/3", "1/2", "1",
+                              "2"},
+            Beat1),
         std::make_unique<juce::AudioParameterFloat>(
             "delay_feedback", "Feedback",
             juce::NormalisableRange{0.0f, 120.f, 0.01f}, 80.f),
@@ -180,8 +187,60 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
         case ParamId::DelayDrywet:
             m_tapedelay.setDryWet(event.value / 100.f);
             break;
-        case ParamId::DelayTime:
-            m_tapedelay.setDelay(event.value);
+        case ParamId::DelayTimeType:
+            m_useBeats = event.value > 0.f;
+            if (m_useBeats) {
+                auto *param = static_cast<juce::AudioParameterChoice *>(
+                    getParameters()[static_cast<size_t>(ParamId::DelayBeats)]);
+                event.value = *param;
+            } else {
+                auto *param = static_cast<juce::AudioParameterFloat *>(
+                    getParameters()[static_cast<size_t>(
+                        ParamId::DelaySeconds)]);
+                event.value = *param;
+            }
+        case ParamId::DelayBeats:
+            if (m_useBeats) {
+                int id = event.value;
+                double mult;
+                switch (id) {
+                case Beat1_32:
+                    mult = 1.0 / 32.0;
+                    break;
+                case Beat1_16:
+                    mult = 1.0 / 16.0;
+                    break;
+                case Beat1_8:
+                    mult = 1.0 / 8.0;
+                    break;
+                case Beat1_4:
+                    mult = 1.0 / 4.0;
+                    break;
+                case Beat1_3:
+                    mult = 1.0 / 3.0;
+                    break;
+                case Beat1_2:
+                    mult = 1.0 / 2.0;
+                    break;
+                default:
+                case Beat1:
+                    mult = 1.0;
+                    break;
+                case Beat2:
+                    mult = 2.0;
+                    break;
+                }
+                m_beatsMult = mult;
+                auto time   = 60 * mult / m_bpm;
+                m_tapedelay.setDelay(time);
+                break;
+            } else if (event.id == ParamId::DelayBeats) {
+                break;
+            }
+        case ParamId::DelaySeconds:
+            if (!m_useBeats) {
+                m_tapedelay.setDelay(event.value);
+            }
             break;
         case ParamId::DelayFeedback:
             m_tapedelay.setFeedback(event.value / 100.f);
@@ -236,6 +295,15 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
             break;
         default:
             break;
+        }
+    }
+
+    if (m_useBeats) {
+        auto bpm = getPlayHead()->getPosition()->getBpm();
+        if (bpm.hasValue() && *bpm != m_bpm) {
+            m_bpm     = *bpm;
+            auto time = 60.f * m_beatsMult / m_bpm;
+            m_tapedelay.setDelay(time);
         }
     }
 

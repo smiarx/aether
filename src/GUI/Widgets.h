@@ -107,6 +107,7 @@ class Slider : public Widget<juce::Slider>
     }
 
     juce::Slider &getSlider() { return getComponent(); }
+    APVTS::SliderAttachment &getAttachment() { return m_attachment; }
 
   private:
     APVTS::SliderAttachment m_attachment;

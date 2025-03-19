@@ -49,7 +49,9 @@ class PluginProcessor final : public juce::AudioProcessor,
     enum class ParamId {
         DelayActive,
         DelayDrywet,
-        DelayTime,
+        DelayTimeType,
+        DelaySeconds,
+        DelayBeats,
         DelayFeedback,
         DelayCutLow,
         DelayCutHi,
@@ -66,6 +68,17 @@ class PluginProcessor final : public juce::AudioProcessor,
         SpringsDiff,
         SpringsScatter,
         SpringsChaos,
+    };
+
+    enum BeatMult {
+        Beat1_32,
+        Beat1_16,
+        Beat1_8,
+        Beat1_4,
+        Beat1_3,
+        Beat1_2,
+        Beat1,
+        Beat2,
     };
 
     struct ParamEvent {
@@ -93,6 +106,10 @@ class PluginProcessor final : public juce::AudioProcessor,
 
     bool m_activeTapeDelay{true};
     bool m_activeSprings{true};
+
+    bool m_useBeats{false};
+    double m_beatsMult{1};
+    double m_bpm{120};
 
     processors::TapeDelay m_tapedelay;
     processors::Springs m_springs;

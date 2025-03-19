@@ -13,7 +13,8 @@ DelaySection::DelaySection(juce::AudioProcessorValueTreeState &apvts) :
         Slider(apvts, std::get<0>(elements[6]), std::get<1>(elements[6])),
     },
     m_activeAttachment(apvts, "delay_active", m_active), m_mode{},
-    m_modeAttachment(apvts, "delay_mode", m_mode)
+    m_modeAttachment(apvts, "delay_mode", m_mode),
+    m_timeTypeAttachment(apvts, "delay_time_type", m_timeType)
 {
     addAndMakeVisible(m_title);
     m_title.setText(u8"Delay", juce::dontSendNotification);
@@ -29,6 +30,7 @@ DelaySection::DelaySection(juce::AudioProcessorValueTreeState &apvts) :
         slider.getComponent().setPopupDisplayEnabled(true, false,
                                                      getTopLevelComponent());
     }
+    m_sliders[Time].setLabelVisible(false);
 
     m_sliders[DryWet].getComponent().setTextValueSuffix("%");
     m_sliders[Time].getComponent().setTextValueSuffix("s");
@@ -41,6 +43,34 @@ DelaySection::DelaySection(juce::AudioProcessorValueTreeState &apvts) :
     addAndMakeVisible(m_mode);
     m_mode.addItemList(apvts.getParameter("delay_mode")->getAllValueStrings(),
                        1);
+
+    addAndMakeVisible(m_timeType);
+    m_timeType.addItemList(
+        apvts.getParameter("delay_time_type")->getAllValueStrings(), 1);
+
+    m_timeType.onChange = [this, &apvts]() {
+        auto &component  = m_sliders[Time].getComponent();
+        auto &attachment = m_sliders[Time].getAttachment();
+        juce::String id;
+        juce::String suffix;
+        switch (m_timeType.getSelectedId()) {
+        default:
+        case 1:
+            id     = "delay_seconds";
+            suffix = "s";
+            break;
+        case 2:
+            id     = "delay_beats";
+            suffix = "";
+            break;
+        }
+        // me must do this weird trick because we cannot replace attachment
+        attachment.~SliderAttachment();
+        new (&attachment) juce::AudioProcessorValueTreeState::SliderAttachment(
+            apvts, id, component);
+
+        component.setTextValueSuffix(suffix);
+    };
 
     // set colours
     const auto mainColour  = juce::Colour(0xffffef03);
@@ -114,6 +144,14 @@ void DelaySection::resized()
             .withMargin({margin2, 0, 0, 0}),
     };
     grid.performLayout(bounds);
+
+    // place time type
+    {
+        auto timeBounds     = m_sliders[Time].getBounds();
+        auto timeTypeBounds = timeBounds.removeFromBottom(20);
+        m_sliders[Time].setBounds(timeBounds);
+        m_timeType.setBounds(timeTypeBounds);
+    }
 }
 
 void DelaySection::paint(juce::Graphics &g)

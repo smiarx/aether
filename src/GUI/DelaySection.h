@@ -22,7 +22,7 @@ class DelaySection : public juce::Component
                                 _NumParams>
         elements{{
             {"delay_drywet", "Dry/Wet"},
-            {"delay_time", "Time"},
+            {"delay_seconds", "Time"},
             {"delay_feedback", "Feedback"},
             {"delay_cutoff_low", "Low Pass"},
             {"delay_cutoff_hi", "High Pass"},
@@ -50,4 +50,7 @@ class DelaySection : public juce::Component
 
     juce::ComboBox m_mode;
     juce::AudioProcessorValueTreeState::ComboBoxAttachment m_modeAttachment;
+
+    juce::ComboBox m_timeType;
+    juce::AudioProcessorValueTreeState::ComboBoxAttachment m_timeTypeAttachment;
 };

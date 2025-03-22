@@ -1,3 +1,6 @@
 [submodule "submodules/dsp"]
 	path = submodules/dsp
 	url = git@github.com:smiarx/dsp.git
+[submodule "submodules/readerwriterqueue"]
+	path = submodules/readerwriterqueue
+	url = https://github.com/cameron314/readerwriterqueue

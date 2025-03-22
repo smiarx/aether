@@ -145,10 +145,8 @@ void PluginProcessor::setStateInformation(const void *data, int sizeInBytes)
 //==============================================================================
 void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
-    m_springs.setSampleRate(sampleRate);
-    m_springs.setBlockSize(samplesPerBlock);
-    m_tapedelay.setSampleRate(sampleRate);
-    m_tapedelay.setBlockSize(samplesPerBlock);
+    m_springs.prepare(sampleRate, samplesPerBlock);
+    m_tapedelay.prepare(sampleRate, samplesPerBlock);
 
     ///* Set springgl uniform values */
     // SpringsGL::setUniforms(m_springs.rms.rms, &m_springs.rms.rms_id,
@@ -156,7 +154,11 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     //                        &m_springs.desc.ftr);
 }
 
-void PluginProcessor::releaseResources() {}
+void PluginProcessor::releaseResources()
+{
+    m_springs.free();
+    m_tapedelay.free();
+}
 
 bool PluginProcessor::isBusesLayoutSupported(const BusesLayout &layouts) const
 {
@@ -185,7 +187,7 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
             m_activeTapeDelay = event.value > 0.f;
             break;
         case ParamId::DelayDrywet:
-            m_tapedelay.setDryWet(event.value / 100.f);
+            m_tapedelay.setDryWet(event.value / 100.f, count);
             break;
         case ParamId::DelayTimeType:
             m_useBeats = event.value > 0.f;
@@ -232,66 +234,66 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
                 }
                 m_beatsMult = mult;
                 auto time   = 60 * mult / m_bpm;
-                m_tapedelay.setDelay(time);
+                m_tapedelay.setDelay(time, count);
                 break;
             } else if (event.id == ParamId::DelayBeats) {
                 break;
             }
         case ParamId::DelaySeconds:
             if (!m_useBeats) {
-                m_tapedelay.setDelay(event.value);
+                m_tapedelay.setDelay(event.value, count);
             }
             break;
         case ParamId::DelayFeedback:
-            m_tapedelay.setFeedback(event.value / 100.f);
+            m_tapedelay.setFeedback(event.value / 100.f, count);
             break;
         case ParamId::DelayCutLow:
-            m_tapedelay.setCutLowPass(event.value);
+            m_tapedelay.setCutLowPass(event.value, count);
             break;
         case ParamId::DelayCutHi:
-            m_tapedelay.setCutHiPass(event.value);
+            m_tapedelay.setCutHiPass(event.value, count);
             break;
         case ParamId::DelaySaturation:
-            m_tapedelay.setSaturation(event.value);
+            m_tapedelay.setSaturation(event.value, count);
             break;
         case ParamId::DelayDrift:
-            m_tapedelay.setDrift(event.value / 100.f);
+            m_tapedelay.setDrift(event.value / 100.f, count);
             break;
         case ParamId::DelayMode:
             m_tapedelay.setMode(
-                static_cast<decltype(m_tapedelay)::Mode>(event.value));
+                static_cast<decltype(m_tapedelay)::Mode>(event.value), count);
             break;
         case ParamId::SpringsActive:
             m_activeSprings = event.value > 0;
             break;
         case ParamId::SpringsDryWet:
-            m_springs.setDryWet(event.value / 100.f);
+            m_springs.setDryWet(event.value / 100.f, count);
             break;
         case ParamId::SpringsWidth:
-            m_springs.setWidth(event.value / 100.f);
+            m_springs.setWidth(event.value / 100.f, count);
             break;
         case ParamId::SpringsLength:
-            m_springs.setTd(event.value, m_springs.getChaos());
+            m_springs.setTd(event.value, count);
             SpringsGL::setLength(event.value);
             break;
         case ParamId::SpringsDecay:
-            m_springs.setT60(event.value);
+            m_springs.setT60(event.value, count);
             break;
         case ParamId::SpringsDiff:
-            m_springs.setDiffusion(event.value);
+            m_springs.setDiffusion(event.value, count);
             break;
         case ParamId::SpringsScatter:
-            m_springs.setScatter(event.value / 100.f);
+            m_springs.setScatter(event.value / 100.f, count);
             break;
         case ParamId::SpringsDamp:
-            m_springs.setFreq(m_springs.getR(), event.value);
+            m_springs.setFreq(event.value, count);
             SpringsGL::setDamp(event.value);
             break;
         case ParamId::SpringsChaos:
-            m_springs.setTd(m_springs.getTd(), event.value / 100.f);
+            m_springs.setChaos(event.value / 100.f, count);
             break;
         case ParamId::SpringsShape:
-            m_springs.setFreq(event.value, m_springs.getFreq());
+            m_springs.setRes(event.value, count);
             break;
         default:
             break;
@@ -303,7 +305,7 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
         if (bpm.hasValue() && *bpm != m_bpm) {
             m_bpm     = *bpm;
             auto time = 60.f * m_beatsMult / m_bpm;
-            m_tapedelay.setDelay(time);
+            m_tapedelay.setDelay(time, count);
         }
     }
 

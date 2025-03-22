@@ -179,9 +179,8 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
 
     int count = buffer.getNumSamples();
 
-    while (!m_paramEvents.empty()) {
-        auto event = m_paramEvents.front();
-        m_paramEvents.pop_front();
+    ParamEvent event;
+    while (m_paramEvents.try_dequeue(event)) {
         switch (event.id) {
         case ParamId::DelayActive:
             m_activeTapeDelay = event.value > 0.f;
@@ -336,13 +335,7 @@ void PluginProcessor::parameterValueChanged(int id, float newValue)
     auto *ptr = static_cast<juce::RangedAudioParameter *>(getParameters()[id]);
     float value = ptr->convertFrom0to1(newValue);
 
-    /* remove previous event with same id */
-    for (auto it = m_paramEvents.begin(); it != m_paramEvents.end();) {
-        if (it->id == static_cast<ParamId>(id)) m_paramEvents.erase(it);
-        else
-            ++it;
-    }
-    m_paramEvents.emplace_back(id, value);
+    m_paramEvents.enqueue({id, value});
 }
 
 void PluginProcessor::addProcessorAsListener(

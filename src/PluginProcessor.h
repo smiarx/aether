@@ -2,6 +2,8 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 
+#include "readerwriterqueue.h"
+
 #include "Springs.h"
 #include "TapeDelay.h"
 
@@ -82,12 +84,13 @@ class PluginProcessor final : public juce::AudioProcessor,
     };
 
     struct ParamEvent {
+        ParamEvent() = default;
         ParamEvent(int t_id, float t_value) :
             id(static_cast<ParamId>(t_id)), value(t_value)
         {
         }
-        ParamId id;
-        float value;
+        ParamId id{};
+        float value{};
     };
 
     juce::AudioProcessorValueTreeState::ParameterLayout createLayout();
@@ -102,7 +105,7 @@ class PluginProcessor final : public juce::AudioProcessor,
 
   private:
     juce::AudioProcessorValueTreeState m_parameters;
-    std::deque<ParamEvent> m_paramEvents;
+    moodycamel::ReaderWriterQueue<ParamEvent> m_paramEvents{32};
 
     bool m_activeTapeDelay{true};
     bool m_activeSprings{true};

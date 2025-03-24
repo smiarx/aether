@@ -34,4 +34,8 @@ class CustomLNF : public juce::LookAndFeel_V4
     void drawButtonText(juce::Graphics &g, juce::TextButton &button,
                         bool shouldDrawButtonAsHighlighted,
                         bool shouldDrawButtonAsDown) override;
+
+    void drawComboBox(juce::Graphics &g, int, int, bool, int, int, int, int,
+                      juce::ComboBox &) override;
+    void positionComboBoxText(juce::ComboBox &box, juce::Label &label) override;
 };

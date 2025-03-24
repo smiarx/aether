@@ -3,6 +3,7 @@
 #include "juce_audio_processors/juce_audio_processors.h"
 #include "juce_gui_basics/juce_gui_basics.h"
 
+#include "ComboBox.h"
 #include "Widgets.h"
 
 class DelaySection : public juce::Component
@@ -48,9 +49,9 @@ class DelaySection : public juce::Component
     juce::TextButton m_active;
     juce::AudioProcessorValueTreeState::ButtonAttachment m_activeAttachment;
 
-    juce::ComboBox m_mode;
+    ComboBox m_mode;
     juce::AudioProcessorValueTreeState::ComboBoxAttachment m_modeAttachment;
 
-    juce::ComboBox m_timeType;
+    ComboBox m_timeType;
     juce::AudioProcessorValueTreeState::ComboBoxAttachment m_timeTypeAttachment;
 };

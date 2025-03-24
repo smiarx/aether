@@ -12,9 +12,11 @@ DelaySection::DelaySection(juce::AudioProcessorValueTreeState &apvts) :
         Slider(apvts, std::get<0>(elements[5]), std::get<1>(elements[5])),
         Slider(apvts, std::get<0>(elements[6]), std::get<1>(elements[6])),
     },
-    m_activeAttachment(apvts, "delay_active", m_active), m_mode{},
-    m_modeAttachment(apvts, "delay_mode", m_mode),
-    m_timeTypeAttachment(apvts, "delay_time_type", m_timeType)
+    m_activeAttachment(apvts, "delay_active", m_active),
+    m_mode(juce::Colour{0xffffef03}),
+    m_modeAttachment(apvts, "delay_mode", m_mode.getComboBox()),
+    m_timeType(juce::Colour{0xffffef03}),
+    m_timeTypeAttachment(apvts, "delay_time_type", m_timeType.getComboBox())
 {
     addAndMakeVisible(m_title);
     m_title.setText(u8"Delay", juce::dontSendNotification);
@@ -55,24 +57,25 @@ DelaySection::DelaySection(juce::AudioProcessorValueTreeState &apvts) :
     m_sliders[Drift].getComponent().setTooltip(
         "How much the tape speed will be modulated. This effects as pitch "
         "wobble.");
-    m_mode.setTooltip(
+    m_mode.getComboBox().setTooltip(
         "Delay mode: [Normal] forward direction, [Back & Forth] alternates "
         "between forwards and reverse - [Reverse] Reverse echoes");
 
     addAndMakeVisible(m_mode);
-    m_mode.addItemList(apvts.getParameter("delay_mode")->getAllValueStrings(),
-                       1);
+    m_mode.getComboBox().addItemList(
+        apvts.getParameter("delay_mode")->getAllValueStrings(), 1);
 
     addAndMakeVisible(m_timeType);
-    m_timeType.addItemList(
+    auto &timeTypeComboBox = m_timeType.getComboBox();
+    timeTypeComboBox.addItemList(
         apvts.getParameter("delay_time_type")->getAllValueStrings(), 1);
 
-    m_timeType.onChange = [this, &apvts]() {
+    timeTypeComboBox.onChange = [this, &apvts]() {
         auto &component  = m_sliders[Time].getComponent();
         auto &attachment = m_sliders[Time].getAttachment();
         juce::String id;
         juce::String suffix;
-        switch (m_timeType.getSelectedId()) {
+        switch (m_timeType.getComboBox().getSelectedId()) {
         default:
         case 1:
             id     = "delay_seconds";

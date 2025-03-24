@@ -184,3 +184,16 @@ void CustomLNF::drawButtonText(juce::Graphics &g, juce::TextButton &button,
         g.drawFittedText(button.getButtonText(), 0, 0, textWidth,
                          button.getHeight(), juce::Justification::centred, 1);
 }
+
+void CustomLNF::drawComboBox(juce::Graphics &, int, int, bool, int, int, int,
+                             int, juce::ComboBox &)
+{
+}
+
+void CustomLNF::positionComboBoxText(juce::ComboBox &box, juce::Label &label)
+{
+    label.setBounds(0, 0, box.getWidth(), box.getHeight());
+    label.setJustificationType(juce::Justification::centred);
+
+    label.setFont(getComboBoxFont(box));
+}

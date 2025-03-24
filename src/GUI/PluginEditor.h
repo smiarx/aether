@@ -4,6 +4,7 @@
 #include "CustomLNF.h"
 #include "DelaySection.h"
 #include "SpringsSection.h"
+#include "ToolTip.h"
 #include <juce_audio_processors/juce_audio_processors.h>
 
 class PluginEditor : public juce::AudioProcessorEditor
@@ -25,11 +26,14 @@ class PluginEditor : public juce::AudioProcessorEditor
     void paint(juce::Graphics &) override;
     void resized() override;
 
+    virtual void mouseMove(const juce::MouseEvent &event) override;
+
   private:
     PluginProcessor &audioProcessor;
 
     CustomLNF lookandfeel;
     juce::Label title;
+    ToolTip tooltip;
     DelaySection delaySection;
     SpringsSection springsSection;
 

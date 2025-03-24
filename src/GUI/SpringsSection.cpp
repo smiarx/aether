@@ -44,6 +44,25 @@ SpringsSection::SpringsSection(juce::AudioProcessorValueTreeState &apvts) :
     m_sliders[Chaos].getComponent().setTextValueSuffix("%");
     m_sliders[Scatter].getComponent().setTextValueSuffix("%");
 
+    m_sliders[DryWet].getComponent().setTooltip(
+        "Dry/wet proportion of the output signal.");
+    m_sliders[Width].getComponent().setTooltip(
+        "Stereo width of the output signal..");
+    m_sliders[Length].getComponent().setTooltip(
+        "Length of the echoes produced by the springs.");
+    m_sliders[Decay].getComponent().setTooltip(
+        "How long the reverb takes to fade out.");
+    m_sliders[Damp].getComponent().setTooltip(
+        "Frequency of the highest compenents produced by the reverb.");
+    m_sliders[Shape].getComponent().setTooltip(
+        "Shape of the frequency dispertion of the springs.");
+    m_sliders[Diff].getComponent().setTooltip(
+        "How much the reverberated sound is diffused.");
+    m_sliders[Chaos].getComponent().setTooltip(
+        "How stochastic & unpredictible the springs become.");
+    m_sliders[Scatter].getComponent().setTooltip(
+        "How similar or different are the springs properties.");
+
     m_sliders[DryWet].setColour(juce::Slider::thumbColourId, mainColour);
     m_sliders[Width].setColour(juce::Slider::thumbColourId, mainColour);
     m_sliders[Length].setColour(juce::Slider::thumbColourId, mainColour);
@@ -111,7 +130,7 @@ void SpringsSection::resized()
             .withMargin({margin, margin, 0, 0}),
         juce::GridItem(m_springsGL)
             .withArea(1, 5)
-            .withMargin({0, 0, margin*2, margin}),
+            .withMargin({0, 0, margin * 2, margin}),
         juce::GridItem(m_sliders[Width])
             .withArea(2, 5)
             .withMargin({margin, 0, margin, margin}),

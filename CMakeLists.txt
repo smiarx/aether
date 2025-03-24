@@ -33,6 +33,7 @@ target_sources(${PROJECT_NAME}
         src/GUI/DelaySection.cpp
         src/GUI/SpringsSection.cpp
         src/GUI/SpringsGL.cpp
+        src/GUI/ToolTip.cpp
         submodules/dsp/processors/springs/Springs.cpp
         submodules/dsp/processors/tapedelay/TapeDelay.cpp
     )

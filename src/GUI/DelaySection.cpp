@@ -40,6 +40,25 @@ DelaySection::DelaySection(juce::AudioProcessorValueTreeState &apvts) :
     m_sliders[Saturation].getComponent().setTextValueSuffix("dB");
     m_sliders[Drift].getComponent().setTextValueSuffix("%");
 
+    m_sliders[DryWet].getComponent().setTooltip(
+        "Dry/wet proportion of the output signal");
+    m_sliders[Time].getComponent().setTooltip("Delay time.");
+    m_sliders[Feedback].getComponent().setTooltip(
+        "How much of the delayed signal is fed back into the delay.");
+    m_sliders[CutLow].getComponent().setTooltip(
+        "Cutoff frequency of the low pass filter.");
+    m_sliders[CutHi].getComponent().setTooltip(
+        "Cutoff frequency of the high pass filter.");
+    m_sliders[Saturation].getComponent().setTooltip(
+        "Saturation level in decibels of the delayed signal. Saturations of "
+        "more than 0dB allows to set feedback levels of more than 100%.");
+    m_sliders[Drift].getComponent().setTooltip(
+        "How much the tape speed will be modulated. This effects as pitch "
+        "wobble.");
+    m_mode.setTooltip(
+        "Delay mode: [Normal] forward direction, [Back & Forth] alternates "
+        "between forwards and reverse - [Reverse] Reverse echoes");
+
     addAndMakeVisible(m_mode);
     m_mode.addItemList(apvts.getParameter("delay_mode")->getAllValueStrings(),
                        1);

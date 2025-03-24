@@ -2,7 +2,10 @@ cmake_minimum_required(VERSION 3.15)
 
 project(Aether VERSION 0.0.1)
 
-find_package(JUCE CONFIG REQUIRED)
+find_package(JUCE CONFIG QUIET)
+if(NOT ${JUCE_FOUND})
+add_subdirectory(submodules/JUCE)
+endif()
 
 juce_add_plugin(${PROJECT_NAME}
     # VERSION ...

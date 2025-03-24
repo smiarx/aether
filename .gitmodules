@@ -4,3 +4,6 @@
 [submodule "submodules/readerwriterqueue"]
 	path = submodules/readerwriterqueue
 	url = https://github.com/cameron314/readerwriterqueue
+[submodule "submodules/JUCE"]
+	path = submodules/JUCE
+	url = https://github.com/juce-framework/JUCE

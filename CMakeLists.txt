@@ -66,12 +66,8 @@ target_link_libraries(${PROJECT_NAME}
     PRIVATE
         ${PROJECT_NAME}_data
         juce::juce_audio_utils
+        juce::juce_audio_plugin_client
         juce::juce_opengl
-        -logg
-        -lvorbis
-        -lvorbisfile
-        -lvorbisenc
-        -lFLAC
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags

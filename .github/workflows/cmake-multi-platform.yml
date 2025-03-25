@@ -1,0 +1,73 @@
+name: Build multi-platform
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        build_type: [Release]
+        c_compiler: [gcc, clang, clang-cl]
+        include:
+          - os: windows-latest
+            c_compiler: clang-cl
+            cpp_compiler: clang-cl
+            cmake_gen: -G"Ninja Multi-Config"
+          - os: ubuntu-latest
+            c_compiler: gcc
+            cpp_compiler: g++
+          - os: ubuntu-latest
+            c_compiler: clang
+            cpp_compiler: clang++
+        exclude:
+          - os: windows-latest
+            c_compiler: gcc
+          - os: windows-latest
+            c_compiler: clang
+          - os: ubuntu-latest
+            c_compiler: clang-cl
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Set reusable strings
+      id: strings
+      shell: bash
+      run: |
+        echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+
+    - name: Install Linux Deps
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt install libasound2-dev libx11-dev libxcomposite-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev libfreetype6-dev libglu1-mesa-dev libjack-jackd2-dev
+
+    - name: Install Ninja
+      if: runner.os == 'Windows'
+      uses: seanmiddleditch/gha-setup-ninja@master
+
+    - name: Configure CMake
+      run: cmake -B ${{ steps.strings.outputs.build-output-dir }} ${{ matrix.cmake_gen }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -S ${{ github.workspace }}
+
+    - name: Build
+      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
+
+    - name: Test
+      working-directory: ${{ steps.strings.outputs.build-output-dir }}
+      run: ctest --build-config ${{ matrix.build_type }}
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: Aether_${{ runner.os }}
+        path: ${{ steps.strings.outputs.build-output-dir }}/Aether_artefacts/Release/VST3/Aether.vst3

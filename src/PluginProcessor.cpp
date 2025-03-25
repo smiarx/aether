@@ -145,8 +145,9 @@ void PluginProcessor::setStateInformation(const void *data, int sizeInBytes)
 //==============================================================================
 void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
-    m_springs.prepare(sampleRate, samplesPerBlock);
-    m_tapedelay.prepare(sampleRate, samplesPerBlock);
+    auto fSampleRate = static_cast<float>(sampleRate);
+    m_springs.prepare(fSampleRate, samplesPerBlock);
+    m_tapedelay.prepare(fSampleRate, samplesPerBlock);
 
     ///* Set springgl uniform values */
     // SpringsGL::setUniforms(m_springs.rms.rms, &m_springs.rms.rms_id,
@@ -193,7 +194,7 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
             if (m_useBeats) {
                 auto *param = static_cast<juce::AudioParameterChoice *>(
                     getParameters()[static_cast<size_t>(ParamId::DelayBeats)]);
-                event.value = *param;
+                event.value = static_cast<float>(*param);
             } else {
                 auto *param = static_cast<juce::AudioParameterFloat *>(
                     getParameters()[static_cast<size_t>(
@@ -202,7 +203,7 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
             }
         case ParamId::DelayBeats:
             if (m_useBeats) {
-                int id = event.value;
+                auto id = static_cast<int>(event.value);
                 double mult;
                 switch (id) {
                 case Beat1_32:
@@ -232,7 +233,7 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
                     break;
                 }
                 m_beatsMult = mult;
-                auto time   = 60 * mult / m_bpm;
+                auto time   = static_cast<float>(60 * mult / m_bpm);
                 m_tapedelay.setDelay(time, count);
                 break;
             } else if (event.id == ParamId::DelayBeats) {
@@ -303,7 +304,7 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
         auto bpm = getPlayHead()->getPosition()->getBpm();
         if (bpm.hasValue() && *bpm != m_bpm) {
             m_bpm     = *bpm;
-            auto time = 60.f * m_beatsMult / m_bpm;
+            auto time = static_cast<float>(60.0 * m_beatsMult / m_bpm);
             m_tapedelay.setDelay(time, count);
         }
     }

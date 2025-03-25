@@ -1,9 +1,11 @@
 #include "PluginEditor.h"
 
 PluginEditor::PluginEditor(PluginProcessor &p) :
-    AudioProcessorEditor(&p), audioProcessor(p), delaySection{p.getAPVTS()},
+    AudioProcessorEditor(&p), delaySection{p.getAPVTS()},
     springsSection{p.getAPVTS()}
 {
+    setResizable(true, true);
+
     setInterceptsMouseClicks(false, true);
     juce::Desktop::getInstance().addGlobalMouseListener(this);
 
@@ -12,7 +14,6 @@ PluginEditor::PluginEditor(PluginProcessor &p) :
     addAndMakeVisible(tooltip);
     addAndMakeVisible(delaySection);
     addAndMakeVisible(springsSection);
-    addAndMakeVisible(resizableCorner);
 
     setSize(600, 280);
 
@@ -26,8 +27,6 @@ PluginEditor::PluginEditor(PluginProcessor &p) :
 
 void PluginEditor::resized()
 {
-    resizableCorner.setBounds(getWidth() - 16, getHeight() - 16, 16, 16);
-
     juce::FlexBox fbMain;
     fbMain.flexDirection = juce::FlexBox::Direction::column;
 

@@ -11,7 +11,7 @@ class SpringsGL : public juce::Component,
 
   public:
     SpringsGL();
-    ~SpringsGL();
+    ~SpringsGL() override;
 
     static constexpr auto N            = processors::Springs::N;
     static constexpr auto RMSStackSize = processors::Springs::RMSStackSize;
@@ -70,18 +70,18 @@ class SpringsGL : public juce::Component,
     //==============================================================================
     // This class just manages the uniform values that the fragment shader uses.
     struct Uniforms {
-        Uniforms(juce::OpenGLContext &openGLContext,
-                 juce::OpenGLShaderProgram &shaderProgram)
+        Uniforms(juce::OpenGLContext &t_openGLContext,
+                 juce::OpenGLShaderProgram &t_shaderProgram)
         {
-            resolution.reset(
-                createUniform(openGLContext, shaderProgram, "u_resolution"));
+            resolution.reset(createUniform(t_openGLContext, t_shaderProgram,
+                                           "u_resolution"));
             length.reset(
-                createUniform(openGLContext, shaderProgram, "u_length"));
+                createUniform(t_openGLContext, t_shaderProgram, "u_length"));
             density.reset(
-                createUniform(openGLContext, shaderProgram, "u_density"));
-            rms.reset(createUniform(openGLContext, shaderProgram, "u_rms"));
+                createUniform(t_openGLContext, t_shaderProgram, "u_density"));
+            rms.reset(createUniform(t_openGLContext, t_shaderProgram, "u_rms"));
             rmspos.reset(
-                createUniform(openGLContext, shaderProgram, "u_rmspos"));
+                createUniform(t_openGLContext, t_shaderProgram, "u_rmspos"));
         }
 
         std::unique_ptr<juce::OpenGLShaderProgram::Uniform> resolution, length,

@@ -42,7 +42,12 @@ void CustomLNF::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
                                  const float rotaryEndAngle,
                                  juce::Slider &slider)
 {
-    auto radius          = juce::jmin(width, height) / 2.f;
+    auto fx      = static_cast<float>(x);
+    auto fy      = static_cast<float>(y);
+    auto fwidth  = static_cast<float>(width);
+    auto fheight = static_cast<float>(height);
+
+    auto radius          = juce::jmin(fwidth, fheight) / 2.f;
     auto lineWidth       = juce::jmin(6.f, juce::jmax(2.f, radius * 0.09f));
     auto arcRadius       = radius - lineWidth / 2.f;
     auto dialMargin      = juce::jmin(16.f, juce::jmax(4.f, radius * 0.22f));
@@ -59,7 +64,7 @@ void CustomLNF::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
         slider.findColour(juce::Slider::rotarySliderOutlineColourId);
     auto trackColour = slider.findColour(juce::Slider::trackColourId);
 
-    auto centre = juce::Point<float>(x + width / 2.f, y + height / 2.f);
+    auto centre = juce::Point<float>(fx + fwidth / 2.f, fy + fheight / 2.f);
 
     auto posAngle =
         rotaryStartAngle + sliderPos * (rotaryEndAngle - rotaryStartAngle);
@@ -82,8 +87,8 @@ void CustomLNF::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
 
     /* dial */
     juce::ColourGradient gradient{
-        dialColour.brighter(0.3f), juce::Point<float>(x, y),
-        dialColour.darker(0.3f), juce::Point<float>(x, y + height), false};
+        dialColour.brighter(0.3f), juce::Point<float>(fx, fy),
+        dialColour.darker(0.3f), juce::Point<float>(fx, fy + fheight), false};
     g.setFillType(juce::FillType{gradient});
     g.fillEllipse(juce::Rectangle<float>(2.f * dialRadius, 2.f * dialRadius)
                       .withCentre(centre));
@@ -158,7 +163,8 @@ juce::Font CustomLNF::getTextButtonFont(juce::TextButton &button,
 {
     (void)button;
     // TODO use imported font
-    return juce::Font("Fira Sans", buttonHeight, juce::Font::plain);
+    return juce::Font("Fira Sans", static_cast<float>(buttonHeight),
+                      juce::Font::plain);
 }
 
 int CustomLNF::getTextButtonWidthToFitText(juce::TextButton &b,

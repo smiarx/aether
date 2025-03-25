@@ -20,7 +20,7 @@ class PluginEditor : public juce::AudioProcessorEditor
     };
 
     PluginEditor(PluginProcessor &);
-    ~PluginEditor() { setLookAndFeel(nullptr); };
+    ~PluginEditor() override { setLookAndFeel(nullptr); }
 
     //===================================================================
     void paint(juce::Graphics &) override;
@@ -29,8 +29,6 @@ class PluginEditor : public juce::AudioProcessorEditor
     virtual void mouseMove(const juce::MouseEvent &event) override;
 
   private:
-    PluginProcessor &audioProcessor;
-
     CustomLNF lookandfeel;
     juce::Label title;
     ToolTip tooltip;
@@ -38,7 +36,6 @@ class PluginEditor : public juce::AudioProcessorEditor
     SpringsSection springsSection;
 
     juce::ComponentBoundsConstrainer constrainer;
-    juce::ResizableCornerComponent resizableCorner{this, &constrainer};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginEditor)
 };

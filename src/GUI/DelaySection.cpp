@@ -118,8 +118,9 @@ void DelaySection::resized()
     juce::FlexBox titleFb;
     titleFb.flexDirection = juce::FlexBox::Direction::row;
     titleFb.alignContent  = juce::FlexBox::AlignContent::center;
-    auto activeWidth = m_active.getBestWidthForHeight(CustomLNF::subtitleSize);
-    titleFb.items    = {
+    auto activeWidth      = static_cast<float>(
+        m_active.getBestWidthForHeight(CustomLNF::subtitleSize));
+    titleFb.items = {
         juce::FlexItem(m_active)
             .withFlex(0.1f)
             .withMinWidth(activeWidth)

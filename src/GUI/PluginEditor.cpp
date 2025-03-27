@@ -25,6 +25,12 @@ PluginEditor::PluginEditor(PluginProcessor &p) :
     tooltip.setColour(juce::Label::textColourId, juce::Colours::black);
 }
 
+PluginEditor::~PluginEditor()
+{
+    setLookAndFeel(nullptr);
+    juce::Desktop::getInstance().removeGlobalMouseListener(this);
+}
+
 void PluginEditor::resized()
 {
     juce::FlexBox fbMain;

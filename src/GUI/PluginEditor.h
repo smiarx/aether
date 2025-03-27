@@ -20,7 +20,7 @@ class PluginEditor : public juce::AudioProcessorEditor
     };
 
     PluginEditor(PluginProcessor &);
-    ~PluginEditor() override { setLookAndFeel(nullptr); }
+    ~PluginEditor() override;
 
     //===================================================================
     void paint(juce::Graphics &) override;

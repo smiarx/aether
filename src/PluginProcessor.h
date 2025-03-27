@@ -102,6 +102,7 @@ class PluginProcessor final : public juce::AudioProcessor,
     }
 
     juce::AudioProcessorValueTreeState &getAPVTS() { return m_parameters; }
+    auto &getSprings() const { return m_springs; }
 
   private:
     juce::AudioProcessorValueTreeState m_parameters;

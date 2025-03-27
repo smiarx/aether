@@ -5,7 +5,8 @@
 static const auto mainColour  = juce::Colour(0xff8fe7f3);
 static const auto smallColour = juce::Colour(0xfff130f1);
 
-SpringsSection::SpringsSection(juce::AudioProcessorValueTreeState &apvts) :
+SpringsSection::SpringsSection(const processors::Springs &springs,
+                               juce::AudioProcessorValueTreeState &apvts) :
     m_sliders{
         Slider(apvts, std::get<0>(elements[0]), std::get<1>(elements[0])),
         Slider(apvts, std::get<0>(elements[1]), std::get<1>(elements[1])),
@@ -17,7 +18,7 @@ SpringsSection::SpringsSection(juce::AudioProcessorValueTreeState &apvts) :
         Slider(apvts, std::get<0>(elements[7]), std::get<1>(elements[7])),
         Slider(apvts, std::get<0>(elements[8]), std::get<1>(elements[8])),
     },
-    m_activeAttachment(apvts, "springs_active", m_active)
+    m_activeAttachment(apvts, "springs_active", m_active), m_springsGL(springs)
 {
     addAndMakeVisible(m_springsGL);
 

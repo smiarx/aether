@@ -2,7 +2,7 @@
 
 PluginEditor::PluginEditor(PluginProcessor &p) :
     AudioProcessorEditor(&p), delaySection{p.getAPVTS()},
-    springsSection{p.getAPVTS()}
+    springsSection{p.getSprings(), p.getAPVTS()}
 {
     setResizable(true, true);
 

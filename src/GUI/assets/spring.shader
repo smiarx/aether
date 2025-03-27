@@ -19,8 +19,6 @@ precision mediump float;
 #endif
 
 uniform vec2 u_resolution;
-uniform float u_length;
-uniform float u_density;
 uniform float u_rms[RMS_BUFFER_SIZE * NSPRINGS];
 uniform int u_rmspos;
 
@@ -55,8 +53,11 @@ void main()
             st.x * (4. + (1. + sin(float(springId + 1) * 4923043.)) * 1.3));
     rms = rms * rms;
 #else
+
+    float lgth = 0.8; // rms buffer length used
+
     // rms from buffer
-    float xpos  = u_length * float(RMS_BUFFER_SIZE) * (st.x + 1.0) / 2.0;
+    float xpos  = lgth * float(RMS_BUFFER_SIZE) * (st.x + 1.0) / 2.0;
     int ixpos   = int(xpos);
     float fxpos = xpos - float(ixpos);
     int ixpos0  = (u_rmspos - ixpos) & (RMS_BUFFER_SIZE - 1);
@@ -67,7 +68,7 @@ void main()
 #endif
 
     // scale & clamp
-    rms = pow(rms, 1. / 3.3);
+    rms = pow(rms, 1. / 2.3);
 
     // window to multuply displacement
     float winoverflow = 0.5;

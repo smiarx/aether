@@ -3,12 +3,7 @@
 
 static constexpr auto refreshTimeMs = 40;
 
-const dsp::fSample<SpringsGL::N> *SpringsGL::rms{};
-const size_t *SpringsGL::rmspos{};
-float SpringsGL::length{};
-float SpringsGL::density{};
-
-SpringsGL::SpringsGL()
+SpringsGL::SpringsGL(const processors::Springs &springs)
 {
     setOpaque(true);
     //// Sets the OpenGL version to 3.2
@@ -19,6 +14,8 @@ SpringsGL::SpringsGL()
     openGLContext.setRenderer(this);
     openGLContext.attachTo(*this);
     openGLContext.setContinuousRepainting(false);
+
+    setRMS(springs.getRMSStack(), springs.getRMSStackPos());
 }
 
 SpringsGL::~SpringsGL()
@@ -73,8 +70,6 @@ void SpringsGL::renderOpenGL()
     if (uniforms->resolution != nullptr)
         uniforms->resolution->set((GLfloat)renderingScale * getWidth(),
                                   (GLfloat)renderingScale * getHeight());
-    if (uniforms->length != nullptr) uniforms->length->set((GLfloat)length);
-    if (uniforms->density != nullptr) uniforms->density->set((GLfloat)density);
 
     if (uniforms->rms != nullptr)
         uniforms->rms->set((GLfloat *)&rms[0][0], RMSStackSize * N);

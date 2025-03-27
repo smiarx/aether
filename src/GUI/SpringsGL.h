@@ -10,27 +10,19 @@ class SpringsGL : public juce::Component,
 {
 
   public:
-    SpringsGL();
+    SpringsGL(const processors::Springs &springs);
     ~SpringsGL() override;
 
-    static constexpr auto N            = processors::Springs::N;
-    static constexpr auto RMSStackSize = processors::Springs::RMSStackSize;
-    static const dsp::fSample<N> *rms;
-    static const size_t *rmspos;
-    static float length;
-    static float density;
+    static constexpr auto N             = processors::Springs::N;
+    static constexpr auto RMSStackSize  = processors::Springs::RMSStackSize;
     static constexpr float Damp2Density = 4500.f;
 
-    static void setRMS(const dsp::fSample<N> t_rms[RMSStackSize],
-                       const size_t *t_rmspos)
+    void setRMS(const dsp::fSample<N> t_rms[RMSStackSize],
+                const size_t *t_rmspos)
     {
         rms    = t_rms;
         rmspos = t_rmspos;
     }
-
-    static void setLength(float _length) { length = _length / 0.2f; }
-
-    static void setDamp(float _damp) { density = _damp / Damp2Density; }
 
     virtual void timerCallback() override;
 
@@ -75,17 +67,13 @@ class SpringsGL : public juce::Component,
         {
             resolution.reset(createUniform(t_openGLContext, t_shaderProgram,
                                            "u_resolution"));
-            length.reset(
-                createUniform(t_openGLContext, t_shaderProgram, "u_length"));
-            density.reset(
-                createUniform(t_openGLContext, t_shaderProgram, "u_density"));
             rms.reset(createUniform(t_openGLContext, t_shaderProgram, "u_rms"));
             rmspos.reset(
                 createUniform(t_openGLContext, t_shaderProgram, "u_rmspos"));
         }
 
-        std::unique_ptr<juce::OpenGLShaderProgram::Uniform> resolution, length,
-            density, rms, rmspos;
+        std::unique_ptr<juce::OpenGLShaderProgram::Uniform> resolution, rms,
+            rmspos;
 
       private:
         static juce::OpenGLShaderProgram::Uniform *
@@ -116,6 +104,9 @@ class SpringsGL : public juce::Component,
         shader files to be static instead of interchangeable and dynamic.
         String newVertexShader, newFragmentShader;
      */
+
+    const dsp::fSample<N> *rms;
+    const size_t *rmspos;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SpringsGL)
 };

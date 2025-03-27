@@ -78,8 +78,8 @@ PluginProcessor::createLayout()
         std::make_unique<juce::AudioParameterFloat>(
             "springs_shape", "Shape",
             juce::NormalisableRange<float>{-5.f, 5.f, 0.01f, 0.3f, true}, 0.5f),
-        std::make_unique<juce::AudioParameterFloat>("springs_diff", "Diffusion",
-                                                    0.f, 1.f, 0.01f),
+        std::make_unique<juce::AudioParameterFloat>("springs_tone", "Tone", 0.f,
+                                                    1.f, 0.5f),
         std::make_unique<juce::AudioParameterFloat>(
             "springs_scatter", "Scatter", 0.f, 120.f, 0.1f),
         std::make_unique<juce::AudioParameterFloat>("springs_chaos", "Chaos",
@@ -279,8 +279,8 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
         case ParamId::SpringsDecay:
             m_springs.setT60(event.value, count);
             break;
-        case ParamId::SpringsDiff:
-            m_springs.setDiffusion(event.value, count);
+        case ParamId::SpringsTone:
+            m_springs.setTone(event.value, count);
             break;
         case ParamId::SpringsScatter:
             m_springs.setScatter(event.value / 100.f, count);

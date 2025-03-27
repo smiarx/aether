@@ -3,8 +3,8 @@
 #include "juce_audio_processors/juce_audio_processors.h"
 #include "juce_gui_basics/juce_gui_basics.h"
 
-#include "Widgets.h"
 #include "SpringsGL.h"
+#include "Widgets.h"
 
 class SpringsSection : public juce::Component
 {
@@ -15,7 +15,7 @@ class SpringsSection : public juce::Component
         Decay   = 3,
         Damp    = 4,
         Shape   = 5,
-        Diff    = 6,
+        Tone    = 6,
         Scatter = 7,
         Chaos   = 8,
         _NumParams,
@@ -30,7 +30,7 @@ class SpringsSection : public juce::Component
             {"springs_decay", "Decay"},
             {"springs_damp", "Damp"},
             {"springs_shape", "Shape"},
-            {"springs_diff", "Diffusion"},
+            {"springs_tone", "Tone"},
             {"springs_scatter", "Scatter"},
             {"springs_chaos", "Chaos"},
         }};

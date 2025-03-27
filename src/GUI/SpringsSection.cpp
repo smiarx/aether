@@ -56,8 +56,7 @@ SpringsSection::SpringsSection(juce::AudioProcessorValueTreeState &apvts) :
         "Frequency of the highest compenents produced by the reverb.");
     m_sliders[Shape].getComponent().setTooltip(
         "Shape of the frequency dispertion of the springs.");
-    m_sliders[Diff].getComponent().setTooltip(
-        "How much the reverberated sound is diffused.");
+    m_sliders[Tone].getComponent().setTooltip("Shape the tone of the reverb.");
     m_sliders[Chaos].getComponent().setTooltip(
         "How stochastic & unpredictible the springs become.");
     m_sliders[Scatter].getComponent().setTooltip(
@@ -69,7 +68,7 @@ SpringsSection::SpringsSection(juce::AudioProcessorValueTreeState &apvts) :
     m_sliders[Decay].setColour(juce::Slider::thumbColourId, mainColour);
     m_sliders[Damp].setColour(juce::Slider::thumbColourId, mainColour);
     m_sliders[Shape].setColour(juce::Slider::thumbColourId, smallColour);
-    m_sliders[Diff].setColour(juce::Slider::thumbColourId, smallColour);
+    m_sliders[Tone].setColour(juce::Slider::thumbColourId, smallColour);
     m_sliders[Scatter].setColour(juce::Slider::thumbColourId, smallColour);
     m_sliders[Chaos].setColour(juce::Slider::thumbColourId, smallColour);
 }
@@ -119,13 +118,13 @@ void SpringsSection::resized()
         juce::GridItem(m_sliders[Shape])
             .withArea(3, 1)
             .withMargin({margin, margin, 0, 0}),
-        juce::GridItem(m_sliders[Diff])
+        juce::GridItem(m_sliders[Scatter])
             .withArea(3, 2)
             .withMargin({margin, margin, 0, 0}),
-        juce::GridItem(m_sliders[Scatter])
+        juce::GridItem(m_sliders[Chaos])
             .withArea(3, 3)
             .withMargin({margin, margin, 0, 0}),
-        juce::GridItem(m_sliders[Chaos])
+        juce::GridItem(m_sliders[Tone])
             .withArea(3, 4)
             .withMargin({margin, margin, 0, 0}),
         juce::GridItem(m_springsGL)
@@ -156,7 +155,7 @@ void SpringsSection::paint(juce::Graphics &g)
     // separators;
     g.setColour(findColour(PluginEditor::Separator));
 
-    auto xSep = (m_sliders[Chaos].getBoundsInParent().getRight() +
+    auto xSep = (m_sliders[Tone].getBoundsInParent().getRight() +
                  m_springsGL.getBoundsInParent().getX()) /
                 2.f;
     g.fillRect(xSep - CustomLNF::sepWidth / 2.f, bounds.getY(),

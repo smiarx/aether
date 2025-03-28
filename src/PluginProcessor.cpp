@@ -297,11 +297,36 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
     }
 
     if (m_useBeats) {
-        auto bpm = getPlayHead()->getPosition()->getBpm();
-        if (bpm.hasValue() && *bpm != m_bpm) {
-            m_bpm     = *bpm;
-            auto time = static_cast<float>(60.0 * m_beatsMult / m_bpm);
-            m_tapedelay.setDelay(time, count);
+        const auto position = getPlayHead()->getPosition();
+        if (position.hasValue()) {
+            auto bpm = position->getBpm();
+            if (bpm.hasValue() && *bpm != m_bpm) {
+                m_bpm     = *bpm;
+                auto time = static_cast<float>(60.0 * m_beatsMult / m_bpm);
+                m_tapedelay.setDelay(time, count);
+            }
+
+            if (m_tapedelay.getMode() != processors::TapeDelay::Mode::Normal) {
+                if (position->getIsPlaying()) {
+                    auto ppq = position->getPpqPosition();
+                    if (ppq.hasValue()) {
+                        if (!m_isPlaying) {
+                            m_isPlaying = true;
+                            m_nextSync =
+                                static_cast<double>(static_cast<int>(*ppq + 1));
+                        } else {
+                            if (m_nextSync > 0 && *ppq > m_nextSync) {
+                                // today, sample accurate sync
+                                m_tapedelay.setMode(m_tapedelay.getMode(),
+                                                    count);
+                                m_nextSync = -1;
+                            }
+                        }
+                    }
+                } else if (m_isPlaying) {
+                    m_isPlaying = false;
+                }
+            }
         }
     }
 
@@ -320,7 +345,6 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
 }
 
 //==============================================================================
-// This creates new instances of the plugin..
 juce::AudioProcessor *JUCE_CALLTYPE createPluginFilter()
 {
     return new PluginProcessor();

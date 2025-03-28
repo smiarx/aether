@@ -115,6 +115,10 @@ class PluginProcessor final : public juce::AudioProcessor,
     double m_beatsMult{1};
     double m_bpm{120};
 
+    // used to sync reverse delay
+    bool m_isPlaying{false};
+    double m_nextSync{-1};
+
     processors::TapeDelay m_tapedelay;
     processors::Springs m_springs;
 

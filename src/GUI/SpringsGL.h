@@ -2,7 +2,7 @@
 
 #include <juce_opengl/juce_opengl.h>
 
-#include <Springs.h>
+#include "../PluginProcessor.h"
 
 class SpringsGL : public juce::Component,
                   public juce::OpenGLRenderer,
@@ -10,7 +10,7 @@ class SpringsGL : public juce::Component,
 {
 
   public:
-    SpringsGL(const processors::Springs &springs);
+    SpringsGL(const PluginProcessor &processor);
     ~SpringsGL() override;
 
     static constexpr auto N             = processors::Springs::N;
@@ -18,7 +18,7 @@ class SpringsGL : public juce::Component,
     static constexpr float Damp2Density = 4500.f;
 
     void setRMS(const dsp::fSample<N> t_rms[RMSStackSize],
-                const size_t *t_rmspos)
+                const std::atomic<int> *t_rmspos)
     {
         rms    = t_rms;
         rmspos = t_rmspos;
@@ -106,7 +106,7 @@ class SpringsGL : public juce::Component,
      */
 
     const dsp::fSample<N> *rms;
-    const size_t *rmspos;
+    const std::atomic<int> *rmspos;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SpringsGL)
 };

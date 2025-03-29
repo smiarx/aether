@@ -342,6 +342,9 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
         ins = outs;
     }
     assert(ins == outs);
+
+    // update rms buffer position
+    m_rmsPos.store(*m_springs.getRMSStackPos());
 }
 
 //==============================================================================

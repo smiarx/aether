@@ -3,7 +3,7 @@
 
 static constexpr auto refreshTimeMs = 40;
 
-SpringsGL::SpringsGL(const processors::Springs &springs)
+SpringsGL::SpringsGL(const PluginProcessor &processor)
 {
     setOpaque(true);
     //// Sets the OpenGL version to 3.2
@@ -15,7 +15,7 @@ SpringsGL::SpringsGL(const processors::Springs &springs)
     openGLContext.attachTo(*this);
     openGLContext.setContinuousRepainting(false);
 
-    setRMS(springs.getRMSStack(), springs.getRMSStackPos());
+    setRMS(processor.getRMSStack(), processor.getRMSStackPos());
 }
 
 SpringsGL::~SpringsGL()

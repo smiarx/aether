@@ -104,12 +104,18 @@ class PluginProcessor final : public juce::AudioProcessor,
     juce::AudioProcessorValueTreeState &getAPVTS() { return m_parameters; }
     auto &getSprings() const { return m_springs; }
 
+    const auto *getRMSStack() const { return m_springs.getRMSStack(); }
+    const auto *getRMSStackPos() const { return &m_rmsPos; }
+
   private:
     juce::AudioProcessorValueTreeState m_parameters;
     moodycamel::ReaderWriterQueue<ParamEvent> m_paramEvents{32};
 
     bool m_activeTapeDelay{true};
     bool m_activeSprings{true};
+
+    // atomics
+    std::atomic<int> m_rmsPos{0};
 
     bool m_useBeats{false};
     double m_beatsMult{1};

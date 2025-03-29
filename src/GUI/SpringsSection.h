@@ -43,7 +43,7 @@ class SpringsSection : public juce::Component
 
     static constexpr auto headerHeight = 30.f;
 
-    SpringsSection(const processors::Springs &springs,
+    SpringsSection(const PluginProcessor &processor,
                    juce::AudioProcessorValueTreeState &apvts);
     void resized() override;
     void paint(juce::Graphics &g) override;

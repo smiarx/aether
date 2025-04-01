@@ -1,7 +1,7 @@
 #include "PluginEditor.h"
 
 PluginEditor::PluginEditor(PluginProcessor &p) :
-    AudioProcessorEditor(&p), delaySection{p.getAPVTS()},
+    AudioProcessorEditor(&p), delaySection{p, p.getAPVTS()},
     springsSection{p, p.getAPVTS()}
 {
     setResizable(true, true);

@@ -107,6 +107,8 @@ class PluginProcessor final : public juce::AudioProcessor,
     const auto *getRMSStack() const { return m_springs.getRMSStack(); }
     const auto *getRMSStackPos() const { return &m_rmsPos; }
 
+    auto &getSwitchIndicator() { return m_tapedelay.getSwitchIndicator(); }
+
   private:
     juce::AudioProcessorValueTreeState m_parameters;
     moodycamel::ReaderWriterQueue<ParamEvent> m_paramEvents{32};

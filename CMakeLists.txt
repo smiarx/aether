@@ -37,6 +37,7 @@ target_sources(${PROJECT_NAME}
         src/GUI/SpringsSection.cpp
         src/GUI/SpringsGL.cpp
         src/GUI/ToolTip.cpp
+        src/GUI/Led.cpp
         submodules/dsp/processors/springs/Springs.cpp
         submodules/dsp/processors/tapedelay/TapeDelay.cpp
     )
@@ -60,6 +61,7 @@ target_compile_definitions(${PROJECT_NAME}
 target_compile_options(${PROJECT_NAME} PRIVATE
        -fopenmp-simd
        -DSPRINGS_RMS
+       -DTAPEDELAY_SWITCH_INDICATOR
    )
 
 target_link_libraries(${PROJECT_NAME}

@@ -3,7 +3,9 @@
 #include "juce_audio_processors/juce_audio_processors.h"
 #include "juce_gui_basics/juce_gui_basics.h"
 
+#include "../PluginProcessor.h"
 #include "ComboBox.h"
+#include "Led.h"
 #include "Widgets.h"
 
 class DelaySection : public juce::Component
@@ -36,7 +38,7 @@ class DelaySection : public juce::Component
         backgroundColourId = 0x1312000,
     };
 
-    DelaySection(APVTS &apvts);
+    DelaySection(PluginProcessor &processor, APVTS &apvts);
 
     virtual void resized() override;
     virtual void paint(juce::Graphics &g) override;
@@ -54,4 +56,6 @@ class DelaySection : public juce::Component
 
     ComboBox m_timeType;
     juce::AudioProcessorValueTreeState::ComboBoxAttachment m_timeTypeAttachment;
+
+    Led m_led;
 };

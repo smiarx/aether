@@ -2,7 +2,8 @@
 #include "CustomLNF.h"
 #include "PluginEditor.h"
 
-DelaySection::DelaySection(juce::AudioProcessorValueTreeState &apvts) :
+DelaySection::DelaySection(PluginProcessor &processor,
+                           juce::AudioProcessorValueTreeState &apvts) :
     m_sliders{
         Slider(apvts, std::get<0>(elements[0]), std::get<1>(elements[0])),
         Slider(apvts, std::get<0>(elements[1]), std::get<1>(elements[1])),
@@ -16,7 +17,8 @@ DelaySection::DelaySection(juce::AudioProcessorValueTreeState &apvts) :
     m_mode(juce::Colour{0xffffef03}),
     m_modeAttachment(apvts, "delay_mode", m_mode.getComboBox()),
     m_timeType(juce::Colour{0xffffef03}),
-    m_timeTypeAttachment(apvts, "delay_time_type", m_timeType.getComboBox())
+    m_timeTypeAttachment(apvts, "delay_time_type", m_timeType.getComboBox()),
+    m_led(processor.getSwitchIndicator())
 {
     addAndMakeVisible(m_title);
     m_title.setText(u8"Delay", juce::dontSendNotification);
@@ -26,6 +28,8 @@ DelaySection::DelaySection(juce::AudioProcessorValueTreeState &apvts) :
     m_active.setButtonText(juce::String::fromUTF8(u8"⏻"));
     m_active.setToggleable(true);
     m_active.setClickingTogglesState(true);
+
+    addAndMakeVisible(m_led);
 
     for (auto &slider : m_sliders) {
         addAndMakeVisible(slider);
@@ -168,12 +172,17 @@ void DelaySection::resized()
     };
     grid.performLayout(bounds);
 
-    // place time type
+    // place time type & led
     {
         auto timeBounds     = m_sliders[Time].getBounds();
         auto timeTypeBounds = timeBounds.removeFromBottom(20);
         m_sliders[Time].setBounds(timeBounds);
         m_timeType.setBounds(timeTypeBounds);
+
+        constexpr auto ledSize = 15;
+        auto ledBounds         = timeBounds.removeFromTop(ledSize);
+        ledBounds              = ledBounds.removeFromRight(ledSize);
+        m_led.setBounds(ledBounds);
     }
 }
 

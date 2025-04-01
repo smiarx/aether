@@ -7,7 +7,15 @@ precision mediump float;
 #define PI 3.14159
 
 #ifndef NSPRINGS
+#ifdef N
+#define NSPRINGS N
+#else
 #define NSPRINGS 4
+#endif
+#endif
+
+#ifndef SHOWSPRINGS
+#define SHOWSPRINGS 3
 #endif
 
 #ifndef RMS_BUFFER_SIZE
@@ -36,25 +44,28 @@ void main()
     vec2 stBorder =
         st; //(2.* gl_FragCoord.xy - u_resolution) / u_resolution.xx;
 
-    float springWidth  = 0.598;
-    float springFreq   = 0.6 / sqrt(u_resolution.y);
-    float springHeight = 0.89;
+    float springWidth  = 1.726;
+    float springFreq   = 0.7 / sqrt(u_resolution.y);
+    float springHeight = 0.8;
 
     // divide image in NSPRINGS parts vertycally
     st.y = (st.y + 1.) / 2.;
-    st.y *= float(NSPRINGS);
+    st.y *= float(SHOWSPRINGS);
     int springId = int(st.y);
     st.y         = fract(st.y) * 2. - 1.;
 
 #ifdef DUMMY
     // dummy rms
-    float rms =
-        sin(u_time * 4. * (sin(float(springId + 1) * 10000.39)) +
-            st.x * (4. + (1. + sin(float(springId + 1) * 4923043.)) * 1.3));
-    rms = rms * rms;
+    // float rms =
+    //    sin(u_time * 4. * (sin(float(springId + 1) * 10000.39)) +
+    //        st.x * (4. + (1. + sin(float(springId + 1) * 4923043.)) * 1.3));
+    // rms = rms * rms;
+    float rms = abs(sin(u_time + (st.x + 2.) + float(springId)));
+    rms       = rms * rms * 1.;
+    rms *= 0.1;
 #else
 
-    float lgth = 0.8; // rms buffer length used
+    float lgth = 0.5; // rms buffer length used
 
     // rms from buffer
     float xpos  = lgth * float(RMS_BUFFER_SIZE) * (st.x + 1.0) / 2.0;
@@ -68,17 +79,17 @@ void main()
 #endif
 
     // scale & clamp
-    rms = pow(rms, 1. / 2.3);
+    rms = pow(rms, 1. / 2.9);
 
     // window to multuply displacement
-    float winoverflow = 0.5;
+    float winoverflow = 0.9;
     float winpower    = .8;
-    float winmult     = 0.25;
+    float winmult     = 0.22;
     float win         = pow(cos(st.x * winoverflow * PI / 2.), winpower);
     win *= winmult;
 
     // displace x axis;
-    float springshift = 0.888;
+    float springshift = 0.0; // 0.888;
     float xshift      = -rms * win;
     st.x += xshift;
     st.x += float(springId) * springshift;
@@ -86,17 +97,25 @@ void main()
     float th    = 2. * PI * st.x * u_resolution.x * springFreq;
     float costh = cos(th);
     float sinth = sin(th);
+    float origy = st.y;
     st.y += sinth * springHeight;
 
-    float d = abs(st.y);
+    float d = abs(st.y) / sqrt(1 + costh * costh);
     // d -= mix(0.*w, w, pow(abs(costh),2.2));
 
     // springs
-    float width = mix(.0, springWidth, pow(abs(costh), 3.2));
-    width /= (1. + abs(dFdx(xshift)) * 50.0);
+    // float width = springWidth;//mix(springWidth*0.03, springWidth,
+    // pow(abs(costh), 3.0));
+    float width = mix(springWidth * 0.08, springWidth, pow(abs(costh), 3.0));
+    // width /= (1. + abs(dFdx(xshift)) * 50.0);
+    d -= width;
     float dAA = fwidth(d);
 
-    float springs      = smoothstep(width + dAA, width - dAA, d);
+    float springs = smoothstep(dAA, -dAA, d);
+    springs *= pow(max(0, cos(PI / 2. * origy * 1.2)), 0.3);
+    // float springs =
+    // smoothstep(width+0.03,width-0.03,d);//smoothstep(width+0.08, width-0.08,
+    // d);
     float alphaSprings = springs;
 
     // shadow of springs

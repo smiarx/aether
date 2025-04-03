@@ -3,7 +3,9 @@
 #include "../Presets/PresetManager.h"
 #include <juce_gui_basics/juce_gui_basics.h>
 
-class PresetComponent : public juce::Component, public juce::Button::Listener
+class PresetComponent : public juce::Component,
+                        public juce::Button::Listener,
+                        public PresetManager::Listener
 {
   public:
     PresetComponent(PresetManager &presetManager);
@@ -13,6 +15,8 @@ class PresetComponent : public juce::Component, public juce::Button::Listener
     void resized() override;
 
   private:
+    void updatePresetName();
+    virtual void presetManagerChanged(PresetManager &presetManager) override;
     void buttonClicked(juce::Button *button) override;
 
     PresetManager &m_presetManager;

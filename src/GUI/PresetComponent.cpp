@@ -6,8 +6,9 @@ PresetComponent::PresetComponent(PresetManager &presetManager) :
     m_prevButton("presetPrev", 0.5f, juce::Colours::black),
     m_nextButton("presetNext", 0.f, juce::Colours::black)
 {
-    m_presetButton.setButtonText(PresetManager::defaultName);
+    updatePresetName();
 
+    m_presetManager.addListener(this);
     m_prevButton.addListener(this);
     m_nextButton.addListener(this);
     m_presetButton.addListener(this);
@@ -19,6 +20,7 @@ PresetComponent::PresetComponent(PresetManager &presetManager) :
 
 PresetComponent::~PresetComponent()
 {
+    m_presetManager.removeListener(this);
     m_prevButton.removeListener(this);
     m_nextButton.removeListener(this);
     m_presetButton.removeListener(this);
@@ -70,47 +72,54 @@ void PresetComponent::buttonClicked(juce::Button *button)
             [this](int result) {
                 if (result == defaultId) {
                     m_presetManager.loadDefault();
-                    m_presetButton.setButtonText(
-                        m_presetManager.getPresetName());
                 } else if (result > defaultId &&
                            result <=
                                PresetManager::nFactoryPreset + defaultId) {
                     m_presetManager.loadFactoryPreset(
                         static_cast<size_t>(result - defaultId - 1));
-                    presetButton.setButtonText(m_presetManager.getPresetName());
                 } else if (result == saveId) {
                     constexpr auto fileBrowserFlags =
                         juce::FileBrowserComponent::saveMode |
                         juce::FileBrowserComponent::canSelectFiles;
-                    fileChooser = std::make_unique<juce::FileChooser>(
+                    m_fileChooser = std::make_unique<juce::FileChooser>(
                         juce::String("Save Preset"), juce::String(),
                         juce::String("*." +
                                      juce::String(PresetManager::extension)));
-                    fileChooser->launchAsync(
+                    m_fileChooser->launchAsync(
                         fileBrowserFlags, [this](const juce::FileChooser &fc) {
                             auto file = fc.getResult();
                             m_presetManager.savePresetToFile(file);
-                            presetButton.setButtonText(
-                                m_presetManager.getPresetName());
                         });
                 } else if (result == loadId) {
                     constexpr auto fileBrowserFlags =
                         juce::FileBrowserComponent::openMode |
                         juce::FileBrowserComponent::canSelectFiles;
-                    fileChooser = std::make_unique<juce::FileChooser>(
+                    m_fileChooser = std::make_unique<juce::FileChooser>(
                         juce::String("Load Preset"), juce::String(),
                         juce::String("*." +
                                      juce::String(PresetManager::extension)));
-                    fileChooser->launchAsync(
+                    m_fileChooser->launchAsync(
                         fileBrowserFlags, [this](const juce::FileChooser &fc) {
                             auto file = fc.getResult();
                             if (file.exists()) {
                                 m_presetManager.loadPresetFromFile(file);
-                                presetButton.setButtonText(
-                                    m_presetManager.getPresetName());
                             }
                         });
                 }
             });
     }
+}
+
+void PresetComponent::updatePresetName()
+{
+    auto name = m_presetManager.getPresetName();
+    if (m_presetManager.isPresetNotSaved()) {
+        name += "*";
+    }
+    m_presetButton.setButtonText(name);
+}
+
+void PresetComponent::presetManagerChanged(PresetManager & /*presetManager*/)
+{
+    updatePresetName();
 }

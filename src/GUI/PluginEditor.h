@@ -1,11 +1,12 @@
 #pragma once
+#include <juce_audio_processors/juce_audio_processors.h>
 
 #include "../PluginProcessor.h"
 #include "CustomLNF.h"
 #include "DelaySection.h"
+#include "PresetComponent.h"
 #include "SpringsSection.h"
 #include "ToolTip.h"
-#include <juce_audio_processors/juce_audio_processors.h>
 
 class PluginEditor : public juce::AudioProcessorEditor
 {
@@ -31,6 +32,7 @@ class PluginEditor : public juce::AudioProcessorEditor
   private:
     CustomLNF lookandfeel;
     juce::Label title;
+    PresetComponent preset;
     ToolTip tooltip;
     DelaySection delaySection;
     SpringsSection springsSection;

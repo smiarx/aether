@@ -4,6 +4,8 @@
 
 #include "readerwriterqueue.h"
 
+#include "Presets/PresetManager.h"
+
 #include "Springs.h"
 #include "TapeDelay.h"
 
@@ -109,8 +111,11 @@ class PluginProcessor final : public juce::AudioProcessor,
 
     auto &getSwitchIndicator() { return m_tapedelay.getSwitchIndicator(); }
 
+    PresetManager &getPresetManager() { return m_presetManager; }
+
   private:
     juce::AudioProcessorValueTreeState m_parameters;
+    PresetManager m_presetManager{m_parameters};
     moodycamel::ReaderWriterQueue<ParamEvent> m_paramEvents{32};
 
     bool m_activeTapeDelay{true};

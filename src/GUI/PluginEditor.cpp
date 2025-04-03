@@ -1,8 +1,8 @@
 #include "PluginEditor.h"
 
 PluginEditor::PluginEditor(PluginProcessor &p) :
-    AudioProcessorEditor(&p), delaySection{p, p.getAPVTS()},
-    springsSection{p, p.getAPVTS()}
+    AudioProcessorEditor(&p), preset(p.getPresetManager()),
+    delaySection{p, p.getAPVTS()}, springsSection{p, p.getAPVTS()}
 {
     setResizable(true, true);
 
@@ -11,6 +11,7 @@ PluginEditor::PluginEditor(PluginProcessor &p) :
 
     setLookAndFeel(&lookandfeel);
     addAndMakeVisible(title);
+    addAndMakeVisible(preset);
     addAndMakeVisible(tooltip);
     addAndMakeVisible(delaySection);
     addAndMakeVisible(springsSection);
@@ -37,13 +38,22 @@ void PluginEditor::resized()
     fbMain.flexDirection = juce::FlexBox::Direction::column;
 
     juce::FlexBox fbTitle;
-    fbTitle.flexDirection = juce::FlexBox::Direction::row;
+    fbTitle.flexDirection  = juce::FlexBox::Direction::row;
+    fbTitle.alignItems     = juce::FlexBox::AlignItems::flexEnd;
+    fbTitle.alignContent   = juce::FlexBox::AlignContent::center;
+    fbTitle.justifyContent = juce::FlexBox::JustifyContent::center;
     juce::FlexBox fb;
     fb.flexDirection = juce::FlexBox::Direction::row;
 
     fbTitle.items.addArray({
-        juce::FlexItem(title).withFlex(0.68f).withMargin(0.f),
-        juce::FlexItem(tooltip).withFlex(1.f).withMargin(0.f),
+        juce::FlexItem(title).withFlex(0.45f).withMargin(0.f).withHeight(
+            headerHeight),
+        juce::FlexItem(tooltip).withFlex(1.f).withMargin(0.f).withHeight(
+            headerHeight),
+        juce::FlexItem(preset)
+            .withFlex(0.55f)
+            .withMargin({0.f, 0.f, 5.f, 0.f})
+            .withHeight(headerHeight / 2),
     });
 
     fb.items.addArray({

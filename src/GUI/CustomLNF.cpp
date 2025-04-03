@@ -10,6 +10,8 @@ CustomLNF::CustomLNF()
         0xff000000,
         juce::BubbleComponent::outlineColourId,
         0xffdddddd,
+        juce::ResizableWindow::backgroundColourId,
+        0xffffffb7,
         PluginEditor::backgroundColourId,
         0xffffffb7,
         DelaySection::backgroundColourId,

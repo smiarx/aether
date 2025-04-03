@@ -26,9 +26,12 @@ juce_add_plugin(${PROJECT_NAME}
     FORMATS VST3
     PRODUCT_NAME "${PROJECT_NAME}")
 
+file(GLOB FACTORY_PRESETS src/Presets/factory/*)
 juce_add_binary_data(${PROJECT_NAME}_data
     SOURCES
-    src/GUI/assets/spring.shader)
+    src/GUI/assets/spring.shader
+    ${FACTORY_PRESETS})
+
 
 target_sources(${PROJECT_NAME}
     PRIVATE
@@ -40,6 +43,8 @@ target_sources(${PROJECT_NAME}
         src/GUI/SpringsGL.cpp
         src/GUI/ToolTip.cpp
         src/GUI/Led.cpp
+        src/GUI/PresetComponent.cpp
+        src/Presets/PresetManager.cpp
         submodules/dsp/processors/springs/Springs.cpp
         submodules/dsp/processors/tapedelay/TapeDelay.cpp
     )

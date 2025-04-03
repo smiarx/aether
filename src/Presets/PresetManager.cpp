@@ -23,24 +23,26 @@ void PresetManager::valueTreePropertyChanged(
     }
 }
 
+void PresetManager::loadPresetWithId(size_t id)
+{
+    if (id == 0) {
+        loadDefault();
+    }
+    loadFactoryPreset(id - 1);
+}
+
 void PresetManager::nextPreset()
 {
     constexpr auto nPresets = factoryPresets.size() + 1;
     auto presetId           = (m_presetId + 1) % nPresets;
-    if (presetId == 0) {
-        loadDefault();
-    }
-    loadFactoryPreset(presetId - 1);
+    loadPresetWithId(presetId);
 }
 
 void PresetManager::prevPreset()
 {
     constexpr auto nPresets = factoryPresets.size() + 1;
     auto presetId           = (m_presetId - 1 + nPresets) % nPresets;
-    if (presetId == 0) {
-        loadDefault();
-    }
-    loadFactoryPreset(presetId - 1);
+    loadPresetWithId(presetId);
 }
 
 void PresetManager::loadDefault()
@@ -102,4 +104,17 @@ void PresetManager::callListeners()
     for (auto *listener : m_listeners) {
         listener->presetManagerChanged(*this);
     }
+}
+
+juce::String PresetManager::getPresetName(size_t id) const
+{
+    if (id == 0) {
+        return defaultName;
+    }
+
+    id -= 1;
+    if (id < nFactoryPreset) {
+        return std::get<0>(factoryPresets[id]);
+    }
+    return "";
 }

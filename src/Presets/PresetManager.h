@@ -39,6 +39,7 @@ class PresetManager : juce::ValueTree::Listener
         }
     }
 
+    void loadPresetWithId(size_t id);
     void nextPreset();
     void prevPreset();
 
@@ -48,6 +49,10 @@ class PresetManager : juce::ValueTree::Listener
     void savePresetToFile(const juce::File &file);
 
     bool isPresetNotSaved() const { return m_presetNotSaved; }
+
+    static size_t getNumPresets() { return nFactoryPreset + 1; }
+    size_t getPresetId() const { return m_presetId; }
+    juce::String getPresetName(size_t id) const;
 
     juce::ValueTree getCurrentPreset() const { return m_apvts.copyState(); }
     auto &getPresetName() const { return m_presetName; }

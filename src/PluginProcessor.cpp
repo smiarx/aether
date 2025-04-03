@@ -102,19 +102,24 @@ bool PluginProcessor::isMidiEffect() const { return false; }
 
 double PluginProcessor::getTailLengthSeconds() const { return 0.0; }
 
-int PluginProcessor::getNumPrograms() { return 1; }
+int PluginProcessor::getNumPrograms()
+{
+    return m_presetManager.nFactoryPreset + 1;
+}
 
-int PluginProcessor::getCurrentProgram() { return 0; }
+int PluginProcessor::getCurrentProgram()
+{
+    return m_presetManager.getPresetId();
+}
 
 void PluginProcessor::setCurrentProgram(int index)
 {
-    juce::ignoreUnused(index);
+    m_presetManager.loadPresetWithId(static_cast<size_t>(index));
 }
 
 const juce::String PluginProcessor::getProgramName(int index)
 {
-    juce::ignoreUnused(index);
-    return {};
+    return m_presetManager.getPresetName(static_cast<size_t>(index));
 }
 
 void PluginProcessor::changeProgramName(int index, const juce::String &newName)

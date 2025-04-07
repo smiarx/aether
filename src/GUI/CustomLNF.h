@@ -38,4 +38,7 @@ class CustomLNF : public juce::LookAndFeel_V4
     void drawComboBox(juce::Graphics &g, int, int, bool, int, int, int, int,
                       juce::ComboBox &) override;
     void positionComboBoxText(juce::ComboBox &box, juce::Label &label) override;
+
+  private:
+    juce::Image noise{juce::Image::PixelFormat::SingleChannel, 40, 40, false};
 };

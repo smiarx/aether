@@ -18,19 +18,12 @@ SpringsSection::SpringsSection(const PluginProcessor &processor,
         Slider(apvts, std::get<0>(elements[7]), std::get<1>(elements[7])),
         Slider(apvts, std::get<0>(elements[8]), std::get<1>(elements[8])),
     },
-    m_activeAttachment(apvts, "springs_active", m_active),
+    m_active("Reverb"), m_activeAttachment(apvts, "springs_active", m_active),
     m_springsGL(processor)
 {
     addAndMakeVisible(m_springsGL);
 
-    addAndMakeVisible(m_title);
-    m_title.setText(u8"Reverb", juce::dontSendNotification);
-    m_title.setFont(juce::Font(CustomLNF::subtitleSize));
-
     addAndMakeVisible(m_active);
-    m_active.setButtonText(juce::String::fromUTF8(u8"⏻"));
-    m_active.setToggleable(true);
-    m_active.setClickingTogglesState(true);
 
     for (auto &slider : m_sliders) {
         addAndMakeVisible(slider);
@@ -64,6 +57,8 @@ SpringsSection::SpringsSection(const PluginProcessor &processor,
     m_sliders[Scatter].getComponent().setTooltip(
         "How similar or different are the springs properties.");
 
+    m_active.setColour(juce::ToggleButton::tickColourId, mainColour);
+
     m_sliders[DryWet].setColour(juce::Slider::thumbColourId, mainColour);
     m_sliders[Width].setColour(juce::Slider::thumbColourId, mainColour);
     m_sliders[Length].setColour(juce::Slider::thumbColourId, mainColour);
@@ -85,13 +80,8 @@ void SpringsSection::resized()
     juce::FlexBox titleFb;
     titleFb.flexDirection = juce::FlexBox::Direction::row;
     titleFb.alignContent  = juce::FlexBox::AlignContent::center;
-    auto activeWidth = m_active.getBestWidthForHeight(CustomLNF::subtitleSize);
-    titleFb.items    = {
-        juce::FlexItem(m_active)
-            .withFlex(0.1f)
-            .withMinWidth(activeWidth)
-            .withMaxWidth(activeWidth),
-        juce::FlexItem(m_title).withFlex(1.f),
+    titleFb.items         = {
+        juce::FlexItem(m_active).withFlex(1.f),
     };
     titleFb.performLayout(titleBounds);
 

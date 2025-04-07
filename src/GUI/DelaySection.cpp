@@ -13,21 +13,14 @@ DelaySection::DelaySection(PluginProcessor &processor,
         Slider(apvts, std::get<0>(elements[5]), std::get<1>(elements[5])),
         Slider(apvts, std::get<0>(elements[6]), std::get<1>(elements[6])),
     },
-    m_activeAttachment(apvts, "delay_active", m_active),
+    m_active("Delay"), m_activeAttachment(apvts, "delay_active", m_active),
     m_mode(juce::Colour{0xffffef03}),
     m_modeAttachment(apvts, "delay_mode", m_mode.getComboBox()),
     m_timeType(juce::Colour{0xffffef03}),
     m_timeTypeAttachment(apvts, "delay_time_type", m_timeType.getComboBox()),
     m_led(processor.getSwitchIndicator())
 {
-    addAndMakeVisible(m_title);
-    m_title.setText(u8"Delay", juce::dontSendNotification);
-    m_title.setFont(juce::Font(CustomLNF::subtitleSize));
-
     addAndMakeVisible(m_active);
-    m_active.setButtonText(juce::String::fromUTF8(u8"⏻"));
-    m_active.setToggleable(true);
-    m_active.setClickingTogglesState(true);
 
     addAndMakeVisible(m_led);
 
@@ -109,6 +102,8 @@ DelaySection::DelaySection(PluginProcessor &processor,
     m_sliders[Saturation].setColour(juce::Slider::thumbColourId, smallColour);
     m_sliders[Drift].setColour(juce::Slider::thumbColourId, smallColour);
 
+    m_active.setColour(juce::ToggleButton::tickColourId, mainColour);
+
     setColour(PluginEditor::Separator, juce::Colour{0xff0f3d43});
 }
 
@@ -122,14 +117,8 @@ void DelaySection::resized()
     juce::FlexBox titleFb;
     titleFb.flexDirection = juce::FlexBox::Direction::row;
     titleFb.alignContent  = juce::FlexBox::AlignContent::center;
-    auto activeWidth      = static_cast<float>(
-        m_active.getBestWidthForHeight(CustomLNF::subtitleSize));
-    titleFb.items = {
-        juce::FlexItem(m_active)
-            .withFlex(0.1f)
-            .withMinWidth(activeWidth)
-            .withMaxWidth(activeWidth),
-        juce::FlexItem(m_title).withFlex(1.f),
+    titleFb.items         = {
+        juce::FlexItem(m_active).withFlex(1.f),
         juce::FlexItem(m_mode).withFlex(1.f),
     };
     titleFb.performLayout(titleBounds);

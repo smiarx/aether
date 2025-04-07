@@ -29,10 +29,12 @@ CustomLNF::CustomLNF()
         0xff333333,
         PluginEditor::Separator,
         0xff011b2d,
-        juce::TextButton::ColourIds::textColourOnId,
-        0xffe4f897,
-        juce::TextButton::ColourIds::textColourOffId,
-        0xffde4a57,
+        juce::ToggleButton::tickDisabledColourId,
+        0xff999999,
+        juce::ToggleButton::tickColourId,
+        0xff00ff00,
+        juce::ToggleButton::textColourId,
+        0xffffffff,
     };
 
     for (int i = 0; i < juce::numElementsInArray(definedColours); i += 2)
@@ -229,20 +231,73 @@ void CustomLNF::drawButtonBackground(juce::Graphics &g, juce::Button &button,
                                      bool shouldDrawButtonAsHighlighted,
                                      bool shouldDrawButtonAsDown)
 {
-    (void)g;
-    (void)button;
-    (void)backgroundColour;
-    (void)shouldDrawButtonAsHighlighted;
-    (void)shouldDrawButtonAsDown;
+    juce::LookAndFeel_V4::drawButtonBackground(g, button, backgroundColour,
+                                               shouldDrawButtonAsHighlighted,
+                                               shouldDrawButtonAsDown);
+}
+
+void CustomLNF::drawToggleButton(
+    juce::Graphics &g, juce::ToggleButton &button,
+    [[maybe_unused]] bool shouldDrawButtonAsHighlighted,
+    [[maybe_unused]] bool shouldDrawButtonAsDown)
+{
+    auto bounds = button.getLocalBounds().toFloat();
+
+    /* BOX */
+    auto boxWidth  = bounds.getHeight() * 1.5f;
+    auto boxBounds = bounds.removeFromLeft(boxWidth);
+    auto diameter  = boxBounds.getHeight();
+    auto radius    = diameter / 2.f;
+
+    juce::Path mainBox;
+    mainBox.addRoundedRectangle(boxBounds, radius);
+
+    juce::Path circle;
+    auto circleBounds = button.getToggleState()
+                            ? boxBounds.removeFromRight(diameter)
+                            : boxBounds.removeFromLeft(diameter);
+    auto circleReduce = radius * 0.22f;
+    circleBounds      = circleBounds.reduced(circleReduce);
+    circle.addEllipse(circleBounds);
+
+    auto boxColour = button.findColour(
+        button.getToggleState()
+            ? juce::ToggleButton::ColourIds::tickColourId
+            : juce::ToggleButton::ColourIds::tickDisabledColourId);
+    g.setColour(boxColour);
+    g.fillPath(mainBox);
+
+    // shadow
+    auto shadowRadius = circleBounds.getWidth() * 0.1f;
+    juce::DropShadow(juce::Colour(0xff303030), shadowRadius,
+                     {0, -static_cast<int>(circleReduce - shadowRadius)})
+        .drawForPath(g, circle);
+
+    // circle
+    auto circleColour = juce::Colour(0xffcecec3);
+    g.setColour(circleColour);
+    g.fillPath(circle);
+
+    /*  TEXT */
+    auto textColour =
+        button.findColour(juce::ToggleButton::ColourIds::textColourId);
+    g.setColour(textColour);
+    auto fontSize = button.getHeight();
+    g.setFont(fontSize);
+
+    if (!button.isEnabled()) g.setOpacity(0.5f);
+
+    g.drawFittedText(button.getButtonText(),
+                     button.getLocalBounds()
+                         .withTrimmedLeft(juce::roundToInt(boxWidth) + 4)
+                         .withTrimmedRight(2),
+                     juce::Justification::centredLeft, 1);
 }
 
 juce::Font CustomLNF::getTextButtonFont(juce::TextButton &button,
                                         int buttonHeight)
 {
-    (void)button;
-    // TODO use imported font
-    return juce::Font("Fira Sans", static_cast<float>(buttonHeight),
-                      juce::Font::plain);
+    return juce::LookAndFeel_V4::getTextButtonFont(button, buttonHeight);
 }
 
 int CustomLNF::getTextButtonWidthToFitText(juce::TextButton &b,

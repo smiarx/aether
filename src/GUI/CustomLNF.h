@@ -11,6 +11,10 @@ class CustomLNF : public juce::LookAndFeel_V4
     static constexpr auto sliderMargin = 4.f;
     static constexpr auto sepWidth     = 1.2f;
     static constexpr auto subtitleSize = 18;
+
+    static constexpr auto textPointHeight = 13;
+
+    static juce::Typeface::Ptr defaultTypeface;
     CustomLNF();
 
     void drawRotarySlider(juce::Graphics &g, int x, int y, int width,
@@ -40,7 +44,9 @@ class CustomLNF : public juce::LookAndFeel_V4
 
     void drawComboBox(juce::Graphics &g, int, int, bool, int, int, int, int,
                       juce::ComboBox &) override;
-    void positionComboBoxText(juce::ComboBox &box, juce::Label &label) override;
+    virtual juce::Font getComboBoxFont(juce::ComboBox &) override;
+    virtual void positionComboBoxText(juce::ComboBox &box,
+                                      juce::Label &label) override;
 
   private:
     juce::Image noise{juce::Image::PixelFormat::SingleChannel, 40, 40, false};

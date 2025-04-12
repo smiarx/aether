@@ -1,4 +1,5 @@
 #include "PluginEditor.h"
+#include "BinaryData.h"
 
 PluginEditor::PluginEditor(PluginProcessor &p) :
     AudioProcessorEditor(&p), preset(p.getPresetManager()),
@@ -18,12 +19,23 @@ PluginEditor::PluginEditor(PluginProcessor &p) :
 
     setSize(600, 280);
 
-    title.setText(juce::String::fromUTF8(u8"æther"),
+    title.setText(juce::String::fromUTF8(titleString),
                   juce::dontSendNotification);
-    title.setFont(juce::Font(titleHeight, juce::Font::bold));
     title.setColour(juce::Label::textColourId, juce::Colours::black);
+    static auto titleTypeface = juce::Typeface::createSystemTypefaceFor(
+        BinaryData::NunitoSans150_ttf, BinaryData::NunitoSans150_ttfSize);
+    auto titleFont = juce::Font(titleTypeface).withHeight(headerHeight);
+    titleFont.setDefaultMinimumHorizontalScaleFactor(1.f);
+    titleFont.setExtraKerningFactor(0.3f);
+    title.setFont(titleFont);
+
+    // fix width
+    titleWidth =
+        titleFont.getStringWidthFloat(juce::String::fromUTF8(titleString));
+    titleWidth += 0.08f * titleWidth;
 
     tooltip.setColour(juce::Label::textColourId, juce::Colours::black);
+    tooltip.setFont(juce::Font(CustomLNF::defaultTypeface).withPointHeight(14));
 }
 
 PluginEditor::~PluginEditor()
@@ -46,8 +58,12 @@ void PluginEditor::resized()
     fb.flexDirection = juce::FlexBox::Direction::row;
 
     fbTitle.items.addArray({
-        juce::FlexItem(title).withFlex(0.45f).withMargin(0.f).withHeight(
-            headerHeight),
+        juce::FlexItem(title)
+            .withFlex(0.5f)
+            .withMargin(0.f)
+            .withHeight(headerHeight)
+            .withMaxWidth(titleWidth)
+            .withMinWidth(titleWidth),
         juce::FlexItem(tooltip).withFlex(1.f).withMargin(0.f).withHeight(
             headerHeight),
         juce::FlexItem(preset)
@@ -70,7 +86,8 @@ void PluginEditor::resized()
     });
 
     auto bounds = getLocalBounds();
-    bounds.reduce(CustomLNF::margin, CustomLNF::margin);
+    bounds.reduce(CustomLNF::margin, 0);
+    bounds.removeFromBottom(CustomLNF::margin);
     fbMain.performLayout(bounds);
 }
 

@@ -1,8 +1,11 @@
 #include "CustomLNF.h"
+#include "BinaryData.h"
 #include "DelaySection.h"
 #include "PluginEditor.h"
 #include "SpringsSection.h"
 #include "juce_core/juce_core.h"
+
+juce::Typeface::Ptr CustomLNF::defaultTypeface = nullptr;
 
 CustomLNF::CustomLNF()
 {
@@ -48,6 +51,12 @@ CustomLNF::CustomLNF()
             noise.setPixelAt(x, y, alpha);
         }
     }
+
+    if (defaultTypeface == nullptr) {
+        defaultTypeface = juce::Typeface::createSystemTypefaceFor(
+            BinaryData::Lexend300_ttf, BinaryData::Lexend300_ttfSize);
+    }
+    setDefaultSansSerifTypeface(defaultTypeface);
 }
 
 void CustomLNF::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
@@ -283,7 +292,7 @@ void CustomLNF::drawToggleButton(
         button.findColour(juce::ToggleButton::ColourIds::textColourId);
     g.setColour(textColour);
     auto fontSize = button.getHeight();
-    g.setFont(fontSize);
+    g.setFont(juce::Font(defaultTypeface).withHeight(fontSize));
 
     if (!button.isEnabled()) g.setOpacity(0.5f);
 
@@ -329,6 +338,11 @@ void CustomLNF::drawComboBox(juce::Graphics &, int, int, bool, int, int, int,
 {
 }
 
+juce::Font CustomLNF::getComboBoxFont(juce::ComboBox &)
+{
+    return juce::Font(defaultTypeface)
+        .withPointHeight(CustomLNF::textPointHeight);
+}
 void CustomLNF::positionComboBoxText(juce::ComboBox &box, juce::Label &label)
 {
     label.setBounds(0, 0, box.getWidth(), box.getHeight());

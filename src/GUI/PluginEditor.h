@@ -11,7 +11,9 @@
 class PluginEditor : public juce::AudioProcessorEditor
 {
   public:
-    static constexpr auto titleHeight  = 38.f;
+    static constexpr auto titleString = u8"ÆTHER";
+
+    static constexpr auto titleHeight  = 40.f;
     static constexpr auto titleMargin  = 5.f;
     static constexpr auto headerHeight = titleHeight + 2.f;
 
@@ -32,6 +34,7 @@ class PluginEditor : public juce::AudioProcessorEditor
   private:
     CustomLNF lookandfeel;
     juce::Label title;
+    int titleWidth;
     PresetComponent preset;
     ToolTip tooltip;
     DelaySection delaySection;

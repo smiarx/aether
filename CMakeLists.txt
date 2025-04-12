@@ -30,7 +30,9 @@ file(GLOB FACTORY_PRESETS src/Presets/factory/*)
 juce_add_binary_data(${PROJECT_NAME}_data
     SOURCES
     src/GUI/assets/spring.shader
-    ${FACTORY_PRESETS})
+    ${FACTORY_PRESETS}
+    src/GUI/fonts/NunitoSans-150.ttf
+    src/GUI/fonts/Lexend-300.ttf)
 
 
 target_sources(${PROJECT_NAME}

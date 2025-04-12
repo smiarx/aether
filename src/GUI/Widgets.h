@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CustomLNF.h"
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
@@ -8,8 +9,8 @@ using APVTS = juce::AudioProcessorValueTreeState;
 template <class Comp> class Widget : public juce::Component
 {
   public:
-    static constexpr auto textSize    = 13;
-    static constexpr auto labelMargin = -4;
+    static constexpr auto textSize    = CustomLNF::textPointHeight;
+    static constexpr auto labelMargin = 4;
     static constexpr auto labelSize   = textSize + labelMargin;
 
     template <class... Ts>
@@ -21,7 +22,8 @@ template <class Comp> class Widget : public juce::Component
         m_label.setText(name, juce::NotificationType::dontSendNotification);
         m_label.setJustificationType(juce::Justification::centred);
 
-        auto font = juce::Font(textSize);
+        auto font =
+            juce::Font(CustomLNF::defaultTypeface).withPointHeight(textSize);
         m_label.setFont(font);
     }
     virtual void resized() override

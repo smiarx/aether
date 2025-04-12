@@ -46,6 +46,7 @@ target_sources(${PROJECT_NAME}
         src/GUI/ToolTip.cpp
         src/GUI/Led.cpp
         src/GUI/PresetComponent.cpp
+        src/GUI/ArrowButton.cpp
         src/Presets/PresetManager.cpp
         submodules/dsp/processors/springs/Springs.cpp
         submodules/dsp/processors/tapedelay/TapeDelay.cpp

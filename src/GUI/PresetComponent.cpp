@@ -2,9 +2,8 @@
 #include <memory.h>
 
 PresetComponent::PresetComponent(PresetManager &presetManager) :
-    m_presetManager(presetManager),
-    m_prevButton("presetPrev", 0.5f, juce::Colours::black),
-    m_nextButton("presetNext", 0.f, juce::Colours::black)
+    m_presetManager(presetManager), m_prevButton("presetPrev", 0.5f),
+    m_nextButton("presetNext", 0.f)
 {
     updatePresetName();
 
@@ -35,8 +34,8 @@ void PresetComponent::paint(juce::Graphics &g)
 void PresetComponent::resized()
 {
     auto area = getLocalBounds();
-    m_prevButton.setBounds(area.removeFromLeft(30));
-    m_nextButton.setBounds(area.removeFromRight(30));
+    m_prevButton.setBounds(area.removeFromLeft(area.getHeight()));
+    m_nextButton.setBounds(area.removeFromRight(area.getHeight()));
     m_presetButton.setBounds(area);
 }
 

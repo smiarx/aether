@@ -69,7 +69,8 @@ void PluginEditor::resized()
         juce::FlexItem(preset)
             .withFlex(0.55f)
             .withMargin({0.f, 0.f, 5.f, 0.f})
-            .withHeight(headerHeight / 2),
+            .withHeight(headerHeight / 2)
+            .withMaxWidth(130),
     });
 
     fb.items.addArray({

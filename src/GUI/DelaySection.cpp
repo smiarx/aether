@@ -14,9 +14,7 @@ DelaySection::DelaySection(PluginProcessor &processor,
         Slider(apvts, std::get<0>(elements[6]), std::get<1>(elements[6])),
     },
     m_active("Delay"), m_activeAttachment(apvts, "delay_active", m_active),
-    m_mode(juce::Colour{0xffffef03}),
     m_modeAttachment(apvts, "delay_mode", m_mode.getComboBox()),
-    m_timeType(juce::Colour{0xffffef03}),
     m_timeTypeAttachment(apvts, "delay_time_type", m_timeType.getComboBox()),
     m_led(processor.getSwitchIndicator())
 {
@@ -102,6 +100,9 @@ DelaySection::DelaySection(PluginProcessor &processor,
     m_sliders[Saturation].setColour(juce::Slider::thumbColourId, smallColour);
     m_sliders[Drift].setColour(juce::Slider::thumbColourId, smallColour);
 
+    m_mode.setArrowsColour(mainColour);
+    m_timeType.setArrowsColour(mainColour);
+
     m_active.setColour(juce::ToggleButton::tickColourId, mainColour);
 
     setColour(PluginEditor::Separator, juce::Colour{0xff0f3d43});
@@ -119,7 +120,7 @@ void DelaySection::resized()
     titleFb.alignContent  = juce::FlexBox::AlignContent::center;
     titleFb.items         = {
         juce::FlexItem(m_active).withFlex(1.f),
-        juce::FlexItem(m_mode).withFlex(1.f),
+        juce::FlexItem(m_mode).withFlex(1.f).withMaxWidth(120),
     };
     titleFb.performLayout(titleBounds);
 
@@ -166,7 +167,9 @@ void DelaySection::resized()
         auto timeBounds     = m_sliders[Time].getBounds();
         auto timeTypeBounds = timeBounds.removeFromBottom(20);
         m_sliders[Time].setBounds(timeBounds);
-        m_timeType.setBounds(timeTypeBounds);
+        auto timeTypeWidth = juce::jmin(80, timeTypeBounds.getWidth());
+        m_timeType.setBounds(timeTypeBounds.withWidth(timeTypeWidth)
+                                 .withCentre(timeTypeBounds.getCentre()));
 
         constexpr auto ledSize = 15;
         auto ledBounds         = timeBounds.removeFromTop(ledSize);

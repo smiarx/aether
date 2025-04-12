@@ -1,10 +1,11 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "ArrowButton.h"
+
 class ComboBox : public juce::Component
 {
   public:
-    ComboBox(juce::Colour colour) :
-        m_left{"prev", 0.5, colour}, m_right{"next", 0, colour}
+    ComboBox() : m_left{"prev", 0.5}, m_right{"next", 0}
     {
         addAndMakeVisible(m_comboBox);
         addAndMakeVisible(m_left);
@@ -34,8 +35,14 @@ class ComboBox : public juce::Component
 
     juce::ComboBox &getComboBox() { return m_comboBox; }
 
+    void setArrowsColour(juce::Colour colour)
+    {
+        m_left.setColour(colour);
+        m_right.setColour(colour);
+    }
+
   private:
-    juce::ArrowButton m_left;
-    juce::ArrowButton m_right;
+    ArrowButton m_left;
+    ArrowButton m_right;
     juce::ComboBox m_comboBox;
 };

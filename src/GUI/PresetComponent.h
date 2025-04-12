@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Presets/PresetManager.h"
+#include "ArrowButton.h"
 #include <juce_gui_basics/juce_gui_basics.h>
 
 class PresetComponent : public juce::Component,
@@ -21,8 +22,8 @@ class PresetComponent : public juce::Component,
 
     PresetManager &m_presetManager;
 
-    juce::ArrowButton m_prevButton;
-    juce::ArrowButton m_nextButton;
+    ArrowButton m_prevButton;
+    ArrowButton m_nextButton;
     juce::TextButton m_presetButton;
 
     std::unique_ptr<juce::FileChooser> m_fileChooser;

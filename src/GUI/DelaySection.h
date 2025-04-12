@@ -52,6 +52,7 @@ class DelaySection : public juce::Component
     ComboBox m_mode;
     juce::AudioProcessorValueTreeState::ComboBoxAttachment m_modeAttachment;
 
+    bool m_useBeats{false};
     ComboBox m_timeType;
     juce::AudioProcessorValueTreeState::ComboBoxAttachment m_timeTypeAttachment;
 

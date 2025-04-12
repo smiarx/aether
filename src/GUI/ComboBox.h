@@ -11,18 +11,22 @@ class ComboBox : public juce::Component
         addAndMakeVisible(m_left);
         addAndMakeVisible(m_right);
 
+        m_comboBox.onChange = [this] {
+            defaultCallback();
+        };
+
         m_left.onClick = [this]() {
             const auto numItems = m_comboBox.getNumItems();
             m_comboBox.setSelectedId(
-                ((m_comboBox.getSelectedId() - 1) + numItems - 1) % numItems +
-                1);
+                ((m_selected - 1) + numItems - 1) % numItems + 1);
         };
         m_right.onClick = [this]() {
             const auto numItems = m_comboBox.getNumItems();
-            m_comboBox.setSelectedId(
-                ((m_comboBox.getSelectedId() - 1) + 1) % numItems + 1);
+            m_comboBox.setSelectedId(((m_selected - 1) + 1) % numItems + 1);
         };
     }
+
+    void defaultCallback() { m_selected = m_comboBox.getSelectedId(); }
 
     void resized() override
     {
@@ -45,4 +49,5 @@ class ComboBox : public juce::Component
     ArrowButton m_left;
     ArrowButton m_right;
     juce::ComboBox m_comboBox;
+    int m_selected{0};
 };

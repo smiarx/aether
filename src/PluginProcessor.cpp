@@ -27,7 +27,8 @@ PluginProcessor::createLayout()
             "delay_drywet", "Dry/Wet",
             juce::NormalisableRange<float>{0.f, 100.f, 0.1f}, 20.f),
         std::make_unique<juce::AudioParameterChoice>(
-            "delay_time_type", "Type", juce::StringArray{"secs", "beat"}, 0),
+            "delay_time_type", "Type", juce::StringArray{"seconds", "beats"},
+            0),
         std::make_unique<juce::AudioParameterFloat>(
             "delay_seconds", "Delay",
             juce::NormalisableRange<float>{0.01f, 2.f, 0.001f, 0.5f}, 0.12f),

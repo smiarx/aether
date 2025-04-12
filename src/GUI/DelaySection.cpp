@@ -27,6 +27,8 @@ DelaySection::DelaySection(PluginProcessor &processor,
         slider.getComponent().setPopupDisplayEnabled(true, false,
                                                      getTopLevelComponent());
     }
+    m_sliders[Time].getComponent().setPopupDisplayEnabled(false, false,
+                                                          nullptr);
 
     m_sliders[DryWet].getComponent().setTextValueSuffix("%");
     m_sliders[Time].getComponent().setTextValueSuffix("s");
@@ -67,25 +69,44 @@ DelaySection::DelaySection(PluginProcessor &processor,
     timeTypeComboBox.onChange = [this, &apvts]() {
         auto &component  = m_sliders[Time].getComponent();
         auto &attachment = m_sliders[Time].getAttachment();
+        auto &comboBox   = m_timeType.getComboBox();
+        auto selected    = comboBox.getSelectedId();
+
         juce::String id;
         juce::String suffix;
-        switch (m_timeType.getComboBox().getSelectedId()) {
+        switch (selected) {
         default:
         case 1:
-            id     = "delay_seconds";
-            suffix = "s";
+            id         = "delay_seconds";
+            suffix     = "s";
+            m_useBeats = false;
             break;
         case 2:
-            id     = "delay_beats";
-            suffix = "";
+            id         = "delay_beats";
+            suffix     = "";
+            m_useBeats = true;
             break;
         }
+        component.setTextValueSuffix(suffix);
         // me must do this weird trick because we cannot replace attachment
         attachment.~SliderAttachment();
         new (&attachment) juce::AudioProcessorValueTreeState::SliderAttachment(
             apvts, id, component);
+        m_timeType.defaultCallback();
+        m_sliders[Time].getSlider().onValueChange();
+    };
 
-        component.setTextValueSuffix(suffix);
+    m_sliders[Time].getSlider().onValueChange = [this] {
+        auto &timeTypeCombo = m_timeType.getComboBox();
+        auto &slider        = m_sliders[Time].getSlider();
+        auto value          = slider.getValue();
+        if (!m_useBeats && value < 1.f) {
+            timeTypeCombo.setText(juce::String(value * 1000) + "ms",
+                                  juce::NotificationType::dontSendNotification);
+        } else {
+            timeTypeCombo.setText(slider.getTextFromValue(value),
+                                  juce::NotificationType::dontSendNotification);
+        }
     };
 
     // set colours

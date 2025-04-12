@@ -27,7 +27,6 @@ DelaySection::DelaySection(PluginProcessor &processor,
         slider.getComponent().setPopupDisplayEnabled(true, false,
                                                      getTopLevelComponent());
     }
-    m_sliders[Time].setLabelVisible(false);
 
     m_sliders[DryWet].getComponent().setTextValueSuffix("%");
     m_sliders[Time].getComponent().setTextValueSuffix("s");
@@ -165,8 +164,8 @@ void DelaySection::resized()
     // place time type & led
     {
         auto timeBounds     = m_sliders[Time].getBounds();
-        auto timeTypeBounds = timeBounds.removeFromBottom(20);
-        m_sliders[Time].setBounds(timeBounds);
+        auto timeTypeBounds = m_sliders[Time].getLabel().getBounds();
+        timeTypeBounds.translate(timeBounds.getX(), timeBounds.getY());
         auto timeTypeWidth = juce::jmin(80, timeTypeBounds.getWidth());
         m_timeType.setBounds(timeTypeBounds.withWidth(timeTypeWidth)
                                  .withCentre(timeTypeBounds.getCentre()));

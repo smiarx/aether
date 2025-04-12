@@ -25,7 +25,7 @@ class DelaySection : public juce::Component
                                 _NumParams>
         elements{{
             {"delay_drywet", "Dry/Wet"},
-            {"delay_seconds", "Time"},
+            {"delay_seconds", ""},
             {"delay_feedback", "Feedback"},
             {"delay_cutoff_low", "Low Pass"},
             {"delay_cutoff_hi", "High Pass"},

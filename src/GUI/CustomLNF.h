@@ -7,7 +7,7 @@ class CustomLNF : public juce::LookAndFeel_V4
   public:
     static constexpr auto boxRoundSize = 10.f;
     static constexpr auto margin       = 8;
-    static constexpr auto padding      = 10;
+    static constexpr auto padding      = 14;
     static constexpr auto sliderMargin = 4.f;
     static constexpr auto sepWidth     = 1.2f;
     static constexpr auto subtitleSize = 18;

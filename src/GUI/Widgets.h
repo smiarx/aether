@@ -31,7 +31,8 @@ template <class Comp> class Widget : public juce::Component
         auto bounds = getLocalBounds();
 
         if (m_labelVisible) {
-            auto textBox = bounds.removeFromBottom(labelSize);
+            auto textBox = bounds.removeFromBottom(
+                labelMargin + m_label.getFont().getHeight());
             textBox.removeFromTop(labelMargin);
             m_label.setBounds(textBox);
         }
@@ -47,8 +48,10 @@ template <class Comp> class Widget : public juce::Component
             removeChildComponent(&m_label);
         }
     }
+    bool isLabelVisible() const { return m_labelVisible; }
 
     Comp &getComponent() { return m_component; }
+    auto &getLabel() { return m_label; }
 
     void setColour(int colourID, juce::Colour colour)
     {
@@ -94,9 +97,24 @@ class Slider : public Widget<juce::Slider>
             juce::Slider::TextEntryBoxPosition::NoTextBox, false, 0, 0);
     }
 
+    int getMaxHeight()
+    {
+        int removeFromHeight = 0;
+        if (isLabelVisible()) {
+            removeFromHeight = labelMargin + m_label.getFont().getHeight();
+        }
+        auto bounds = getLocalBounds();
+        auto size   = juce::jmin(bounds.getHeight() - removeFromHeight,
+                                 bounds.getWidth());
+        size += removeFromHeight;
+        return size;
+    }
+
     void resized() override
     {
-        if (getSlider().isRotary()) squareSized();
+        auto maxHeight = getMaxHeight();
+        auto bounds    = getBounds();
+        setBounds(bounds.withHeight(maxHeight).withCentre(bounds.getCentre()));
         Widget<juce::Slider>::resized();
     }
 

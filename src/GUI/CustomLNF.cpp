@@ -65,7 +65,6 @@ void CustomLNF::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
                                  const float rotaryEndAngle,
                                  juce::Slider &slider)
 {
-    (void)slider;
 
     auto fx      = static_cast<float>(x);
     auto fy      = static_cast<float>(y);
@@ -79,8 +78,10 @@ void CustomLNF::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
     auto posAngle =
         rotaryStartAngle + sliderPos * (rotaryEndAngle - rotaryStartAngle);
 
-    auto sliderColour = slider.findColour(juce::Slider::thumbColourId);
     auto trackColour  = slider.findColour(juce::Slider::trackColourId);
+    auto sliderColour = slider.isEnabled()
+                            ? slider.findColour(juce::Slider::thumbColourId)
+                            : trackColour;
 
     auto arcWidth = juce::jmin(6.f, juce::jmax(2.f, radius * 0.14f));
 

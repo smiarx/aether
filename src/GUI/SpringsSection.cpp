@@ -68,6 +68,13 @@ SpringsSection::SpringsSection(const PluginProcessor &processor,
     m_sliders[Tone].setColour(juce::Slider::thumbColourId, smallColour);
     m_sliders[Scatter].setColour(juce::Slider::thumbColourId, smallColour);
     m_sliders[Chaos].setColour(juce::Slider::thumbColourId, smallColour);
+
+    m_active.onClick = [this] {
+        bool active = m_active.getToggleState();
+        for (auto &slider : m_sliders) {
+            slider.setEnabled(active);
+        }
+    };
 }
 
 void SpringsSection::resized()

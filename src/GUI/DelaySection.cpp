@@ -109,6 +109,15 @@ DelaySection::DelaySection(PluginProcessor &processor,
         }
     };
 
+    m_active.onClick = [this]() {
+        bool active = m_active.getToggleState();
+        for (auto &slider : m_sliders) {
+            slider.setEnabled(active);
+        }
+        m_timeType.setEnabled(active);
+        m_mode.setEnabled(active);
+    };
+
     // set colours
     const auto mainColour  = juce::Colour(0xffffef03);
     const auto smallColour = juce::Colour(0xffffa301);

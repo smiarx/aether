@@ -152,20 +152,25 @@ DelaySection::DelaySection(PluginProcessor &processor,
 void DelaySection::resized()
 {
     auto bounds = getLocalBounds();
-    bounds.reduce(CustomLNF::padding, CustomLNF::padding);
 
-    auto titleBounds = bounds.removeFromTop(CustomLNF::subtitleSize);
+    constexpr auto margin = CustomLNF::padding / 2;
+    bounds.removeFromTop(margin);
+    bounds.removeFromLeft(margin);
+    bounds.removeFromRight(margin);
+
+    auto titleBounds =
+        bounds.removeFromTop(CustomLNF::subtitleSize + margin * 2);
 
     juce::FlexBox titleFb;
     titleFb.flexDirection = juce::FlexBox::Direction::row;
     titleFb.alignContent  = juce::FlexBox::AlignContent::center;
     titleFb.items         = {
-        juce::FlexItem(m_active).withFlex(1.f),
-        juce::FlexItem(m_mode).withFlex(1.f).withMaxWidth(120),
+        juce::FlexItem(m_active).withFlex(1.f).withMargin({margin}),
+        juce::FlexItem(m_mode).withFlex(1.f).withMaxWidth(120).withMargin(
+            {margin}),
     };
     titleFb.performLayout(titleBounds);
 
-    bounds.removeFromTop(CustomLNF::padding);
     juce::Grid grid;
     using Track = juce::Grid::TrackInfo;
     using Fr    = juce::Grid::Fr;
@@ -175,31 +180,20 @@ void DelaySection::resized()
                             Track(Fr(1))};
     grid.templateRows    = {Track(Fr(1)), Track(Fr(1)), Track(Fr(1))};
 
-    constexpr auto margin  = CustomLNF::sliderMargin;
-    constexpr auto margin2 = 2.f * margin;
-
     grid.items = {
         juce::GridItem(m_sliders[Time])
             .withArea(1, 1, Span(2), Span(2))
-            .withMargin({0, margin, margin, 0}),
+            .withMargin(margin),
         juce::GridItem(m_sliders[Feedback])
             .withArea(1, 3, Span(1), Span(2))
-            .withMargin({0, 0, margin, margin}),
+            .withMargin(margin),
         juce::GridItem(m_sliders[DryWet])
             .withArea(2, 3, Span(1), Span(2))
-            .withMargin({margin, 0, 0, margin}),
-        juce::GridItem(m_sliders[CutLow])
-            .withArea(3, 1)
-            .withMargin({margin2, margin, 0, 0}),
-        juce::GridItem(m_sliders[CutHi])
-            .withArea(3, 2)
-            .withMargin({margin2, margin, 0, 0}),
-        juce::GridItem(m_sliders[Saturation])
-            .withArea(3, 3)
-            .withMargin({margin2, margin, 0, 0}),
-        juce::GridItem(m_sliders[Drift])
-            .withArea(3, 4)
-            .withMargin({margin2, 0, 0, 0}),
+            .withMargin(margin),
+        juce::GridItem(m_sliders[CutLow]).withArea(3, 1).withMargin(margin),
+        juce::GridItem(m_sliders[CutHi]).withArea(3, 2).withMargin(margin),
+        juce::GridItem(m_sliders[Saturation]).withArea(3, 3).withMargin(margin),
+        juce::GridItem(m_sliders[Drift]).withArea(3, 4).withMargin(margin),
     };
     grid.performLayout(bounds);
 

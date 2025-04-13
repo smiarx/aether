@@ -96,19 +96,22 @@ SpringsSection::SpringsSection(const PluginProcessor &processor,
 void SpringsSection::resized()
 {
     auto bounds = getLocalBounds();
-    bounds.reduce(CustomLNF::padding, CustomLNF::padding);
 
-    auto titleBounds = bounds.removeFromTop(CustomLNF::subtitleSize);
+    constexpr auto margin = CustomLNF::padding / 2;
+    bounds.removeFromTop(margin);
+    bounds.removeFromLeft(margin);
+
+    auto titleBounds =
+        bounds.removeFromTop(CustomLNF::subtitleSize + 2 * margin);
 
     juce::FlexBox titleFb;
     titleFb.flexDirection = juce::FlexBox::Direction::row;
     titleFb.alignContent  = juce::FlexBox::AlignContent::center;
     titleFb.items         = {
-        juce::FlexItem(m_active).withFlex(1.f),
+        juce::FlexItem(m_active).withFlex(1.f).withMargin(margin),
     };
     titleFb.performLayout(titleBounds);
 
-    bounds.removeFromTop(CustomLNF::padding);
     juce::Grid grid;
     using Track = juce::Grid::TrackInfo;
     using Fr    = juce::Grid::Fr;
@@ -118,41 +121,31 @@ void SpringsSection::resized()
                             Track(Fr(1)), Track(Fr(2))};
     grid.templateRows    = {Track(Fr(1)), Track(Fr(1)), Track(Fr(1))};
 
-    constexpr auto margin = CustomLNF::sliderMargin;
-
     grid.items = {
         juce::GridItem(m_sliders[Decay])
             .withArea(1, 1, Span(2), Span(2))
-            .withMargin({0, margin, margin, 0}),
+            .withMargin({margin}),
         juce::GridItem(m_sliders[Length])
             .withArea(1, 3, Span(1), Span(2))
-            .withMargin({0, margin, margin, 0}),
+            .withMargin({margin}),
         juce::GridItem(m_sliders[Damp])
             .withArea(2, 3, Span(1), Span(2))
-            .withMargin({margin, margin, 0, 0}),
-        juce::GridItem(m_sliders[Shape])
-            .withArea(3, 1)
-            .withMargin({margin, margin, 0, 0}),
-        juce::GridItem(m_sliders[Scatter])
-            .withArea(3, 2)
-            .withMargin({margin, margin, 0, 0}),
-        juce::GridItem(m_sliders[Chaos])
-            .withArea(3, 3)
-            .withMargin({margin, margin, 0, 0}),
-        juce::GridItem(m_sliders[Tone])
-            .withArea(3, 4)
-            .withMargin({margin, margin, 0, 0}),
-        juce::GridItem(m_springsGL)
-            .withArea(1, 5)
-            .withMargin({0, 0, margin * 2, margin}),
-        juce::GridItem(m_sliders[Width])
-            .withArea(2, 5)
-            .withMargin({margin, 0, margin, margin}),
-        juce::GridItem(m_sliders[DryWet])
-            .withArea(3, 5)
-            .withMargin({margin, 0, 0, margin}),
+            .withMargin({margin}),
+        juce::GridItem(m_sliders[Shape]).withArea(3, 1).withMargin({margin}),
+        juce::GridItem(m_sliders[Scatter]).withArea(3, 2).withMargin({margin}),
+        juce::GridItem(m_sliders[Chaos]).withArea(3, 3).withMargin({margin}),
+        juce::GridItem(m_sliders[Tone]).withArea(3, 4).withMargin({margin}),
+        juce::GridItem(m_springsGL).withArea(1, 5).withMargin({margin}),
+        juce::GridItem(m_sliders[Width]).withArea(2, 5).withMargin({margin}),
+        juce::GridItem(m_sliders[DryWet]).withArea(3, 5).withMargin({margin}),
     };
     grid.performLayout(bounds);
+
+    // extend spring gl
+    auto glBounds = m_springsGL.getBounds();
+    glBounds.translate(0, -headerHeight);
+    glBounds.setHeight(glBounds.getHeight() + headerHeight);
+    m_springsGL.setBounds(glBounds);
 }
 
 void SpringsSection::paint(juce::Graphics &g)

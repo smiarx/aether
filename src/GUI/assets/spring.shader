@@ -44,7 +44,7 @@ void main()
     vec2 stBorder =
         st; //(2.* gl_FragCoord.xy - u_resolution) / u_resolution.xx;
 
-    float springWidth  = 1.726;
+    float springWidth  = 1.426;
     float springFreq   = 0.7 / sqrt(u_resolution.y);
     float springHeight = 0.8;
 

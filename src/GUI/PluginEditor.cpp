@@ -8,7 +8,7 @@ PluginEditor::PluginEditor(PluginProcessor &p) :
     AudioProcessorEditor(&p), preset(p.getPresetManager()),
     delaySection{p, p.getAPVTS()}, springsSection{p, p.getAPVTS()}
 {
-    setResizable(true, true);
+    setResizable(true, false);
 
     setInterceptsMouseClicks(false, true);
     juce::Desktop::getInstance().addGlobalMouseListener(this);
@@ -20,7 +20,9 @@ PluginEditor::PluginEditor(PluginProcessor &p) :
     addAndMakeVisible(delaySection);
     addAndMakeVisible(springsSection);
 
-    setSize(600, 280);
+    setSize(940, 480);
+    setResizeLimits(600, 400, std::numeric_limits<int>::max(),
+                    std::numeric_limits<int>::max());
 
     title.setText(juce::String::fromUTF8(titleString),
                   juce::dontSendNotification);

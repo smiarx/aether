@@ -129,6 +129,15 @@ class Slider : public Widget<juce::Slider>
             true, 100, textSize);
     }
 
+    void setValueAsLabel()
+    {
+        m_component.onValueChange = [this] {
+            m_label.setText(
+                m_component.getTextFromValue(m_component.getValue()),
+                juce::NotificationType::dontSendNotification);
+        };
+    }
+
     juce::Slider &getSlider() { return getComponent(); }
     APVTS::SliderAttachment &getAttachment() { return m_attachment; }
 

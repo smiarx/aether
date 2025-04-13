@@ -72,6 +72,8 @@ SpringsSection::SpringsSection(const PluginProcessor &processor,
     m_sliders[Scatter].setColour(juce::Slider::thumbColourId, smallColour);
     m_sliders[Chaos].setColour(juce::Slider::thumbColourId, smallColour);
 
+    m_sliders[Decay].setValueAsLabel();
+
     m_active.onClick = [this] {
         bool active = m_active.getToggleState();
         for (auto &slider : m_sliders) {
@@ -108,10 +110,10 @@ void SpringsSection::resized()
     constexpr auto margin = CustomLNF::sliderMargin;
 
     grid.items = {
-        juce::GridItem(m_sliders[Length])
+        juce::GridItem(m_sliders[Decay])
             .withArea(1, 1, Span(2), Span(2))
             .withMargin({0, margin, margin, 0}),
-        juce::GridItem(m_sliders[Decay])
+        juce::GridItem(m_sliders[Length])
             .withArea(1, 3, Span(1), Span(2))
             .withMargin({0, margin, margin, 0}),
         juce::GridItem(m_sliders[Damp])

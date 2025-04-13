@@ -47,7 +47,7 @@ class DelaySection : public juce::Component
     virtual void paint(juce::Graphics &g) override;
 
   private:
-    Slider m_sliders[elements.size()];
+    SliderWithLabel m_sliders[elements.size()];
 
     juce::ToggleButton m_active;
     juce::AudioProcessorValueTreeState::ButtonAttachment m_activeAttachment;

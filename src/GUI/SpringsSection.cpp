@@ -11,15 +11,24 @@ static const auto smallColour = juce::Colour(0xfff130f1);
 SpringsSection::SpringsSection(const PluginProcessor &processor,
                                juce::AudioProcessorValueTreeState &apvts) :
     m_sliders{
-        Slider(apvts, std::get<0>(elements[0]), std::get<1>(elements[0])),
-        Slider(apvts, std::get<0>(elements[1]), std::get<1>(elements[1])),
-        Slider(apvts, std::get<0>(elements[2]), std::get<1>(elements[2])),
-        Slider(apvts, std::get<0>(elements[3]), std::get<1>(elements[3])),
-        Slider(apvts, std::get<0>(elements[4]), std::get<1>(elements[4])),
-        Slider(apvts, std::get<0>(elements[5]), std::get<1>(elements[5])),
-        Slider(apvts, std::get<0>(elements[6]), std::get<1>(elements[6])),
-        Slider(apvts, std::get<0>(elements[7]), std::get<1>(elements[7])),
-        Slider(apvts, std::get<0>(elements[8]), std::get<1>(elements[8])),
+        SliderWithLabel(apvts, std::get<0>(elements[0]),
+                        std::get<1>(elements[0])),
+        SliderWithLabel(apvts, std::get<0>(elements[1]),
+                        std::get<1>(elements[1])),
+        SliderWithLabel(apvts, std::get<0>(elements[2]),
+                        std::get<1>(elements[2])),
+        SliderWithLabel(apvts, std::get<0>(elements[3]),
+                        std::get<1>(elements[3])),
+        SliderWithLabel(apvts, std::get<0>(elements[4]),
+                        std::get<1>(elements[4])),
+        SliderWithLabel(apvts, std::get<0>(elements[5]),
+                        std::get<1>(elements[5])),
+        SliderWithLabel(apvts, std::get<0>(elements[6]),
+                        std::get<1>(elements[6])),
+        SliderWithLabel(apvts, std::get<0>(elements[7]),
+                        std::get<1>(elements[7])),
+        SliderWithLabel(apvts, std::get<0>(elements[8]),
+                        std::get<1>(elements[8])),
     },
     m_active("Reverb"), m_activeAttachment(apvts, "springs_active", m_active),
     m_springsGL(processor)
@@ -33,6 +42,8 @@ SpringsSection::SpringsSection(const PluginProcessor &processor,
         slider.getComponent().setPopupDisplayEnabled(true, false,
                                                      getTopLevelComponent());
     }
+
+    m_sliders[Shape].getComponent().setPolarity(Slider::Bipolar);
 
     m_sliders[DryWet].getComponent().setTextValueSuffix("%");
     m_sliders[Width].getComponent().setTextValueSuffix("%");

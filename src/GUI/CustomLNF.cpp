@@ -2,6 +2,7 @@
 #include "BinaryData.h"
 #include "DelaySection.h"
 #include "PluginEditor.h"
+#include "Slider.h"
 #include "SpringsSection.h"
 #include "juce_core/juce_core.h"
 
@@ -80,6 +81,7 @@ void CustomLNF::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
 
     auto posAngle =
         rotaryStartAngle + sliderPos * (rotaryEndAngle - rotaryStartAngle);
+    auto middleAngle = (rotaryStartAngle + rotaryEndAngle) * 0.5f;
 
     auto trackColour  = slider.findColour(juce::Slider::trackColourId);
     auto sliderColour = slider.isEnabled()
@@ -166,33 +168,60 @@ void CustomLNF::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
     g.restoreState();
 
     /* INDICATOR ARC */
+    // get polarity of slider
+    Slider::Polarity polarity = Slider::Unipolar;
+    Slider *aetherSlider;
+    if ((aetherSlider = dynamic_cast<Slider *>(&slider))) {
+        polarity = aetherSlider->getPolarity();
+    }
+    auto lowColour  = polarity == Slider::Unipolar ? sliderColour : trackColour;
+    auto highColour = polarity == Slider::Unipolar ? trackColour : sliderColour;
+    auto stopAngle  = posAngle;
+    auto endAngle   = rotaryEndAngle;
+
+    if (polarity == Slider::Bipolar) {
+        if (stopAngle > middleAngle) {
+            stopAngle = middleAngle;
+            endAngle  = posAngle;
+        } else {
+            endAngle = middleAngle;
+        }
+    }
+
+    auto strokeType = juce::PathStrokeType(
+        arcWidth, juce::PathStrokeType::curved, juce::PathStrokeType::square);
+
     auto arcRadius = radius - arcWidth / 2.f;
     juce::Path arcActive;
     arcActive.addCentredArc(centre.getX(), centre.getY(), arcRadius, arcRadius,
-                            0.f, rotaryStartAngle, posAngle, true);
+                            0.f, rotaryStartAngle, stopAngle, true);
 
     juce::ColourGradient arcGradient;
     arcGradient.point1 = rectangle.getBottomLeft();
     arcGradient.point2 = rectangle.getTopLeft();
 
-    arcGradient.addColour(0.f, sliderColour.darker(0.2));
-    arcGradient.addColour(1.f, sliderColour.brighter(0.2));
+    arcGradient.addColour(0.f, lowColour.darker(0.2));
+    arcGradient.addColour(1.f, lowColour.brighter(0.2));
     g.setGradientFill(arcGradient);
-    g.strokePath(arcActive,
-                 juce::PathStrokeType(arcWidth, juce::PathStrokeType::curved,
-                                      juce::PathStrokeType::square));
+    g.strokePath(arcActive, strokeType);
+
+    if (polarity == Slider::Bipolar) {
+        juce::Path arcBipolar;
+        arcBipolar.addCentredArc(centre.getX(), centre.getY(), arcRadius,
+                                 arcRadius, 0.f, endAngle, rotaryEndAngle,
+                                 true);
+        g.strokePath(arcBipolar, strokeType);
+    }
 
     juce::Path arcInactive;
     arcInactive.addCentredArc(centre.getX(), centre.getY(), arcRadius,
-                              arcRadius, 0.f, posAngle, rotaryEndAngle, true);
+                              arcRadius, 0.f, stopAngle, endAngle, true);
 
     arcGradient.clearColours();
-    arcGradient.addColour(0.f, trackColour.darker(0.2));
-    arcGradient.addColour(1.f, trackColour.brighter(0.2));
+    arcGradient.addColour(0.f, highColour.darker(0.2));
+    arcGradient.addColour(1.f, highColour.brighter(0.2));
     g.setGradientFill(arcGradient);
-    g.strokePath(arcInactive,
-                 juce::PathStrokeType(arcWidth, juce::PathStrokeType::curved,
-                                      juce::PathStrokeType::square));
+    g.strokePath(arcInactive, strokeType);
 
     if (radius > 120.f) {
         auto insideRadius = dialRadius * 0.76f;

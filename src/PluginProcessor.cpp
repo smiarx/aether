@@ -48,7 +48,7 @@ PluginProcessor::createLayout()
             juce::NormalisableRange{20.f, 20000.f, 0.1f, 0.34f}, 20000.f),
         std::make_unique<juce::AudioParameterFloat>(
             "delay_cutoff_hi", "Cut High",
-            juce::NormalisableRange{20.f, 20000.f, 0.1f, 0.34f}, 20.f),
+            juce::NormalisableRange{20.f, 20000.f, 0.1f, 0.2f}, 20.f),
         std::make_unique<juce::AudioParameterFloat>(
             "delay_saturation", "saturation", -40.f, 15.f, -40.f),
         std::make_unique<juce::AudioParameterFloat>(

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CustomLNF.h"
+#include "Slider.h"
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
@@ -88,11 +89,12 @@ template <class Comp> class Widget : public juce::Component
     bool m_labelVisible{true};
 };
 
-class Slider : public Widget<juce::Slider>
+class SliderWithLabel : public Widget<Slider>
 {
   public:
-    Slider(APVTS &apvts, const juce::String &id, const juce::String &name) :
-        Widget<juce::Slider>(name), m_attachment(apvts, id, m_component)
+    SliderWithLabel(APVTS &apvts, const juce::String &id,
+                    const juce::String &name) :
+        Widget<Slider>(name), m_attachment(apvts, id, m_component)
     {
         m_component.setSliderStyle(
             juce::Slider::SliderStyle::RotaryVerticalDrag);
@@ -118,7 +120,7 @@ class Slider : public Widget<juce::Slider>
         auto maxHeight = getMaxHeight();
         auto bounds    = getBounds();
         setBounds(bounds.withHeight(maxHeight).withCentre(bounds.getCentre()));
-        Widget<juce::Slider>::resized();
+        Widget<Slider>::resized();
     }
 
     void setTextBoxVisible(bool textBoxVisible)

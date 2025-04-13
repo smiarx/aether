@@ -8,13 +8,20 @@ namespace aether
 DelaySection::DelaySection(PluginProcessor &processor,
                            juce::AudioProcessorValueTreeState &apvts) :
     m_sliders{
-        Slider(apvts, std::get<0>(elements[0]), std::get<1>(elements[0])),
-        Slider(apvts, std::get<0>(elements[1]), std::get<1>(elements[1])),
-        Slider(apvts, std::get<0>(elements[2]), std::get<1>(elements[2])),
-        Slider(apvts, std::get<0>(elements[3]), std::get<1>(elements[3])),
-        Slider(apvts, std::get<0>(elements[4]), std::get<1>(elements[4])),
-        Slider(apvts, std::get<0>(elements[5]), std::get<1>(elements[5])),
-        Slider(apvts, std::get<0>(elements[6]), std::get<1>(elements[6])),
+        SliderWithLabel(apvts, std::get<0>(elements[0]),
+                        std::get<1>(elements[0])),
+        SliderWithLabel(apvts, std::get<0>(elements[1]),
+                        std::get<1>(elements[1])),
+        SliderWithLabel(apvts, std::get<0>(elements[2]),
+                        std::get<1>(elements[2])),
+        SliderWithLabel(apvts, std::get<0>(elements[3]),
+                        std::get<1>(elements[3])),
+        SliderWithLabel(apvts, std::get<0>(elements[4]),
+                        std::get<1>(elements[4])),
+        SliderWithLabel(apvts, std::get<0>(elements[5]),
+                        std::get<1>(elements[5])),
+        SliderWithLabel(apvts, std::get<0>(elements[6]),
+                        std::get<1>(elements[6])),
     },
     m_active("Delay"), m_activeAttachment(apvts, "delay_active", m_active),
     m_modeAttachment(apvts, "delay_mode", m_mode.getComboBox()),
@@ -32,6 +39,8 @@ DelaySection::DelaySection(PluginProcessor &processor,
     }
     m_sliders[Time].getComponent().setPopupDisplayEnabled(false, false,
                                                           nullptr);
+
+    m_sliders[CutHi].getComponent().setPolarity(Slider::UnipolarReversed);
 
     m_sliders[DryWet].getComponent().setTextValueSuffix("%");
     m_sliders[Time].getComponent().setTextValueSuffix("s");

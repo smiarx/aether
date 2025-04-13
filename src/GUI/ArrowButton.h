@@ -2,6 +2,9 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+namespace aether
+{
+
 class ArrowButton : public juce::Button
 {
   public:
@@ -25,3 +28,5 @@ class ArrowButton : public juce::Button
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ArrowButton)
 };
+
+} // namespace aether

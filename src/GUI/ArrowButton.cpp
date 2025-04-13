@@ -1,5 +1,8 @@
 #include "ArrowButton.h"
 
+namespace aether
+{
+
 ArrowButton::ArrowButton(const juce::String &name,
                          float arrowDirectionInRadians) : juce::Button(name)
 {
@@ -34,3 +37,5 @@ void ArrowButton::paintButton(juce::Graphics &g,
     g.setColour(isEnabled() ? colour : juce::Colour(0xff808080));
     g.fillPath(p);
 }
+
+} // namespace aether

@@ -4,6 +4,9 @@
 #include "ArrowButton.h"
 #include <juce_gui_basics/juce_gui_basics.h>
 
+namespace aether
+{
+
 class PresetComponent : public juce::Component,
                         public juce::Button::Listener,
                         public PresetManager::Listener
@@ -30,3 +33,5 @@ class PresetComponent : public juce::Component,
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PresetComponent)
 };
+
+} // namespace aether

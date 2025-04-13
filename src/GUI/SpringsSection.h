@@ -6,6 +6,9 @@
 #include "SpringsGL.h"
 #include "Widgets.h"
 
+namespace aether
+{
+
 class SpringsSection : public juce::Component
 {
     enum {
@@ -56,3 +59,5 @@ class SpringsSection : public juce::Component
 
     SpringsGL m_springsGL;
 };
+
+} // namespace aether

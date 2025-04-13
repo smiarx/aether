@@ -2,6 +2,9 @@
 #include "CustomLNF.h"
 #include "PluginEditor.h"
 
+namespace aether
+{
+
 static const auto mainColour  = juce::Colour(0xff8fe7f3);
 static const auto smallColour = juce::Colour(0xfff130f1);
 
@@ -167,3 +170,5 @@ void SpringsSection::paint(juce::Graphics &g)
     g.fillRect(bounds.getX(), ySep - CustomLNF::sepWidth / 2.f, yWidth,
                CustomLNF::sepWidth);
 }
+
+} // namespace aether

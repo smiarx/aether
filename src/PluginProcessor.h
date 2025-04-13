@@ -9,6 +9,9 @@
 #include "Springs.h"
 #include "TapeDelay.h"
 
+namespace aether
+{
+
 //==============================================================================
 class PluginProcessor final : public juce::AudioProcessor,
                               juce::AudioProcessorParameter::Listener
@@ -138,3 +141,4 @@ class PluginProcessor final : public juce::AudioProcessor,
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginProcessor)
 };
+} // namespace aether

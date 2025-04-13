@@ -2,6 +2,9 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 
+namespace aether
+{
+
 class PresetManager : juce::ValueTree::Listener
 {
   public:
@@ -75,3 +78,5 @@ class PresetManager : juce::ValueTree::Listener
     valueTreePropertyChanged(juce::ValueTree &treeWhosePropertyHasChanged,
                              const juce::Identifier &property) override;
 };
+
+} // namespace aether

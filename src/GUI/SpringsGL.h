@@ -4,6 +4,9 @@
 
 #include "../PluginProcessor.h"
 
+namespace aether
+{
+
 class SpringsGL : public juce::Component,
                   public juce::OpenGLRenderer,
                   public juce::Timer
@@ -110,3 +113,5 @@ class SpringsGL : public juce::Component,
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SpringsGL)
 };
+
+} // namespace aether

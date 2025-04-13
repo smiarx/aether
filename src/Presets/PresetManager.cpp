@@ -1,6 +1,9 @@
 #include "PresetManager.h"
 #include "BinaryData.h"
 
+namespace aether
+{
+
 const std::array<PresetManager::factoryPreset_t, PresetManager::nFactoryPreset>
     PresetManager::factoryPresets = {
         {{"test", BinaryData::test_preset, BinaryData::test_presetSize}}};
@@ -118,3 +121,5 @@ juce::String PresetManager::getPresetName(size_t id) const
     }
     return "";
 }
+
+} // namespace aether

@@ -2,6 +2,9 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+namespace aether
+{
+
 class CustomLNF : public juce::LookAndFeel_V4
 {
   public:
@@ -51,3 +54,5 @@ class CustomLNF : public juce::LookAndFeel_V4
   private:
     juce::Image noise{juce::Image::PixelFormat::SingleChannel, 40, 40, false};
 };
+
+} // namespace aether

@@ -1,6 +1,9 @@
 #include "PresetComponent.h"
 #include <memory.h>
 
+namespace aether
+{
+
 PresetComponent::PresetComponent(PresetManager &presetManager) :
     m_presetManager(presetManager), m_prevButton("presetPrev", 0.5f),
     m_nextButton("presetNext", 0.f)
@@ -122,3 +125,5 @@ void PresetComponent::presetManagerChanged(PresetManager & /*presetManager*/)
 {
     updatePresetName();
 }
+
+} // namespace aether

@@ -2,6 +2,9 @@
 #include "CustomLNF.h"
 #include "PluginEditor.h"
 
+namespace aether
+{
+
 DelaySection::DelaySection(PluginProcessor &processor,
                            juce::AudioProcessorValueTreeState &apvts) :
     m_sliders{
@@ -226,3 +229,5 @@ void DelaySection::paint(juce::Graphics &g)
     g.fillRect(bounds.getX(), ySep - CustomLNF::sepWidth / 2.f,
                bounds.getWidth(), CustomLNF::sepWidth);
 }
+
+} // namespace aether

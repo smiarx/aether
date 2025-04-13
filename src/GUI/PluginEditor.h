@@ -8,6 +8,9 @@
 #include "SpringsSection.h"
 #include "ToolTip.h"
 
+namespace aether
+{
+
 class PluginEditor : public juce::AudioProcessorEditor
 {
   public:
@@ -44,3 +47,5 @@ class PluginEditor : public juce::AudioProcessorEditor
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginEditor)
 };
+
+} // namespace aether

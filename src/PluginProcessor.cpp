@@ -1,6 +1,9 @@
 #include "PluginProcessor.h"
 #include "GUI/PluginEditor.h"
 
+namespace aether
+{
+
 //==============================================================================
 PluginProcessor::PluginProcessor() :
     AudioProcessor(
@@ -354,12 +357,6 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
 }
 
 //==============================================================================
-juce::AudioProcessor *JUCE_CALLTYPE createPluginFilter()
-{
-    return new PluginProcessor();
-}
-
-//==============================================================================
 void PluginProcessor::parameterValueChanged(int id, float newValue)
 {
     auto *ptr = static_cast<juce::RangedAudioParameter *>(getParameters()[id]);
@@ -374,4 +371,12 @@ void PluginProcessor::addProcessorAsListener(
     jassert(param != nullptr);
     param->addListener(this);
     parameterValueChanged(param->getParameterIndex(), param->getValue());
+}
+
+} // namespace aether
+
+//==============================================================================
+juce::AudioProcessor *JUCE_CALLTYPE createPluginFilter()
+{
+    return new aether::PluginProcessor();
 }

@@ -1,6 +1,9 @@
 #include "PluginEditor.h"
 #include "BinaryData.h"
 
+namespace aether
+{
+
 PluginEditor::PluginEditor(PluginProcessor &p) :
     AudioProcessorEditor(&p), preset(p.getPresetManager()),
     delaySection{p, p.getAPVTS()}, springsSection{p, p.getAPVTS()}
@@ -107,3 +110,5 @@ void PluginEditor::mouseMove(const juce::MouseEvent &event)
 
     tooltip.setFromComponent(underMouse);
 }
+
+} // namespace aether

@@ -1,6 +1,9 @@
 #include "SpringsGL.h"
 #include "BinaryData.h"
 
+namespace aether
+{
+
 static constexpr auto refreshTimeMs = 40;
 
 SpringsGL::SpringsGL(const PluginProcessor &processor)
@@ -164,3 +167,5 @@ void SpringsGL::createShaders()
     } else {
     }
 }
+
+} // namespace aether

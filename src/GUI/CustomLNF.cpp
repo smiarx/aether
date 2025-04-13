@@ -5,6 +5,9 @@
 #include "SpringsSection.h"
 #include "juce_core/juce_core.h"
 
+namespace aether
+{
+
 juce::Typeface::Ptr CustomLNF::defaultTypeface = nullptr;
 
 CustomLNF::CustomLNF()
@@ -351,3 +354,5 @@ void CustomLNF::positionComboBoxText(juce::ComboBox &box, juce::Label &label)
 
     label.setFont(getComboBoxFont(box));
 }
+
+} // namespace aether

@@ -8,6 +8,9 @@
 #include "Led.h"
 #include "Widgets.h"
 
+namespace aether
+{
+
 class DelaySection : public juce::Component
 {
     enum {
@@ -58,3 +61,5 @@ class DelaySection : public juce::Component
 
     Led m_led;
 };
+
+} // namespace aether

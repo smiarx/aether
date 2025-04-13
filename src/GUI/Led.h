@@ -1,6 +1,9 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
+namespace aether
+{
+
 class Led : public juce::Component, private juce::Timer
 {
   public:
@@ -22,3 +25,5 @@ class Led : public juce::Component, private juce::Timer
     int m_counter{0};
     float m_intensity{0.f};
 };
+
+} // namespace aether

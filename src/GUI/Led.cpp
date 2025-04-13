@@ -1,5 +1,8 @@
 #include "Led.h"
 
+namespace aether
+{
+
 void Led::timerCallback()
 {
     bool ledOn = true;
@@ -46,3 +49,5 @@ void Led::paint(juce::Graphics &g)
                        boundsLight.getTopRight(), true});
     g.fillEllipse(boundsLight);
 }
+
+} // namespace aether

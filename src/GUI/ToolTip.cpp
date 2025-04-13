@@ -1,5 +1,8 @@
 #include "ToolTip.h"
 
+namespace aether
+{
+
 void ToolTip::setFromComponent(juce::Component *component)
 {
     if (component == m_component) return;
@@ -18,3 +21,5 @@ void ToolTip::setFromComponent(juce::Component *component)
 
     setText(toolTip, juce::dontSendNotification);
 }
+
+} // namespace aether

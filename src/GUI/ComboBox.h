@@ -2,6 +2,9 @@
 
 #include "ArrowButton.h"
 
+namespace aether
+{
+
 class ComboBox : public juce::Component
 {
   public:
@@ -51,3 +54,5 @@ class ComboBox : public juce::Component
     juce::ComboBox m_comboBox;
     int m_selected{0};
 };
+
+} // namespace aether

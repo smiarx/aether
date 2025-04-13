@@ -4,6 +4,9 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
+namespace aether
+{
+
 using APVTS = juce::AudioProcessorValueTreeState;
 
 template <class Comp> class Widget : public juce::Component
@@ -132,3 +135,5 @@ class Slider : public Widget<juce::Slider>
   private:
     APVTS::SliderAttachment m_attachment;
 };
+
+} // namespace aether

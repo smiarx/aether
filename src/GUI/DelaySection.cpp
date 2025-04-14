@@ -39,6 +39,7 @@ DelaySection::DelaySection(PluginProcessor &processor,
     }
     m_sliders[Time].getComponent().setPopupDisplayEnabled(false, false,
                                                           nullptr);
+    m_sliders[Time].getComponent().setHasOutline(true);
 
     m_sliders[CutHi].getComponent().setPolarity(Slider::UnipolarReversed);
 

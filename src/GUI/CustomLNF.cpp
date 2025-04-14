@@ -99,13 +99,17 @@ void CustomLNF::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
 
     auto arcWidth = juce::jmin(6.f, juce::jmax(2.f, radius * 0.14f));
 
-    /* INDICATOR ARC */
-    // get polarity of slider
+    // parameters
     Slider::Polarity polarity = Slider::Unipolar;
+    bool hasOutline           = false;
     Slider *aetherSlider;
     if ((aetherSlider = dynamic_cast<Slider *>(&slider))) {
-        polarity = aetherSlider->getPolarity();
+        polarity   = aetherSlider->getPolarity();
+        hasOutline = aetherSlider->getHasOutline();
     }
+
+    /* INDICATOR ARC */
+    // get polarity of slider
     auto lowColour  = polarity == Slider::Unipolar ? sliderColour : trackColour;
     auto highColour = polarity == Slider::Unipolar ? trackColour : sliderColour;
     auto stopAngle  = posAngle;
@@ -157,9 +161,9 @@ void CustomLNF::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
 
     /* DIAL */
     constexpr auto outlinePercent = 0.24f;
-    auto outlineSize = radius < 50.f ? 0.f : radius * outlinePercent;
-    auto dialMargin  = arcWidth * 2.3f + outlineSize * 0.5f;
-    auto dialRadius  = radius - dialMargin;
+    auto outlineSize              = hasOutline ? radius * outlinePercent : 0.f;
+    auto dialMargin               = arcWidth * 2.3f + outlineSize * 0.5f;
+    auto dialRadius               = radius - dialMargin;
     auto dialRect = juce::Rectangle<float>(2.f * dialRadius, 2.f * dialRadius)
                         .withCentre(centre);
     juce::Path dial;

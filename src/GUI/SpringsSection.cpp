@@ -83,6 +83,7 @@ SpringsSection::SpringsSection(const PluginProcessor &processor,
     m_sliders[Chaos].setColour(juce::Slider::thumbColourId, mainColour);
 
     m_sliders[Decay].setValueAsLabel();
+    m_sliders[Decay].getComponent().setHasOutline(true);
 
     m_active.onClick = [this] {
         bool active = m_active.getToggleState();

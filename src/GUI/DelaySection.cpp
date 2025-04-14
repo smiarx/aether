@@ -131,22 +131,19 @@ DelaySection::DelaySection(PluginProcessor &processor,
     };
 
     // set colours
-    const auto mainColour  = juce::Colour(0xffffef03);
-    const auto smallColour = juce::Colour(0xffffa301);
+    const auto mainColour = juce::Colour(0xff609ccd);
     m_sliders[DryWet].setColour(juce::Slider::thumbColourId, mainColour);
     m_sliders[Time].setColour(juce::Slider::thumbColourId, mainColour);
     m_sliders[Feedback].setColour(juce::Slider::thumbColourId, mainColour);
-    m_sliders[CutLow].setColour(juce::Slider::thumbColourId, smallColour);
-    m_sliders[CutHi].setColour(juce::Slider::thumbColourId, smallColour);
-    m_sliders[Saturation].setColour(juce::Slider::thumbColourId, smallColour);
-    m_sliders[Drift].setColour(juce::Slider::thumbColourId, smallColour);
+    m_sliders[CutLow].setColour(juce::Slider::thumbColourId, mainColour);
+    m_sliders[CutHi].setColour(juce::Slider::thumbColourId, mainColour);
+    m_sliders[Saturation].setColour(juce::Slider::thumbColourId, mainColour);
+    m_sliders[Drift].setColour(juce::Slider::thumbColourId, mainColour);
 
     m_mode.setArrowsColour(mainColour);
     m_timeType.setArrowsColour(mainColour);
 
     m_active.setColour(juce::ToggleButton::tickColourId, mainColour);
-
-    setColour(PluginEditor::Separator, juce::Colour{0xff0f3d43});
 }
 
 void DelaySection::resized()
@@ -197,6 +194,22 @@ void DelaySection::resized()
     };
     grid.performLayout(bounds);
 
+    // move middle element closer
+    {
+        auto &drywet    = m_sliders[DryWet].getComponent();
+        auto drywetSize = juce::jmin(drywet.getWidth(), drywet.getHeight());
+        auto sizeDiff   = (m_sliders[Time].getWidth() - drywetSize) * 0.5f;
+        if (sizeDiff > 0.f) {
+            auto interMargin = 0.15f * sizeDiff;
+            m_sliders[Time].setBounds(m_sliders[Time].getBounds().translated(
+                sizeDiff - interMargin, 0));
+            m_sliders[Feedback].setBounds(
+                m_sliders[Feedback].getBounds().translated(interMargin, 0));
+            m_sliders[DryWet].setBounds(
+                m_sliders[DryWet].getBounds().translated(interMargin, 0));
+        }
+    }
+
     // place time type & led
     {
         auto timeBounds     = m_sliders[Time].getBounds();
@@ -228,7 +241,7 @@ void DelaySection::paint(juce::Graphics &g)
     auto ySep = (m_sliders[DryWet].getBoundsInParent().getBottom() +
                  m_sliders[CutLow].getBoundsInParent().getY()) /
                 2.f;
-    g.setColour(findColour(PluginEditor::Separator));
+    g.setColour(findColour(SpringsSection::backgroundColourId));
     g.fillRect(bounds.getX(), ySep - CustomLNF::sepWidth / 2.f,
                bounds.getWidth(), CustomLNF::sepWidth);
 }

@@ -14,7 +14,7 @@ template <class Comp> class Widget : public juce::Component
 {
   public:
     static constexpr auto textSize    = CustomLNF::textPointHeight;
-    static constexpr auto labelMargin = 4;
+    static constexpr auto labelMargin = 1;
     static constexpr auto labelSize   = textSize + labelMargin;
 
     template <class... Ts>

@@ -27,21 +27,20 @@ class SpringsSection : public juce::Component
     static constexpr std::array<std::tuple<const char *, const char *>,
                                 _NumParams>
         elements{{
-            {"springs_drywet", "Dry/Wet"},
-            {"springs_width", "Width"},
-            {"springs_length", "Length"},
-            {"springs_decay", "Decay"},
-            {"springs_damp", "Damp"},
-            {"springs_shape", "Shape"},
-            {"springs_tone", "Tone"},
-            {"springs_scatter", "Scatter"},
-            {"springs_chaos", "Chaos"},
+            {"springs_drywet", "dry/wet"},
+            {"springs_width", "width"},
+            {"springs_length", "length"},
+            {"springs_decay", "decay"},
+            {"springs_damp", "damp"},
+            {"springs_shape", "shape"},
+            {"springs_tone", "tone"},
+            {"springs_scatter", "scatter"},
+            {"springs_chaos", "chaos"},
         }};
 
   public:
     enum ColourIDs {
-        backgroundColourId    = 0x1610100,
-        allBackgroundColourId = 0x1610900,
+        backgroundColourId = 0x1610100,
     };
 
     static constexpr auto headerHeight = 30.f;

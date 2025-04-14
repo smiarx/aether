@@ -14,7 +14,7 @@ class Slider : public juce::Slider
         Bipolar,
     };
 
-    Slider() = default;
+    Slider() { setPaintingIsUnclipped(true); }
     void setPolarity(Polarity polarity) { polarity_ = polarity; }
     Polarity getPolarity() const { return polarity_; }
 

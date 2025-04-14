@@ -30,10 +30,13 @@ void Led::paint(juce::Graphics &g)
     const auto colour = juce::Colours::red.brighter(0.2f);
 
     auto ledBounds = bounds.reduced(size / 5);
-    auto ledSize   = bounds.getWidth();
+    auto ledSize   = ledBounds.getWidth();
     auto ledColour = colour.darker(1.f).interpolatedWith(colour, m_intensity);
-    g.setGradientFill({ledColour, centre, juce::Colours::black,
-                       ledBounds.getTopLeft(), true});
+
+    juce::ColourGradient ledGradient{ledColour, centre,
+                                     juce::Colours::black.withAlpha(0.6f),
+                                     ledBounds.getTopLeft(), true};
+    g.setGradientFill(ledGradient);
     g.fillEllipse(ledBounds);
 
     g.setGradientFill(

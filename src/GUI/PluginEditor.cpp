@@ -26,21 +26,21 @@ PluginEditor::PluginEditor(PluginProcessor &p) :
 
     title.setText(juce::String::fromUTF8(titleString),
                   juce::dontSendNotification);
-    title.setColour(juce::Label::textColourId, juce::Colours::black);
     static auto titleTypeface = juce::Typeface::createSystemTypefaceFor(
         BinaryData::NunitoSans150_ttf, BinaryData::NunitoSans150_ttfSize);
     auto titleFont = juce::Font(titleTypeface).withHeight(headerHeight);
     titleFont.setDefaultMinimumHorizontalScaleFactor(1.f);
     titleFont.setExtraKerningFactor(0.3f);
     title.setFont(titleFont);
+    title.setColour(juce::Label::textColourId, juce::Colour{0xffffffff});
 
     // fix width
     titleWidth =
         titleFont.getStringWidthFloat(juce::String::fromUTF8(titleString));
     titleWidth += 0.08f * titleWidth;
 
-    tooltip.setColour(juce::Label::textColourId, juce::Colours::black);
     tooltip.setFont(juce::Font(CustomLNF::defaultTypeface).withPointHeight(14));
+    tooltip.setColour(juce::Label::textColourId, juce::Colour{0xffffffff});
 }
 
 PluginEditor::~PluginEditor()
@@ -99,7 +99,17 @@ void PluginEditor::resized()
 
 void PluginEditor::paint(juce::Graphics &g)
 {
-    g.fillAll(findColour(backgroundColourId));
+    g.fillAll(findColour(juce::ResizableWindow::backgroundColourId));
+
+    juce::DropShadow shadow(juce::Colour{0x8f000000}, 5, {-2, 8});
+    juce::Path win;
+    win.addRoundedRectangle(
+        delaySection.getBounds().getUnion(springsSection.getBounds()),
+        CustomLNF::boxRoundSize);
+    shadow.drawForPath(g, win);
+
+    g.setColour(juce::Colour{0xffafafaf});
+    g.strokePath(win, juce::PathStrokeType(2));
 }
 
 void PluginEditor::mouseMove(const juce::MouseEvent &event)

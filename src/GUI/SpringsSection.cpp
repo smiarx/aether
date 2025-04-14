@@ -5,9 +5,6 @@
 namespace aether
 {
 
-static const auto mainColour  = juce::Colour(0xff8fe7f3);
-static const auto smallColour = juce::Colour(0xfff130f1);
-
 SpringsSection::SpringsSection(const PluginProcessor &processor,
                                juce::AudioProcessorValueTreeState &apvts) :
     m_sliders{
@@ -71,6 +68,8 @@ SpringsSection::SpringsSection(const PluginProcessor &processor,
     m_sliders[Scatter].getComponent().setTooltip(
         "How similar or different are the springs properties.");
 
+    static const auto mainColour = juce::Colour(0xfff88261);
+
     m_active.setColour(juce::ToggleButton::tickColourId, mainColour);
 
     m_sliders[DryWet].setColour(juce::Slider::thumbColourId, mainColour);
@@ -78,10 +77,10 @@ SpringsSection::SpringsSection(const PluginProcessor &processor,
     m_sliders[Length].setColour(juce::Slider::thumbColourId, mainColour);
     m_sliders[Decay].setColour(juce::Slider::thumbColourId, mainColour);
     m_sliders[Damp].setColour(juce::Slider::thumbColourId, mainColour);
-    m_sliders[Shape].setColour(juce::Slider::thumbColourId, smallColour);
-    m_sliders[Tone].setColour(juce::Slider::thumbColourId, smallColour);
-    m_sliders[Scatter].setColour(juce::Slider::thumbColourId, smallColour);
-    m_sliders[Chaos].setColour(juce::Slider::thumbColourId, smallColour);
+    m_sliders[Shape].setColour(juce::Slider::thumbColourId, mainColour);
+    m_sliders[Tone].setColour(juce::Slider::thumbColourId, mainColour);
+    m_sliders[Scatter].setColour(juce::Slider::thumbColourId, mainColour);
+    m_sliders[Chaos].setColour(juce::Slider::thumbColourId, mainColour);
 
     m_sliders[Decay].setValueAsLabel();
 
@@ -141,6 +140,22 @@ void SpringsSection::resized()
     };
     grid.performLayout(bounds);
 
+    // move middle element closer
+    {
+        auto &damp    = m_sliders[Damp].getComponent();
+        auto dampSize = juce::jmin(damp.getWidth(), damp.getHeight());
+        auto sizeDiff = (m_sliders[Decay].getWidth() - dampSize) * 0.5f;
+        if (sizeDiff > 0.f) {
+            auto interMargin = 0.15f * sizeDiff;
+            m_sliders[Decay].setBounds(m_sliders[Decay].getBounds().translated(
+                sizeDiff - interMargin, 0));
+            m_sliders[Length].setBounds(
+                m_sliders[Length].getBounds().translated(interMargin, 0));
+            m_sliders[Damp].setBounds(
+                m_sliders[Damp].getBounds().translated(interMargin, 0));
+        }
+    }
+
     // extend spring gl
     auto glBounds = m_springsGL.getBounds();
     glBounds.translate(0, -headerHeight);
@@ -161,7 +176,7 @@ void SpringsSection::paint(juce::Graphics &g)
     g.fillPath(box);
 
     // separators;
-    g.setColour(findColour(PluginEditor::Separator));
+    g.setColour(findColour(DelaySection::backgroundColourId));
 
     auto xSep = (m_sliders[Tone].getBoundsInParent().getRight() +
                  m_springsGL.getBoundsInParent().getX()) /

@@ -13,35 +13,36 @@ juce::Typeface::Ptr CustomLNF::defaultTypeface = nullptr;
 
 CustomLNF::CustomLNF()
 {
+    constexpr auto textColour              = 0xff000000;
     static const uint32_t definedColours[] = {
         juce::BubbleComponent::backgroundColourId,
         0xff000000,
         juce::BubbleComponent::outlineColourId,
         0xffdddddd,
         juce::ResizableWindow::backgroundColourId,
-        0xffffffb7,
-        PluginEditor::backgroundColourId,
-        0xffffffb7,
+        0xff393939,
+        juce::Label::textColourId,
+        textColour,
+        juce::ComboBox::ColourIds::textColourId,
+        textColour,
         DelaySection::backgroundColourId,
-        0xff011b2d,
+        0xffd2d6d8,
         SpringsSection::backgroundColourId,
-        0xff013559,
-        SpringsSection::allBackgroundColourId,
-        0xffc2ebf1,
+        0xffe9e5e2,
         juce::Slider::rotarySliderFillColourId,
         0xfff5f5f5,
         juce::Slider::trackColourId,
-        0xff808080,
+        0xff999999,
         juce::Slider::rotarySliderOutlineColourId,
         0xff333333,
         PluginEditor::Separator,
-        0xff011b2d,
+        0xc9000000,
         juce::ToggleButton::tickDisabledColourId,
         0xff999999,
         juce::ToggleButton::tickColourId,
         0xff00ff00,
         juce::ToggleButton::textColourId,
-        0xffffffff,
+        textColour,
     };
 
     for (int i = 0; i < juce::numElementsInArray(definedColours); i += 2)
@@ -70,6 +71,14 @@ void CustomLNF::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
                                  juce::Slider &slider)
 {
 
+    /* colours */
+    const juce::Colour dialCenterColour{0xff656565};
+    const juce::Colour dialCornerColour{0xff434343};
+    const juce::Colour dialStrokeDark{0xff303030};
+    const juce::Colour dialStrokeLight{0xff707070};
+    const juce::Colour thumbDark{0xffd3d3d3};
+    const juce::Colour thumbLight{0xffe5e5e5};
+
     auto fx      = static_cast<float>(x);
     auto fy      = static_cast<float>(y);
     auto fwidth  = static_cast<float>(width);
@@ -89,83 +98,6 @@ void CustomLNF::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
                             : trackColour;
 
     auto arcWidth = juce::jmin(6.f, juce::jmax(2.f, radius * 0.14f));
-
-    /* DIAL */
-    constexpr auto outlinePercent = 0.24f;
-    auto outlineSize = radius < 50.f ? 0.f : radius * outlinePercent;
-    auto dialMargin  = arcWidth * 2.3f + outlineSize * 0.5f;
-    auto dialRadius  = radius - dialMargin;
-    auto dialRect = juce::Rectangle<float>(2.f * dialRadius, 2.f * dialRadius)
-                        .withCentre(centre);
-    juce::Path dial;
-    dial.addEllipse(dialRect);
-
-    auto dialShadow = juce::DropShadow(juce::Colour(0x77000000), 9,
-                                       {-static_cast<int>(dialRadius * 0.08f),
-                                        static_cast<int>(dialRadius * 0.36f)});
-    dialShadow.drawForPath(g, dial);
-
-    auto dialGradient = juce::ColourGradient();
-    auto dialGradPoint =
-        juce::Point(dialRadius, 0.f)
-            .rotatedAboutOrigin(-juce::MathConstants<float>::pi / 4);
-    dialGradient.isRadial = false;
-    dialGradient.point1   = centre - dialGradPoint;
-    dialGradient.point2   = centre + dialGradPoint;
-    dialGradient.addColour(0.0, juce::Colour(0xff757575));
-    dialGradient.addColour(1.0, juce::Colour(0xfff0f0f0));
-    g.setGradientFill(dialGradient);
-    g.strokePath(dial, juce::PathStrokeType(outlineSize));
-
-    dialGradient.clearColours();
-    dialGradient.isRadial = true;
-    dialGradient.point1 = centre + juce::Point{-dialRadius, dialRadius} * 0.25f;
-    dialGradient.point2 = dialRect.getTopRight();
-    dialGradient.addColour(0.0, juce::Colour(0xfff4f4f4));
-    dialGradient.addColour(0.68, juce::Colour(0xffcacaca));
-    dialGradient.addColour(0.7072, juce::Colour(0xffcacaca));
-    g.setGradientFill(dialGradient);
-    g.fillPath(dial);
-
-    /* THUMB */
-    auto thumbWidth  = juce::jmin(6.f, juce::jmax(1.f, radius * 0.08f));
-    auto thumbLength = 0.6f * dialRadius + outlineSize * 0.5f;
-
-    float thumbStart     = dialRadius + outlineSize * 0.5f;
-    juce::Point thumbPos = {centre.getX() + thumbStart - thumbLength,
-                            centre.getY() - thumbWidth / 2.f};
-    auto thumbRect =
-        juce::Rectangle(thumbLength, thumbWidth).withPosition(thumbPos);
-
-    auto thumbAngle   = posAngle - juce::MathConstants<float>::halfPi;
-    auto thumbRotated = juce::Point(1.f, 0.f).rotatedAboutOrigin(thumbAngle);
-
-    juce::Path thumb;
-    thumb.addRectangle(thumbRect);
-
-    juce::ColourGradient thumbGradient(
-        juce::Colour(0xff303030), centre, juce::Colour(0x60000000),
-        centre + thumbRotated * thumbStart, false);
-    thumbGradient.addColour(1 - outlinePercent, juce::Colour(0xff303030));
-    g.setGradientFill(thumbGradient);
-    // g.setColour(juce::Colour(0xff202020));
-    g.fillPath(thumb, juce::AffineTransform::rotation(thumbAngle, centre.getX(),
-                                                      centre.getY()));
-
-    /* NOISE */
-    g.saveState();
-    g.reduceClipRegion(dial);
-    g.setOpacity(0.07f);
-    g.addTransform(juce::AffineTransform::rotation(posAngle, centre.getX(),
-                                                   centre.getY()));
-
-    if (dialRect.getWidth() < noise.getWidth() &&
-        dialRect.getHeight() < noise.getHeight()) {
-        g.drawImageAt(noise, dialRect.getX(), dialRect.getY());
-    } else {
-        g.drawImage(noise, dialRect);
-    }
-    g.restoreState();
 
     /* INDICATOR ARC */
     // get polarity of slider
@@ -223,30 +155,88 @@ void CustomLNF::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
     g.setGradientFill(arcGradient);
     g.strokePath(arcInactive, strokeType);
 
-    if (radius > 120.f) {
-        auto insideRadius = dialRadius * 0.76f;
-        auto insideRect =
-            juce::Rectangle(insideRadius * 2.f, insideRadius * 2.f)
-                .withCentre(centre);
-        juce::Path inside;
-        inside.addEllipse(insideRect);
-        juce::ColourGradient insideGradient = {
-            sliderColour.brighter(0.2),
-            centre + juce::Point{-0.25f * insideRadius, 0.25f * insideRadius},
-            sliderColour.darker(0.2), insideRect.getTopRight(), true};
+    /* DIAL */
+    constexpr auto outlinePercent = 0.24f;
+    auto outlineSize = radius < 50.f ? 0.f : radius * outlinePercent;
+    auto dialMargin  = arcWidth * 2.3f + outlineSize * 0.5f;
+    auto dialRadius  = radius - dialMargin;
+    auto dialRect = juce::Rectangle<float>(2.f * dialRadius, 2.f * dialRadius)
+                        .withCentre(centre);
+    juce::Path dial;
+    dial.addEllipse(dialRect);
 
-        g.setGradientFill(insideGradient);
-        g.fillPath(inside);
-
-        insideGradient.clearColours();
-        insideGradient.isRadial = false;
-        insideGradient.point1   = centre - dialGradPoint;
-        insideGradient.point2   = centre + dialGradPoint;
-        insideGradient.addColour(0.0, juce::Colour(0xaacfcfcf));
-        insideGradient.addColour(1.0, juce::Colour(0xaa808080));
-        g.setGradientFill(insideGradient);
-        g.strokePath(inside, juce::PathStrokeType(1.8f));
+    // shadow
+    {
+        juce::Path dialShadowPath;
+        auto dialShadowRadius = dialRadius + outlineSize * 0.5f;
+        dialShadowPath.addEllipse(
+            juce::Rectangle(dialShadowRadius * 2.f, dialShadowRadius * 2.f)
+                .withCentre(centre));
+        auto dialShadow =
+            juce::DropShadow(juce::Colour(0x3f000000), 9, {-4, 12});
+        dialShadow.drawForPath(g, dialShadowPath);
     }
+
+    auto dialGradient = juce::ColourGradient();
+    auto dialGradPoint =
+        juce::Point(dialRadius, 0.f)
+            .rotatedAboutOrigin(-juce::MathConstants<float>::pi / 4);
+    dialGradient.isRadial = false;
+    dialGradient.point1   = centre - dialGradPoint;
+    dialGradient.point2   = centre + dialGradPoint;
+    dialGradient.addColour(0.0, dialStrokeDark);
+    dialGradient.addColour(1.0, dialStrokeLight);
+    g.setGradientFill(dialGradient);
+    g.strokePath(dial, juce::PathStrokeType(outlineSize));
+
+    dialGradient.clearColours();
+    dialGradient.isRadial = true;
+    dialGradient.point1 = centre + juce::Point{-dialRadius, dialRadius} * 0.25f;
+    dialGradient.point2 = dialRect.getTopRight();
+    dialGradient.addColour(0.0, dialCenterColour);
+    dialGradient.addColour(0.68, dialCornerColour);
+    dialGradient.addColour(0.7072, dialCornerColour);
+    g.setGradientFill(dialGradient);
+    g.fillPath(dial);
+
+    /* THUMB */
+    auto thumbWidth  = juce::jmin(6.f, juce::jmax(1.f, radius * 0.08f));
+    auto thumbLength = 0.6f * dialRadius + outlineSize * 0.5f;
+
+    float thumbStart     = dialRadius + outlineSize * 0.5f;
+    juce::Point thumbPos = {centre.getX() + thumbStart - thumbLength,
+                            centre.getY() - thumbWidth / 2.f};
+    auto thumbRect =
+        juce::Rectangle(thumbLength, thumbWidth).withPosition(thumbPos);
+
+    auto thumbAngle   = posAngle - juce::MathConstants<float>::halfPi;
+    auto thumbRotated = juce::Point(1.f, 0.f).rotatedAboutOrigin(thumbAngle);
+
+    juce::Path thumb;
+    thumb.addRectangle(thumbRect);
+
+    juce::ColourGradient thumbGradient(thumbDark, centre, thumbLight,
+                                       centre + thumbRotated * thumbStart,
+                                       false);
+    thumbGradient.addColour(1 - outlinePercent, thumbDark);
+    g.setGradientFill(thumbGradient);
+    g.fillPath(thumb, juce::AffineTransform::rotation(thumbAngle, centre.getX(),
+                                                      centre.getY()));
+
+    /* NOISE */
+    g.saveState();
+    g.reduceClipRegion(dial);
+    g.setOpacity(0.02f);
+    g.addTransform(juce::AffineTransform::rotation(posAngle, centre.getX(),
+                                                   centre.getY()));
+
+    if (dialRect.getWidth() < noise.getWidth() &&
+        dialRect.getHeight() < noise.getHeight()) {
+        g.drawImageAt(noise, dialRect.getX(), dialRect.getY());
+    } else {
+        g.drawImage(noise, dialRect);
+    }
+    g.restoreState();
 }
 
 void CustomLNF::drawBubble(juce::Graphics &g, juce::BubbleComponent &comp,
@@ -310,13 +300,13 @@ void CustomLNF::drawToggleButton(
     g.fillPath(mainBox);
 
     // shadow
-    auto shadowRadius = circleBounds.getWidth() * 0.1f;
-    juce::DropShadow(juce::Colour(0xff303030), shadowRadius,
-                     {0, -static_cast<int>(circleReduce - shadowRadius)})
+    auto shadowRadius = circleBounds.getWidth() * 0.2f;
+    juce::DropShadow(juce::Colour(0x7f000000), shadowRadius,
+                     {0, static_cast<int>(circleReduce)})
         .drawForPath(g, circle);
 
     // circle
-    auto circleColour = juce::Colour(0xffcecec3);
+    auto circleColour = juce::Colour(0xffeeeeee);
     g.setColour(circleColour);
     g.fillPath(circle);
 

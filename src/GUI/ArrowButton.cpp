@@ -30,12 +30,16 @@ void ArrowButton::paintButton(juce::Graphics &g,
         path.getTransformToScaleToFit(offset, offset, (float)getWidth() - 3.0f,
                                       (float)getHeight() - 3.0f, false));
 
-    juce::DropShadow(juce::Colours::black.withAlpha(0.3f),
-                     shouldDrawButtonAsDown ? 2 : 4, juce::Point<int>())
+    juce::DropShadow(juce::Colours::black.withAlpha(0.22f),
+                     shouldDrawButtonAsDown ? 1 : 2, juce::Point<int>())
         .drawForPath(g, p);
 
-    g.setColour(isEnabled() ? colour : juce::Colour(0xff808080));
+    auto arrowColour = isEnabled() ? colour : juce::Colour(0xff808080);
+    g.setColour(arrowColour);
     g.fillPath(p);
+
+    g.setColour(arrowColour.darker(0.1f));
+    g.strokePath(p, juce::PathStrokeType(1.f));
 }
 
 } // namespace aether

@@ -16,13 +16,12 @@ class PluginEditor : public juce::AudioProcessorEditor
   public:
     static constexpr auto titleString = u8"ÆTHER";
 
-    static constexpr auto titleHeight  = 40.f;
+    static constexpr auto titleHeight  = 50.f;
     static constexpr auto titleMargin  = 5.f;
     static constexpr auto headerHeight = titleHeight + 2.f;
 
     enum ColourIDs {
-        backgroundColourId = 0x1610200,
-        Separator          = 0x1312039,
+        Separator = 0x1312039,
     };
 
     PluginEditor(PluginProcessor &);

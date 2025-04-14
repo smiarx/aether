@@ -1,5 +1,6 @@
 #include "SpringsGL.h"
 #include "BinaryData.h"
+#include "SpringsSection.h"
 
 namespace aether
 {
@@ -149,6 +150,14 @@ void SpringsGL::createShaders()
     std::unique_ptr<juce::OpenGLShaderProgram> shaderProgramAttempt =
         std::make_unique<juce::OpenGLShaderProgram>(openGLContext);
 
+    auto backgroundColour = findColour(SpringsSection::backgroundColourId);
+    auto bckR             = static_cast<double>(backgroundColour.getRed()) /
+                std::numeric_limits<juce::uint8>::max();
+    auto bckG = static_cast<double>(backgroundColour.getGreen()) /
+                std::numeric_limits<juce::uint8>::max();
+    auto bckB = static_cast<double>(backgroundColour.getBlue()) /
+                std::numeric_limits<juce::uint8>::max();
+
     // Sets up pipeline of shaders and compiles the program
     if (shaderProgramAttempt->addVertexShader(
             juce::OpenGLHelpers::translateVertexShaderToV3(vertexShader)) &&
@@ -157,8 +166,9 @@ void SpringsGL::createShaders()
                 "#define RMS_BUFFER_SIZE " + juce::String(RMSStackSize) +
                 "\n#define N " + juce::String(N) + "\n" +
                 "\n#define BORDER_COLOR "
-                "vec3(0.00392156862745098,0.20784313725490197, "
-                "0.34901960784313724)" + // TODO compute this automatically
+                "vec3(" +
+                juce::String(bckR) + "," + juce::String(bckG) + "," +
+                juce::String(bckB) + ")" +
                 juce::String(BinaryData::spring_shader))) &&
         shaderProgramAttempt->link()) {
         uniforms.reset();

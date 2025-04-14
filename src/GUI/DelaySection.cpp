@@ -29,14 +29,24 @@ DelaySection::DelaySection(PluginProcessor &processor,
     m_led(processor.getSwitchIndicator())
 {
     addAndMakeVisible(m_active);
-
     addAndMakeVisible(m_led);
+
+    // set colours
+    const auto mainColour = juce::Colour(0xff609ccd);
+
+    m_mode.setArrowsColour(mainColour);
+    m_timeType.setArrowsColour(mainColour);
+
+    m_active.setColour(juce::ToggleButton::tickColourId, mainColour);
 
     for (auto &slider : m_sliders) {
         addAndMakeVisible(slider);
         slider.getComponent().setPopupDisplayEnabled(true, false,
                                                      getTopLevelComponent());
+        slider.getComponent().setColour(juce::Slider::thumbColourId,
+                                        mainColour);
     }
+
     m_sliders[Time].getComponent().setPopupDisplayEnabled(false, false,
                                                           nullptr);
     m_sliders[Time].getComponent().setHasOutline(true);
@@ -78,6 +88,7 @@ DelaySection::DelaySection(PluginProcessor &processor,
     auto &timeTypeComboBox = m_timeType.getComboBox();
     timeTypeComboBox.addItemList(
         apvts.getParameter("delay_time_type")->getAllValueStrings(), 1);
+    timeTypeComboBox.setName("TimeType");
 
     timeTypeComboBox.onChange = [this, &apvts]() {
         auto &component  = m_sliders[Time].getComponent();
@@ -114,7 +125,8 @@ DelaySection::DelaySection(PluginProcessor &processor,
         auto &slider        = m_sliders[Time].getSlider();
         auto value          = slider.getValue();
         if (!m_useBeats && value < 1.f) {
-            timeTypeCombo.setText(juce::String(value * 1000) + "ms",
+            timeTypeCombo.setText(juce::String(juce::roundToInt(value * 1000)) +
+                                      "ms",
                                   juce::NotificationType::dontSendNotification);
         } else {
             timeTypeCombo.setText(slider.getTextFromValue(value),
@@ -130,21 +142,6 @@ DelaySection::DelaySection(PluginProcessor &processor,
         m_timeType.setEnabled(active);
         m_mode.setEnabled(active);
     };
-
-    // set colours
-    const auto mainColour = juce::Colour(0xff609ccd);
-    m_sliders[DryWet].setColour(juce::Slider::thumbColourId, mainColour);
-    m_sliders[Time].setColour(juce::Slider::thumbColourId, mainColour);
-    m_sliders[Feedback].setColour(juce::Slider::thumbColourId, mainColour);
-    m_sliders[CutLow].setColour(juce::Slider::thumbColourId, mainColour);
-    m_sliders[CutHi].setColour(juce::Slider::thumbColourId, mainColour);
-    m_sliders[Saturation].setColour(juce::Slider::thumbColourId, mainColour);
-    m_sliders[Drift].setColour(juce::Slider::thumbColourId, mainColour);
-
-    m_mode.setArrowsColour(mainColour);
-    m_timeType.setArrowsColour(mainColour);
-
-    m_active.setColour(juce::ToggleButton::tickColourId, mainColour);
 }
 
 void DelaySection::resized()

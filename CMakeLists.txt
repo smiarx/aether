@@ -32,7 +32,8 @@ juce_add_binary_data(${PROJECT_NAME}_data
     src/GUI/assets/spring.shader
     ${FACTORY_PRESETS}
     src/GUI/fonts/NunitoSans-150.ttf
-    src/GUI/fonts/Lexend-300.ttf)
+    src/GUI/fonts/Lexend-300.ttf
+    src/GUI/fonts/Roboto-425.ttf)
 
 
 target_sources(${PROJECT_NAME}

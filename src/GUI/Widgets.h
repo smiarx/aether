@@ -117,10 +117,18 @@ class SliderWithLabel : public Widget<Slider>
 
     void resized() override
     {
+        // set height to maximum possible value
         auto maxHeight = getMaxHeight();
         auto bounds    = getBounds();
         setBounds(bounds.withHeight(maxHeight).withCentre(bounds.getCentre()));
+
+        // call parent
         Widget<Slider>::resized();
+
+        // update width to be equal to height
+        bounds = m_component.getLocalBounds();
+        m_component.setBounds(bounds.withWidth(bounds.getHeight())
+                                  .withCentre(bounds.getCentre()));
     }
 
     void setTextBoxVisible(bool textBoxVisible)
@@ -133,6 +141,12 @@ class SliderWithLabel : public Widget<Slider>
 
     void setValueAsLabel()
     {
+        auto font = juce::Font(CustomLNF::defaultMonoTypeface)
+                        .withPointHeight(textSize - 1);
+        m_label.setFont(font);
+
+        m_component.setPopupDisplayEnabled(false, false, nullptr);
+
         m_component.onValueChange = [this] {
             m_label.setText(
                 m_component.getTextFromValue(m_component.getValue()),

@@ -17,6 +17,7 @@ class CustomLNF : public juce::LookAndFeel_V4
     static constexpr auto textPointHeight = 13;
 
     static juce::Typeface::Ptr defaultTypeface;
+    static juce::Typeface::Ptr defaultMonoTypeface;
     CustomLNF();
 
     void drawRotarySlider(juce::Graphics &g, int x, int y, int width,
@@ -27,6 +28,10 @@ class CustomLNF : public juce::LookAndFeel_V4
     void drawBubble(juce::Graphics &g, juce::BubbleComponent &comp,
                     const juce::Point<float> &tip,
                     const juce::Rectangle<float> &body) override;
+
+    juce::Font getSliderPopupFont(juce::Slider &) override;
+    int getSliderPopupPlacement(juce::Slider &) override;
+
     void setComponentEffectForBubbleComponent(
         juce::BubbleComponent &bubbleComponent) override;
 

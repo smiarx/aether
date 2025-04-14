@@ -9,16 +9,17 @@
 namespace aether
 {
 
-juce::Typeface::Ptr CustomLNF::defaultTypeface = nullptr;
+juce::Typeface::Ptr CustomLNF::defaultTypeface     = nullptr;
+juce::Typeface::Ptr CustomLNF::defaultMonoTypeface = nullptr;
 
 CustomLNF::CustomLNF()
 {
     constexpr auto textColour              = 0xff000000;
     static const uint32_t definedColours[] = {
         juce::BubbleComponent::backgroundColourId,
-        0xff000000,
+        0xff393939,
         juce::BubbleComponent::outlineColourId,
-        0xffdddddd,
+        0xffeeeeee,
         juce::ResizableWindow::backgroundColourId,
         0xff393939,
         juce::Label::textColourId,
@@ -60,6 +61,10 @@ CustomLNF::CustomLNF()
     if (defaultTypeface == nullptr) {
         defaultTypeface = juce::Typeface::createSystemTypefaceFor(
             BinaryData::Lexend300_ttf, BinaryData::Lexend300_ttfSize);
+    }
+    if (defaultMonoTypeface == nullptr) {
+        defaultMonoTypeface = juce::Typeface::createSystemTypefaceFor(
+            BinaryData::Roboto425_ttf, BinaryData::Roboto425_ttfSize);
     }
     setDefaultSansSerifTypeface(defaultTypeface);
 }
@@ -248,13 +253,21 @@ void CustomLNF::drawBubble(juce::Graphics &g, juce::BubbleComponent &comp,
                            const juce::Rectangle<float> &body)
 {
     juce::Path p;
-    p.addRoundedRectangle(body, 3.f);
+    p.addRoundedRectangle(body, 2.f);
 
     g.setColour(comp.findColour(juce::BubbleComponent::backgroundColourId));
     g.fillPath(p);
+}
 
-    g.setColour(comp.findColour(juce::BubbleComponent::outlineColourId));
-    g.strokePath(p, juce::PathStrokeType(1.0f));
+juce::Font CustomLNF::getSliderPopupFont(juce::Slider &)
+{
+    auto font = juce::Font(defaultMonoTypeface).withPointHeight(13.f);
+    return font;
+}
+
+int CustomLNF::getSliderPopupPlacement(juce::Slider &)
+{
+    return juce::BubbleComponent::left | juce::BubbleComponent::right;
 }
 
 void CustomLNF::setComponentEffectForBubbleComponent(
@@ -365,8 +378,12 @@ void CustomLNF::drawComboBox(juce::Graphics &, int, int, bool, int, int, int,
 {
 }
 
-juce::Font CustomLNF::getComboBoxFont(juce::ComboBox &)
+juce::Font CustomLNF::getComboBoxFont(juce::ComboBox &comboBox)
 {
+    if (comboBox.getName() == "TimeType") {
+        return juce::Font(defaultMonoTypeface)
+            .withPointHeight(CustomLNF::textPointHeight - 1);
+    }
     return juce::Font(defaultTypeface)
         .withPointHeight(CustomLNF::textPointHeight);
 }

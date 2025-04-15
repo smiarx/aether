@@ -26,9 +26,8 @@ PluginEditor::PluginEditor(PluginProcessor &p) :
 
     title.setText(juce::String::fromUTF8(titleString),
                   juce::dontSendNotification);
-    static auto titleTypeface = juce::Typeface::createSystemTypefaceFor(
-        BinaryData::NunitoSans150_ttf, BinaryData::NunitoSans150_ttfSize);
-    auto titleFont = juce::Font(titleTypeface).withHeight(headerHeight);
+    auto titleFont =
+        juce::Font(CustomLNF::titleTypeface).withHeight(headerHeight);
     titleFont.setDefaultMinimumHorizontalScaleFactor(1.f);
     titleFont.setExtraKerningFactor(0.3f);
     title.setFont(titleFont);

@@ -53,7 +53,18 @@ DelaySection::DelaySection(PluginProcessor &processor,
     m_sliders[Time].getLabel().setText(
         "", juce::NotificationType::dontSendNotification);
 
+    const auto symbolFont = juce::Font(CustomLNF::symbolsTypeface)
+                                .withPointHeight(CustomLNF::textPointHeight);
     m_sliders[CutHi].getComponent().setPolarity(Slider::UnipolarReversed);
+    m_sliders[CutHi].getLabel().setText(
+        juce::String::fromUTF8(u8"╭"),
+        juce::NotificationType::dontSendNotification);
+    m_sliders[CutHi].getLabel().setFont(symbolFont);
+
+    m_sliders[CutLow].getLabel().setText(
+        juce::String::fromUTF8(u8"╮"),
+        juce::NotificationType::dontSendNotification);
+    m_sliders[CutLow].getLabel().setFont(symbolFont);
 
     m_sliders[DryWet].getComponent().setTextValueSuffix("%");
     m_sliders[Time].getComponent().setTextValueSuffix("s");

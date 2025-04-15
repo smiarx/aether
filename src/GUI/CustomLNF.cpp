@@ -10,6 +10,7 @@ namespace aether
 {
 
 juce::Typeface::Ptr CustomLNF::titleTypeface       = nullptr;
+juce::Typeface::Ptr CustomLNF::symbolsTypeface     = nullptr;
 juce::Typeface::Ptr CustomLNF::defaultTypeface     = nullptr;
 juce::Typeface::Ptr CustomLNF::defaultMonoTypeface = nullptr;
 
@@ -62,6 +63,10 @@ CustomLNF::CustomLNF()
     if (titleTypeface == nullptr) {
         titleTypeface = juce::Typeface::createSystemTypefaceFor(
             BinaryData::NunitoSans150_ttf, BinaryData::NunitoSans150_ttfSize);
+    }
+    if (symbolsTypeface == nullptr) {
+        symbolsTypeface = juce::Typeface::createSystemTypefaceFor(
+            BinaryData::Symbols_ttf, BinaryData::Symbols_ttfSize);
     }
     if (defaultTypeface == nullptr) {
         defaultTypeface = juce::Typeface::createSystemTypefaceFor(

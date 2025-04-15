@@ -30,8 +30,8 @@ class DelaySection : public juce::Component
             {"delay_drywet", "Dry/Wet"},
             {"delay_seconds", "Time"},
             {"delay_feedback", "Feedback"},
-            {"delay_cutoff_low", "Low"},
-            {"delay_cutoff_hi", "High"},
+            {"delay_cutoff_low", "Low pass"},
+            {"delay_cutoff_hi", "High pass"},
             {"delay_saturation", "Gain"},
             {"delay_drift", "Drift"},
         }};

@@ -17,6 +17,7 @@ class CustomLNF : public juce::LookAndFeel_V4
     static constexpr auto textPointHeight = 13;
 
     static juce::Typeface::Ptr titleTypeface;
+    static juce::Typeface::Ptr symbolsTypeface;
     static juce::Typeface::Ptr defaultTypeface;
     static juce::Typeface::Ptr defaultMonoTypeface;
     CustomLNF();

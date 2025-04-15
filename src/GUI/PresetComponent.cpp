@@ -63,6 +63,7 @@ void PresetComponent::buttonClicked(juce::Button *button)
             popupMenu.addItem(++index, std::get<0>(data));
         }
         popupMenu.addSeparator();
+        popupMenu.setLookAndFeel(&getLookAndFeel());
 
         constexpr auto saveId = 100;
         constexpr auto loadId = 101;

@@ -16,14 +16,16 @@ juce::Typeface::Ptr CustomLNF::defaultMonoTypeface = nullptr;
 
 CustomLNF::CustomLNF()
 {
-    constexpr auto textColour              = 0xff000000;
-    static const uint32_t definedColours[] = {
+    constexpr auto textColour                  = 0xff000000;
+    constexpr auto titleColour                 = 0xffffffff;
+    constexpr auto backgroundColour            = 0xff393939;
+    static constexpr uint32_t definedColours[] = {
         juce::BubbleComponent::backgroundColourId,
-        0xff393939,
+        backgroundColour,
         juce::BubbleComponent::outlineColourId,
         0xffeeeeee,
         juce::ResizableWindow::backgroundColourId,
-        0xff393939,
+        backgroundColour,
         juce::Label::textColourId,
         textColour,
         juce::ComboBox::ColourIds::textColourId,
@@ -46,6 +48,17 @@ CustomLNF::CustomLNF()
         0xff00ff00,
         juce::ToggleButton::textColourId,
         textColour,
+
+        juce::PopupMenu::ColourIds::backgroundColourId,
+        backgroundColour,
+        juce::PopupMenu::ColourIds::textColourId,
+        titleColour,
+        juce::PopupMenu::ColourIds::highlightedBackgroundColourId,
+        0xffa0a0a0,
+        juce::PopupMenu::ColourIds::highlightedTextColourId,
+        textColour,
+        juce::PopupMenu::ColourIds::headerTextColourId,
+        0xffbfbfbf,
     };
 
     for (int i = 0; i < juce::numElementsInArray(definedColours); i += 2)
@@ -271,7 +284,8 @@ void CustomLNF::drawBubble(juce::Graphics &g, juce::BubbleComponent &comp,
 
 juce::Font CustomLNF::getSliderPopupFont(juce::Slider &)
 {
-    auto font = juce::Font(defaultMonoTypeface).withPointHeight(13.f);
+    auto font =
+        juce::Font(defaultMonoTypeface).withPointHeight(textPointHeight);
     return font;
 }
 
@@ -403,6 +417,106 @@ void CustomLNF::positionComboBoxText(juce::ComboBox &box, juce::Label &label)
     label.setJustificationType(juce::Justification::centred);
 
     label.setFont(getComboBoxFont(box));
+}
+
+///////////////////////////////////////////////
+juce::Font CustomLNF::getPopupMenuFont()
+{
+    return juce::Font(defaultTypeface).withPointHeight(textPointHeight);
+}
+
+void CustomLNF::getIdealPopupMenuItemSize(
+    const juce::String &text, const bool isSeparator,
+    [[maybe_unused]] int standardMenuItemHeight, int &idealWidth,
+    int &idealHeight)
+{
+    if (isSeparator) {
+        idealWidth = 50;
+        idealHeight =
+            standardMenuItemHeight > 0 ? standardMenuItemHeight / 2 : 10;
+    } else {
+        juce::Font font = getPopupMenuFont();
+
+        idealHeight =
+            juce::roundToInt(font.getHeight() * popupElementSizeFontRatio);
+        idealWidth = font.getStringWidth(text) + idealHeight;
+    }
+}
+
+void CustomLNF::drawPopupMenuItem(
+    juce::Graphics &g, const juce::Rectangle<int> &area, const bool isSeparator,
+    const bool isActive, const bool isHighlighted,
+    [[maybe_unused]] const bool isTicked, const bool hasSubMenu,
+    const juce::String &text, const juce::String &shortcutKeyText,
+    [[maybe_unused]] const juce::Drawable *icon,
+    const juce::Colour *const textColourToUse)
+{
+    if (isSeparator) {
+        auto r = area.reduced(5, 0);
+        r.removeFromTop(r.getHeight() / 2 - 1);
+
+        g.setColour(juce::Colour(0x33000000));
+        g.fillRect(r.removeFromTop(1));
+
+        g.setColour(juce::Colour(0x66ffffff));
+        g.fillRect(r.removeFromTop(1));
+    } else {
+        auto textColour = findColour(juce::PopupMenu::textColourId);
+
+        if (textColourToUse != nullptr) textColour = *textColourToUse;
+
+        auto r = area;
+
+        if (isHighlighted) {
+            g.setColour(
+                findColour(juce::PopupMenu::highlightedBackgroundColourId));
+            g.fillRect(r);
+
+            g.setColour(findColour(juce::PopupMenu::highlightedTextColourId));
+        } else {
+            g.setColour(textColour);
+        }
+
+        if (!isActive) g.setOpacity(0.3f);
+
+        juce::Font font(getPopupMenuFont());
+
+        auto maxFontHeight =
+            (float)area.getHeight() / popupElementSizeFontRatio;
+
+        if (font.getHeight() > maxFontHeight) font.setHeight(maxFontHeight);
+
+        g.setFont(font);
+
+        // left margin
+        r.removeFromLeft(r.getHeight() / 2);
+
+        if (hasSubMenu) {
+            auto arrowH = 0.6f * getPopupMenuFont().getAscent();
+
+            auto x     = (float)r.removeFromRight((int)arrowH).getX();
+            auto halfH = (float)r.getCentreY();
+
+            juce::Path p;
+            p.addTriangle(x, halfH - arrowH * 0.5f, x, halfH + arrowH * 0.5f,
+                          x + arrowH * 0.6f, halfH);
+
+            g.fillPath(p);
+        }
+
+        r.removeFromRight(3);
+        g.drawFittedText(text, r, juce::Justification::centredLeft, 1);
+
+        if (shortcutKeyText.isNotEmpty()) {
+            juce::Font f2(font);
+            f2.setHeight(f2.getHeight() * 0.75f);
+            f2.setHorizontalScale(0.95f);
+            g.setFont(f2);
+
+            g.drawText(shortcutKeyText, r, juce::Justification::centredRight,
+                       true);
+        }
+    }
 }
 
 } // namespace aether

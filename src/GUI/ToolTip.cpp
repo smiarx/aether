@@ -16,7 +16,11 @@ void ToolTip::setFromComponent(juce::Component *component)
     if (ttc != nullptr &&
         !(component->isMouseButtonDown() ||
           component->isCurrentlyBlockedByAnotherModalComponent())) {
+
         toolTip = ttc->getTooltip();
+        if (toolTip != "") {
+            toolTip = component->getTitle() + ": " + toolTip;
+        }
     }
 
     setText(toolTip, juce::dontSendNotification);

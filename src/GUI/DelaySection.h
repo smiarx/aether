@@ -27,13 +27,13 @@ class DelaySection : public juce::Component
     static constexpr std::array<std::tuple<const char *, const char *>,
                                 _NumParams>
         elements{{
-            {"delay_drywet", "dry/wet"},
-            {"delay_seconds", ""},
-            {"delay_feedback", "feedback"},
-            {"delay_cutoff_low", "low"},
-            {"delay_cutoff_hi", "high"},
-            {"delay_saturation", "gain"},
-            {"delay_drift", "drift"},
+            {"delay_drywet", "Dry/Wet"},
+            {"delay_seconds", "Time"},
+            {"delay_feedback", "Feedback"},
+            {"delay_cutoff_low", "Low"},
+            {"delay_cutoff_hi", "High"},
+            {"delay_saturation", "Gain"},
+            {"delay_drift", "Drift"},
         }};
 
   public:

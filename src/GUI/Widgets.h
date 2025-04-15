@@ -23,7 +23,9 @@ template <class Comp> class Widget : public juce::Component
         addAndMakeVisible(m_component);
         addAndMakeVisible(m_label);
 
-        m_label.setText(name, juce::NotificationType::dontSendNotification);
+        m_component.setTitle(name);
+        m_label.setText(name.toLowerCase(),
+                        juce::NotificationType::dontSendNotification);
         m_label.setJustificationType(juce::Justification::centred);
 
         auto font =

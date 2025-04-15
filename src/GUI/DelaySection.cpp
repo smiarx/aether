@@ -50,6 +50,8 @@ DelaySection::DelaySection(PluginProcessor &processor,
     m_sliders[Time].getComponent().setPopupDisplayEnabled(false, false,
                                                           nullptr);
     m_sliders[Time].getComponent().setHasOutline(true);
+    m_sliders[Time].getLabel().setText(
+        "", juce::NotificationType::dontSendNotification);
 
     m_sliders[CutHi].getComponent().setPolarity(Slider::UnipolarReversed);
 

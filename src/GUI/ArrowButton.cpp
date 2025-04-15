@@ -25,10 +25,11 @@ void ArrowButton::paintButton(juce::Graphics &g,
 {
     juce::Path p(path);
 
-    const float offset = shouldDrawButtonAsDown ? 1.0f : 0.0f;
-    p.applyTransform(
-        path.getTransformToScaleToFit(offset, offset, (float)getWidth() - 3.0f,
-                                      (float)getHeight() - 3.0f, false));
+    constexpr auto maxOffset = 2.0f;
+    const float offset = shouldDrawButtonAsDown ? 2 * maxOffset : maxOffset;
+    p.applyTransform(path.getTransformToScaleToFit(
+        offset, offset, (float)getWidth() - 2 * maxOffset,
+        (float)getHeight() - 2 * maxOffset, false));
 
     juce::DropShadow(juce::Colours::black.withAlpha(0.22f),
                      shouldDrawButtonAsDown ? 1 : 2, juce::Point<int>())

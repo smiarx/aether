@@ -59,6 +59,15 @@ CustomLNF::CustomLNF()
         textColour,
         juce::PopupMenu::ColourIds::headerTextColourId,
         0xffbfbfbf,
+
+        juce::TextButton::ColourIds::buttonColourId,
+        0xff5b5b5b,
+        juce::TextButton::ColourIds::buttonOnColourId,
+        0xff707070,
+        juce::TextButton::ColourIds::textColourOffId,
+        0xffffffff,
+        juce::TextButton::ColourIds::textColourOnId,
+        0xffffffff,
     };
 
     for (int i = 0; i < juce::numElementsInArray(definedColours); i += 2)
@@ -299,14 +308,44 @@ void CustomLNF::setComponentEffectForBubbleComponent(
 {
 }
 
+////////////////////////////////////////////
 void CustomLNF::drawButtonBackground(juce::Graphics &g, juce::Button &button,
                                      const juce::Colour &backgroundColour,
                                      bool shouldDrawButtonAsHighlighted,
                                      bool shouldDrawButtonAsDown)
 {
-    juce::LookAndFeel_V4::drawButtonBackground(g, button, backgroundColour,
-                                               shouldDrawButtonAsHighlighted,
-                                               shouldDrawButtonAsDown);
+    auto cornerSize = 6.0f;
+    auto bounds     = button.getLocalBounds().toFloat().reduced(0.5f, 0.5f);
+
+    auto baseColour =
+        backgroundColour
+            .withMultipliedSaturation(button.hasKeyboardFocus(true) ? 1.3f
+                                                                    : 0.9f)
+            .withMultipliedAlpha(button.isEnabled() ? 1.0f : 0.5f);
+
+    if (shouldDrawButtonAsDown || shouldDrawButtonAsHighlighted)
+        baseColour =
+            baseColour.contrasting(shouldDrawButtonAsDown ? 0.2f : 0.05f);
+
+    g.setColour(baseColour);
+
+    auto flatOnLeft   = button.isConnectedOnLeft();
+    auto flatOnRight  = button.isConnectedOnRight();
+    auto flatOnTop    = button.isConnectedOnTop();
+    auto flatOnBottom = button.isConnectedOnBottom();
+
+    if (flatOnLeft || flatOnRight || flatOnTop || flatOnBottom) {
+        juce::Path path;
+        path.addRoundedRectangle(
+            bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(),
+            cornerSize, cornerSize, !(flatOnLeft || flatOnTop),
+            !(flatOnRight || flatOnTop), !(flatOnLeft || flatOnBottom),
+            !(flatOnRight || flatOnBottom));
+
+        g.fillPath(path);
+    } else {
+        g.fillRoundedRectangle(bounds, cornerSize);
+    }
 }
 
 void CustomLNF::drawToggleButton(
@@ -367,10 +406,13 @@ void CustomLNF::drawToggleButton(
                      juce::Justification::centredLeft, 1);
 }
 
-juce::Font CustomLNF::getTextButtonFont(juce::TextButton &button,
-                                        int buttonHeight)
+juce::Font
+CustomLNF::getTextButtonFont([[maybe_unused]] juce::TextButton &button,
+                             int buttonHeight)
 {
-    return juce::LookAndFeel_V4::getTextButtonFont(button, buttonHeight);
+    return juce::Font(defaultTypeface)
+        .withPointHeight(
+            juce::jmin((float)textPointHeight, (float)buttonHeight * 0.6f));
 }
 
 int CustomLNF::getTextButtonWidthToFitText(juce::TextButton &b,

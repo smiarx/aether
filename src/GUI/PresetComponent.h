@@ -18,6 +18,12 @@ class PresetComponent : public juce::Component,
     void paint(juce::Graphics &g) override;
     void resized() override;
 
+    void setArrowsColour(juce::Colour colour)
+    {
+        m_prevButton.setColour(colour);
+        m_nextButton.setColour(colour);
+    }
+
   private:
     void updatePresetName();
     virtual void presetManagerChanged(PresetManager &presetManager) override;

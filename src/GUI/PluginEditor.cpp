@@ -40,6 +40,8 @@ PluginEditor::PluginEditor(PluginProcessor &p) :
 
     tooltip.setFont(juce::Font(CustomLNF::defaultTypeface).withPointHeight(14));
     tooltip.setColour(juce::Label::textColourId, juce::Colour{0xffffffff});
+
+    preset.setArrowsColour(juce::Colour(0xffffffff));
 }
 
 PluginEditor::~PluginEditor()
@@ -55,7 +57,7 @@ void PluginEditor::resized()
 
     juce::FlexBox fbTitle;
     fbTitle.flexDirection  = juce::FlexBox::Direction::row;
-    fbTitle.alignItems     = juce::FlexBox::AlignItems::flexEnd;
+    fbTitle.alignItems     = juce::FlexBox::AlignItems::center;
     fbTitle.alignContent   = juce::FlexBox::AlignContent::center;
     fbTitle.justifyContent = juce::FlexBox::JustifyContent::center;
     juce::FlexBox fb;
@@ -72,7 +74,6 @@ void PluginEditor::resized()
             headerHeight),
         juce::FlexItem(preset)
             .withFlex(0.55f)
-            .withMargin({0.f, 0.f, 5.f, 0.f})
             .withHeight(headerHeight / 2)
             .withMaxWidth(130),
     });

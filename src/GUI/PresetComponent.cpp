@@ -36,9 +36,15 @@ void PresetComponent::paint(juce::Graphics &g)
 
 void PresetComponent::resized()
 {
-    auto area = getLocalBounds();
-    m_prevButton.setBounds(area.removeFromLeft(area.getHeight()));
-    m_nextButton.setBounds(area.removeFromRight(area.getHeight()));
+    auto area        = getLocalBounds();
+    auto buttonWidth = area.getWidth() * 0.1f;
+    m_prevButton.setBounds(
+        area.removeFromLeft(buttonWidth)
+            .withSizeKeepingCentre(buttonWidth, buttonWidth));
+    m_nextButton.setBounds(
+        area.removeFromRight(buttonWidth)
+            .withSizeKeepingCentre(buttonWidth, buttonWidth));
+    area.reduce(3, 0);
     m_presetButton.setBounds(area);
 }
 

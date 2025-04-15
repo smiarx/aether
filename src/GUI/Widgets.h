@@ -14,8 +14,7 @@ template <class Comp> class Widget : public juce::Component
 {
   public:
     static constexpr auto textSize    = CustomLNF::textPointHeight;
-    static constexpr auto labelMargin = 1;
-    static constexpr auto labelSize   = textSize + labelMargin;
+    static constexpr auto labelMargin = -3;
 
     template <class... Ts>
     Widget(const juce::String &name, Ts &&...args) : m_component(args...)
@@ -62,25 +61,6 @@ template <class Comp> class Widget : public juce::Component
     void setColour(int colourID, juce::Colour colour)
     {
         m_component.setColour(colourID, colour);
-    }
-
-    /* set the size of the widget to be squared (for slider,..) */
-    void squareSized()
-    {
-        auto bounds      = getBounds();
-        const auto width = bounds.getWidth();
-        auto height      = bounds.getHeight();
-
-        /* remove text size if label is visible */
-        if (m_labelVisible) height -= labelSize;
-
-        const auto size = width > height ? height : width;
-
-        const auto centre = bounds.getCentre();
-        bounds.setWidth(size);
-        bounds.setHeight(m_labelVisible ? size + labelSize : size);
-        bounds.setCentre(centre);
-        setBounds(bounds);
     }
 
   protected:

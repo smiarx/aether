@@ -1,5 +1,3 @@
-// #extension GL_OES_standard_derivatives:enable
-
 #ifdef GL_ES
 precision mediump float;
 #endif
@@ -23,52 +21,42 @@ precision mediump float;
 #endif
 
 #ifndef BORDER_COLOR
-#define BORDER_COLOR vec3(0., 0., 1.)
+#define BORDER_COLOR vec3(0.0, 0.0, 1.0)
 #endif
 
-uniform vec2 u_resolution;
+#ifndef BACKGROUND_COLOR
+#define BACKGROUND_COLOR vec3(0.0)
+#endif
+
+#define NITER 40
+#define AA    3
+
+#ifdef DUMMY
+uniform float u_time;
+#else
 uniform float u_rms[RMS_BUFFER_SIZE * NSPRINGS];
 uniform int u_rmspos;
+#endif
+uniform vec2 u_resolution;
+
+// constants
+const float springSize   = 0.3;
+const float springRadius = 0.38 * springSize;
 
 float roundedBox(vec2 p, vec2 size, float cornerSize)
 {
     vec2 q    = abs(p) - size + cornerSize;
-    float sdf = min(max(q.x, q.y), 0.0) + length(max(q, 0.)) - cornerSize;
+    float sdf = min(max(q.x, q.y), 0.0) + length(max(q, 0.0)) - cornerSize;
     return sdf;
 }
 
-void main()
+#ifndef DUMMY
+float getRMS(float x, int springId)
 {
-    vec2 st    = (2. * gl_FragCoord.xy - u_resolution) / u_resolution.xy;
-    vec2 stBck = st;
-    vec2 stBorder =
-        st; //(2.* gl_FragCoord.xy - u_resolution) / u_resolution.xx;
-
-    float springWidth  = 1.426;
-    float springFreq   = 0.7 / sqrt(u_resolution.y);
-    float springHeight = 0.8;
-
-    // divide image in NSPRINGS parts vertycally
-    st.y = (st.y + 1.) / 2.;
-    st.y *= float(SHOWSPRINGS);
-    int springId = int(st.y);
-    st.y         = fract(st.y) * 2. - 1.;
-
-#ifdef DUMMY
-    // dummy rms
-    // float rms =
-    //    sin(u_time * 4. * (sin(float(springId + 1) * 10000.39)) +
-    //        st.x * (4. + (1. + sin(float(springId + 1) * 4923043.)) * 1.3));
-    // rms = rms * rms;
-    float rms = abs(sin(u_time + (st.x + 2.) + float(springId)));
-    rms       = rms * rms * 1.;
-    rms *= 0.1;
-#else
-
-    float lgth = 0.5; // rms buffer length used
+    float lgth = 0.6; // rms buffer length used
 
     // rms from buffer
-    float xpos  = lgth * float(RMS_BUFFER_SIZE) * (st.x + 1.0) / 2.0;
+    float xpos  = lgth * float(RMS_BUFFER_SIZE) * (x + 1.0) / 2.0;
     int ixpos   = int(xpos);
     float fxpos = xpos - float(ixpos);
     int ixpos0  = (u_rmspos - ixpos) & (RMS_BUFFER_SIZE - 1);
@@ -76,76 +64,95 @@ void main()
     float rms0  = u_rms[ixpos0 * N + springId];
     float rms1  = u_rms[ixpos1 * N + springId];
     float rms   = rms0 + fxpos * (rms1 - rms0);
-#endif
 
     // scale & clamp
-    rms = pow(rms, 1. / 2.9);
+    rms = pow(rms, 1.0 / 2.5);
 
     // window to multuply displacement
     float winoverflow = 0.9;
     float winpower    = .8;
-    float winmult     = 0.22;
-    float win         = pow(cos(st.x * winoverflow * PI / 2.), winpower);
-    win *= winmult;
+    float win         = pow(cos(x * winoverflow * PI / 2.0), winpower);
 
-    // displace x axis;
-    float springshift = 0.0; // 0.888;
-    float xshift      = -rms * win;
-    st.x += xshift;
-    st.x += float(springId) * springshift;
+    return 5.0 * rms * win;
+}
+#endif
 
-    float th    = 2. * PI * st.x * u_resolution.x * springFreq;
-    float costh = cos(th);
-    float sinth = sin(th);
-    float origy = st.y;
-    st.y += sinth * springHeight;
+float map(vec3 p, float x)
+{
+    // divide space into 3 springs
+    p.y /= springSize;
+    p.y += 0.5;
+    int id;
+    if (p.y < 2.0 && p.y > -1.0) {
+        id  = int(p.y + 1.0);
+        p.y = (fract((p.y)) - 0.5) * springSize;
+    }
 
-    float d = abs(st.y) / sqrt(1 + costh * costh);
-    // d -= mix(0.*w, w, pow(abs(costh),2.2));
+// spring movement function
+#ifdef DUMMY
+    float springMove = sin(x + u_time * 4.0 + float(id) * 12.3);
+#else
+    float springMove = getRMS(x, id);
+#endif
 
-    // springs
-    // float width = springWidth;//mix(springWidth*0.03, springWidth,
-    // pow(abs(costh), 3.0));
-    float width = mix(springWidth * 0.08, springWidth, pow(abs(costh), 3.0));
-    // width /= (1. + abs(dFdx(xshift)) * 50.0);
-    d -= width;
-    float dAA = fwidth(d);
+    float cylinder = length(p.yz) - springRadius;
+    float coils = (sin(0.5 * atan(p.y, p.z) - p.x * springCoils + springMove)) /
+                  springCoils;
+    float dist = length(vec2(cylinder, coils)) - coilRadius;
+    ;
+    return dist;
+}
 
-    float springs = smoothstep(dAA, -dAA, d);
-    springs *= pow(max(0, cos(PI / 2. * origy * 1.2)), 0.3);
-    // float springs =
-    // smoothstep(width+0.03,width-0.03,d);//smoothstep(width+0.08, width-0.08,
-    // d);
-    float alphaSprings = springs;
+void main()
+{
 
-    // shadow of springs
-    float springsDark   = 0.1;
-    float springsBright = 0.9;
-    // c *= smoothstep(-0.1,0.1,cth)*.5+.5;
-    springs *= mix(springsDark, springsBright, costh * .5 + .5);
-    // c *= mix(1.,0.28,pow(d,1.8));
-    // c *= mix(0.1,1., pow(.5*cos(th)+.5,1.8));
+    vec3 color = vec3(0.0);
 
-    // springs color
-    vec3 springsColor = vec3(springs);
+    // perform multiple pass per pixel for antialiasing
+    for (int aax = 0; aax < AA; ++aax) {
+        for (int aay = 0; aay < AA; ++aay) {
+            // subpixel
+            vec2 aa = vec2(float(aax), float(aay)) / float(AA);
+            // cordinnates
+            vec2 st = (2.0 * (gl_FragCoord.xy + aa) + -u_resolution);
+            // value in the x axis
+            float xpos = st.x / u_resolution.x;
+            st /= u_resolution.yy;
 
-    // background
-    vec3 backgroundDark   = vec3(0.124, 0.124, 0.150);
-    vec3 backgroundBright = vec3(0.379, 0.443, 0.475);
-    stBck.x               = pow(stBck.x, 1.3);
-    stBck.x               = pow(stBck.x, 1.3);
-    float background      = 1. - pow(length(stBck), 1.2);
-    vec3 backgroundColor  = mix(backgroundDark, backgroundBright, background);
+            // raymarching
+            vec3 ro = vec3(0, 0, -5);
+            vec3 rd = normalize(vec3(st, 10));
+
+            float dist = 0.0;
+            for (int i = 0; i < NITER; ++i) {
+                vec3 p      = ro + dist * rd;
+                float delta = map(p, xpos);
+                if (delta < 0.0015) {
+                    dist -= 4.0;
+                    color += vec3(0.82 * pow(1.0 / dist, 2.0)) -
+                             0.8 * float(i) / float(NITER);
+                    break;
+                }
+                dist += delta;
+                if (dist > 6.0) {
+                    color += BACKGROUND_COLOR;
+                    break;
+                }
+            }
+        }
+    }
+    color /= float(AA) * float(AA);
+
+    vec2 st = (2.0 * (gl_FragCoord.xy) + -u_resolution) / u_resolution.xy;
+    // vignette
+    color *= 1.0 - 0.5 * pow(length(st) * 0.9, 4.);
 
     // border
     vec3 borderColor = BORDER_COLOR;
-    stBorder.x       = pow(stBorder.x, u_resolution.x / u_resolution.y);
-    float border     = roundedBox(stBorder, vec2(1.), 0.3);
-    border           = smoothstep(0.0, 0.01, border);
-
-    // final color
-    vec3 color = mix(backgroundColor, springsColor, alphaSprings);
-    color      = mix(color, borderColor, border);
+    st.x             = pow(st.x, u_resolution.x / u_resolution.y);
+    float border     = roundedBox(st, vec2(1.0), 0.3);
+    border           = smoothstep(0.0, 0.03, border);
+    color            = mix(color, borderColor, border);
 
     gl_FragColor = vec4(color, 1.0);
 }

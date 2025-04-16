@@ -7,6 +7,15 @@ namespace aether
 
 static constexpr auto refreshTimeMs = 40;
 
+juce::String glslColour(juce::Colour colour)
+{
+    float r = colour.getFloatRed(), g = colour.getFloatGreen(),
+          b           = colour.getFloatBlue();
+    juce::String glsl = "vec3(" + juce::String(r) + "," + juce::String(g) +
+                        "," + juce::String(b) + ")";
+    return glsl;
+}
+
 SpringsGL::SpringsGL(const PluginProcessor &processor)
 {
     setOpaque(true);
@@ -150,25 +159,21 @@ void SpringsGL::createShaders()
     std::unique_ptr<juce::OpenGLShaderProgram> shaderProgramAttempt =
         std::make_unique<juce::OpenGLShaderProgram>(openGLContext);
 
-    auto backgroundColour = findColour(SpringsSection::backgroundColourId);
-    auto bckR             = static_cast<double>(backgroundColour.getRed()) /
-                std::numeric_limits<juce::uint8>::max();
-    auto bckG = static_cast<double>(backgroundColour.getGreen()) /
-                std::numeric_limits<juce::uint8>::max();
-    auto bckB = static_cast<double>(backgroundColour.getBlue()) /
-                std::numeric_limits<juce::uint8>::max();
+    auto springBackgroundColour =
+        findColour(SpringsSection::backgroundColourId);
+    auto backgroundColour =
+        findColour(juce::ResizableWindow::backgroundColourId);
 
     // Sets up pipeline of shaders and compiles the program
     if (shaderProgramAttempt->addVertexShader(
             juce::OpenGLHelpers::translateVertexShaderToV3(vertexShader)) &&
         shaderProgramAttempt->addFragmentShader(
             juce::OpenGLHelpers::translateFragmentShaderToV3(
-                "#define RMS_BUFFER_SIZE " + juce::String(RMSStackSize) +
-                "\n#define N " + juce::String(N) + "\n" +
-                "\n#define BORDER_COLOR "
-                "vec3(" +
-                juce::String(bckR) + "," + juce::String(bckG) + "," +
-                juce::String(bckB) + ")" +
+                "\n#define RMS_BUFFER_SIZE " + juce::String(RMSStackSize) +
+                "\n#define N " + juce::String(N) + "\n#define BORDER_COLOR " +
+                glslColour(springBackgroundColour) +
+                "\n#define BACKGROUND_COLOR " +
+                glslColour(backgroundColour.darker(0.25f)) + "\n" +
                 juce::String(BinaryData::spring_shader))) &&
         shaderProgramAttempt->link()) {
         uniforms.reset();

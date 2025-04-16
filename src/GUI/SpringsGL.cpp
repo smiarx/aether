@@ -16,7 +16,8 @@ juce::String glslColour(juce::Colour colour)
     return glsl;
 }
 
-SpringsGL::SpringsGL(const PluginProcessor &processor)
+SpringsGL::SpringsGL(const PluginProcessor &processor) :
+    rms(processor.getRMSStack()), rmspos(processor.getRMSStackPos())
 {
     setOpaque(true);
     //// Sets the OpenGL version to 3.2
@@ -28,7 +29,20 @@ SpringsGL::SpringsGL(const PluginProcessor &processor)
     openGLContext.attachTo(*this);
     openGLContext.setContinuousRepainting(false);
 
-    setRMS(processor.getRMSStack(), processor.getRMSStackPos());
+    // add springgl to listeners
+    auto &params = processor.getParameters();
+    constexpr PluginProcessor::ParamId ids[]{
+        PluginProcessor::ParamId::SpringsDecay,
+        PluginProcessor::ParamId::SpringsDamp,
+        PluginProcessor::ParamId::SpringsShape,
+    };
+
+    for (auto id : ids) {
+        int iid     = static_cast<int>(id);
+        auto &param = params.getReference(iid);
+        param->addListener(this);
+        parameterValueChanged(iid, param->getValue());
+    }
 }
 
 SpringsGL::~SpringsGL()
@@ -88,6 +102,11 @@ void SpringsGL::renderOpenGL()
         uniforms->rms->set((GLfloat *)&rms[0][0], RMSStackSize * N);
 
     if (uniforms->rmspos != nullptr) uniforms->rmspos->set((GLint)*rmspos);
+
+    if (uniforms->coils != nullptr) uniforms->coils->set((GLfloat *)&coils, 1);
+    if (uniforms->radius != nullptr)
+        uniforms->radius->set((GLfloat *)&radius, 1);
+    if (uniforms->shape != nullptr) uniforms->shape->set((GLfloat *)&shape, 1);
 
     // Define Vertices for a Square (the view plane)
     GLfloat vertices[] = {
@@ -173,13 +192,29 @@ void SpringsGL::createShaders()
                 "\n#define N " + juce::String(N) + "\n#define BORDER_COLOR " +
                 glslColour(springBackgroundColour) +
                 "\n#define BACKGROUND_COLOR " +
-                glslColour(backgroundColour.darker(0.25f)) + "\n" +
+                glslColour(backgroundColour.darker(0.05f)) + "\n" +
                 juce::String(BinaryData::spring_shader))) &&
         shaderProgramAttempt->link()) {
         uniforms.reset();
         shader = std::move(shaderProgramAttempt);
         uniforms.reset(new Uniforms(openGLContext, *shader));
     } else {
+    }
+}
+
+void SpringsGL::parameterValueChanged(int parameterIndex, float newValue)
+{
+    auto id = static_cast<PluginProcessor::ParamId>(parameterIndex);
+    if (id == PluginProcessor::ParamId::SpringsDecay) {
+        coils = 1.f - newValue;
+    } else if (id == PluginProcessor::ParamId::SpringsDamp) {
+        radius = newValue;
+    } else if (id == PluginProcessor::ParamId::SpringsShape) {
+        if (newValue < 0.5f) shape = 1.5f;
+        else if (newValue < 0.81f)
+            shape = 0.5f; // we should get the exact value
+        else
+            shape = 1.0f;
     }
 }
 

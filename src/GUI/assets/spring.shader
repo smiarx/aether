@@ -33,15 +33,27 @@ precision mediump float;
 
 #ifdef DUMMY
 uniform float u_time;
+const float u_coils  = 0.552;
+const float u_radius = 0.524;
+const float u_shape  = 1.5;
 #else
 uniform float u_rms[RMS_BUFFER_SIZE * NSPRINGS];
 uniform int u_rmspos;
+uniform float u_coils;
+uniform float u_radius;
+uniform float u_shape;
 #endif
 uniform vec2 u_resolution;
 
 // constants
 const float springSize   = 0.3;
 const float springRadius = 0.38 * springSize;
+
+const float springCoilsMin = 35.0, springCoilsMax = 60.0;
+float springCoils =
+    springCoilsMin + u_coils * (springCoilsMax - springCoilsMin);
+const float coilRadiusMin = 0.007, coilRadiusMax = 0.014;
+float coilRadius = coilRadiusMin + u_radius * (coilRadiusMax - coilRadiusMin);
 
 float roundedBox(vec2 p, vec2 size, float cornerSize)
 {
@@ -69,7 +81,7 @@ float getRMS(float x, int springId)
     rms = pow(rms, 1.0 / 2.5);
 
     // window to multuply displacement
-    float winoverflow = 0.9;
+    float winoverflow = 0.8;
     float winpower    = .8;
     float win         = pow(cos(x * winoverflow * PI / 2.0), winpower);
 
@@ -96,8 +108,9 @@ float map(vec3 p, float x)
 #endif
 
     float cylinder = length(p.yz) - springRadius;
-    float coils = (sin(0.5 * atan(p.y, p.z) - p.x * springCoils + springMove)) /
-                  springCoils;
+    float coils =
+        (sin(u_shape * atan(p.y, p.z) - p.x * springCoils + springMove)) /
+        springCoils;
     float dist = length(vec2(cylinder, coils)) - coilRadius;
     ;
     return dist;

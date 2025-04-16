@@ -3,13 +3,15 @@
 #include <juce_opengl/juce_opengl.h>
 
 #include "../PluginProcessor.h"
+#include "juce_audio_processors/juce_audio_processors.h"
 
 namespace aether
 {
 
 class SpringsGL : public juce::Component,
                   public juce::OpenGLRenderer,
-                  public juce::Timer
+                  public juce::Timer,
+                  public juce::AudioProcessorParameter::Listener
 {
 
   public:
@@ -19,13 +21,6 @@ class SpringsGL : public juce::Component,
     static constexpr auto N             = processors::Springs::N;
     static constexpr auto RMSStackSize  = processors::Springs::RMSStackSize;
     static constexpr float Damp2Density = 4500.f;
-
-    void setRMS(const dsp::fSample<N> t_rms[RMSStackSize],
-                const std::atomic<int> *t_rmspos)
-    {
-        rms    = t_rms;
-        rmspos = t_rmspos;
-    }
 
     virtual void timerCallback() override;
 
@@ -68,6 +63,12 @@ class SpringsGL : public juce::Component,
         Uniforms(juce::OpenGLContext &t_openGLContext,
                  juce::OpenGLShaderProgram &t_shaderProgram)
         {
+            coils.reset(
+                createUniform(t_openGLContext, t_shaderProgram, "u_coils"));
+            radius.reset(
+                createUniform(t_openGLContext, t_shaderProgram, "u_radius"));
+            shape.reset(
+                createUniform(t_openGLContext, t_shaderProgram, "u_shape"));
             resolution.reset(createUniform(t_openGLContext, t_shaderProgram,
                                            "u_resolution"));
             rms.reset(createUniform(t_openGLContext, t_shaderProgram, "u_rms"));
@@ -75,8 +76,8 @@ class SpringsGL : public juce::Component,
                 createUniform(t_openGLContext, t_shaderProgram, "u_rmspos"));
         }
 
-        std::unique_ptr<juce::OpenGLShaderProgram::Uniform> resolution, rms,
-            rmspos;
+        std::unique_ptr<juce::OpenGLShaderProgram::Uniform> coils, radius,
+            shape, resolution, rms, rmspos;
 
       private:
         static juce::OpenGLShaderProgram::Uniform *
@@ -108,8 +109,17 @@ class SpringsGL : public juce::Component,
         String newVertexShader, newFragmentShader;
      */
 
+    // AudioProcessorParameter::Listener functions
+    virtual void parameterValueChanged(int parameterIndex,
+                                       float newValue) override;
+    virtual void parameterGestureChanged(int /*parameterIndex*/,
+                                         bool /*gestureIsStarting*/) override
+    {
+    }
+
     const dsp::fSample<N> *rms;
     const std::atomic<int> *rmspos;
+    float coils = 0.f, radius = 0.f, shape = 0.5f;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SpringsGL)
 };

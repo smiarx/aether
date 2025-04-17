@@ -1,5 +1,5 @@
 #include "SpringsGL.h"
-#include "BinaryData.h"
+#include "Assets.h"
 #include "SpringsSection.h"
 
 namespace aether
@@ -193,7 +193,7 @@ void SpringsGL::createShaders()
                 glslColour(springBackgroundColour) +
                 "\n#define BACKGROUND_COLOR " +
                 glslColour(backgroundColour.darker(0.05f)) + "\n" +
-                juce::String(BinaryData::spring_shader))) &&
+                juce::String(Assets::springs_shader))) &&
         shaderProgramAttempt->link()) {
         uniforms.reset();
         shader = std::move(shaderProgramAttempt);

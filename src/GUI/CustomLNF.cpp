@@ -1,6 +1,6 @@
 #include "CustomLNF.h"
-#include "BinaryData.h"
 #include "DelaySection.h"
+#include "Fonts.h"
 #include "PluginEditor.h"
 #include "Slider.h"
 #include "SpringsSection.h"
@@ -84,19 +84,19 @@ CustomLNF::CustomLNF()
 
     if (titleTypeface == nullptr) {
         titleTypeface = juce::Typeface::createSystemTypefaceFor(
-            BinaryData::NunitoSans150_ttf, BinaryData::NunitoSans150_ttfSize);
+            Fonts::NunitoSans150_ttf, Fonts::NunitoSans150_ttfSize);
     }
     if (symbolsTypeface == nullptr) {
         symbolsTypeface = juce::Typeface::createSystemTypefaceFor(
-            BinaryData::Symbols_ttf, BinaryData::Symbols_ttfSize);
+            Fonts::Symbols_ttf, Fonts::Symbols_ttfSize);
     }
     if (defaultTypeface == nullptr) {
         defaultTypeface = juce::Typeface::createSystemTypefaceFor(
-            BinaryData::Lexend300_ttf, BinaryData::Lexend300_ttfSize);
+            Fonts::Lexend300_ttf, Fonts::Lexend300_ttfSize);
     }
     if (defaultMonoTypeface == nullptr) {
         defaultMonoTypeface = juce::Typeface::createSystemTypefaceFor(
-            BinaryData::Roboto425_ttf, BinaryData::Roboto425_ttfSize);
+            Fonts::Roboto425_ttf, Fonts::Roboto425_ttfSize);
     }
     setDefaultSansSerifTypeface(defaultTypeface);
 }

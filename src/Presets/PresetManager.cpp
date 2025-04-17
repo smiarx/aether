@@ -1,12 +1,12 @@
 #include "PresetManager.h"
-#include "BinaryData.h"
+#include "Factory.h"
 
 namespace aether
 {
 
 const std::array<PresetManager::factoryPreset_t, PresetManager::nFactoryPreset>
     PresetManager::factoryPresets = {
-        {{"test", BinaryData::test_preset, BinaryData::test_presetSize}}};
+        {{"test", Factory::test_preset, Factory::test_presetSize}}};
 
 PresetManager::PresetManager(juce::AudioProcessorValueTreeState &apvts) :
     m_apvts(apvts), m_default(apvts.copyState())

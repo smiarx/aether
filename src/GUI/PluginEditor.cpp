@@ -1,5 +1,4 @@
 #include "PluginEditor.h"
-#include "BinaryData.h"
 
 namespace aether
 {

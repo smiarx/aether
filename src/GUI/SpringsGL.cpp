@@ -180,8 +180,6 @@ void SpringsGL::createShaders()
 
     auto springBackgroundColour =
         findColour(SpringsSection::backgroundColourId);
-    auto backgroundColour =
-        findColour(juce::ResizableWindow::backgroundColourId);
 
     // Sets up pipeline of shaders and compiles the program
     if (shaderProgramAttempt->addVertexShader(
@@ -189,10 +187,9 @@ void SpringsGL::createShaders()
         shaderProgramAttempt->addFragmentShader(
             juce::OpenGLHelpers::translateFragmentShaderToV3(
                 "\n#define RMS_BUFFER_SIZE " + juce::String(RMSStackSize) +
-                "\n#define N " + juce::String(N) + "\n#define BORDER_COLOR " +
-                glslColour(springBackgroundColour) +
+                "\n#define N " + juce::String(N) +
                 "\n#define BACKGROUND_COLOR " +
-                glslColour(backgroundColour.darker(0.05f)) + "\n" +
+                glslColour(springBackgroundColour) + "\n" +
                 juce::String(Assets::springs_shader))) &&
         shaderProgramAttempt->link()) {
         uniforms.reset();

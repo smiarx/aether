@@ -25,17 +25,18 @@ precision mediump float;
 #endif
 
 #ifndef BACKGROUND_COLOR
-#define BACKGROUND_COLOR vec3(0.0)
+#define BACKGROUND_COLOR \
+    vec3(0.8235294117647058, 0.8392156862745098, 0.8470588235294118)
 #endif
 
-#define NITER 40
-#define AA    3
+#define NITER 80
+#define AA    4
 
 #ifdef DUMMY
 uniform float u_time;
 const float u_coils  = 0.552;
 const float u_radius = 0.524;
-const float u_shape  = 1.5;
+const float u_shape  = 0.5;
 #else
 uniform float u_rms[RMS_BUFFER_SIZE * NSPRINGS];
 uniform int u_rmspos;
@@ -89,7 +90,7 @@ float getRMS(float x, int springId)
 }
 #endif
 
-float map(vec3 p, float x)
+vec3 transformSpace(vec3 p, float x)
 {
     // divide space into 3 springs
     p.y /= springSize;
@@ -107,13 +108,46 @@ float map(vec3 p, float x)
     float springMove = getRMS(x, id);
 #endif
 
+    p.x = p.x * springCoils - springMove + (float(id) - 0.394) * 24.1498;
+
+    return p;
+}
+
+float map(vec3 p, float x)
+{
+    p = transformSpace(p, x);
+
     float cylinder = length(p.yz) - springRadius;
-    float coils =
-        (sin(u_shape * atan(p.y, p.z) - p.x * springCoils + springMove)) /
-        springCoils;
-    float dist = length(vec2(cylinder, coils)) - coilRadius;
+    float coils    = (sin(u_shape * atan(p.y, p.z) - p.x)) / springCoils;
+    float dist     = length(vec2(cylinder, coils)) - coilRadius;
     ;
     return dist;
+}
+
+vec3 getColor(vec3 p, float x)
+{
+    p = transformSpace(p, x);
+    p.yz /= springRadius;
+
+    vec3 color;
+
+    float theta = 0.29 * PI;
+    float cth = cos(theta), sth = sin(theta);
+    p.yz *= mat2(cth, sth, -sth, cth);
+
+    const vec3 baseColor = vec3(0.791, 0.862, 1.000);
+    const vec3 specColor = vec3(0.648, 0.706, 0.760);
+
+    color = baseColor * (0.25 + 0.10 * (1.0 + (length(p.yz) - 1.0) *
+                                                  springRadius / coilRadius));
+
+    p.x -= 0.66 + u_radius * 0.5;
+    p.z = max(-p.z, 0.) - sin(2.0 * (p.x + u_shape * atan(p.y, p.z))) * 0.10;
+
+    color += baseColor * pow(p.z * 0.25, 1.0);
+    color += specColor * (pow(p.z * 0.845, 60.0));
+
+    return color;
 }
 
 void main()
@@ -140,15 +174,27 @@ void main()
             for (int i = 0; i < NITER; ++i) {
                 vec3 p      = ro + dist * rd;
                 float delta = map(p, xpos);
-                if (delta < 0.0015) {
-                    dist -= 4.0;
-                    color += vec3(0.82 * pow(1.0 / dist, 2.0)) -
-                             0.8 * float(i) / float(NITER);
+                dist += delta;
+                if (delta < 0.001) {
+                    p = ro + dist * rd;
+                    color += getColor(p, xpos);
                     break;
                 }
-                dist += delta;
                 if (dist > 6.0) {
-                    color += BACKGROUND_COLOR;
+                    vec3 backgroundColor = BACKGROUND_COLOR;
+                    float shade     = 0.02 + u_radius * 0.10 + u_coils * 0.14;
+                    float shadeSize = 1.70;
+                    float shadeY    = (st.y) * shadeSize;
+                    shadeY += 0.86;
+                    if (shadeY < 2.0 && shadeY > -1.0) {
+                        shadeY = (fract(shadeY) - 0.5) / shadeSize;
+                        shadeY = abs(shadeY);
+                    }
+                    backgroundColor *=
+                        (1.0 - shade) +
+                        shade * min(1.0, pow(shadeY * 5.9,
+                                             1.5 + 0.5 * (u_coils + u_radius)));
+                    color += backgroundColor;
                     break;
                 }
             }
@@ -156,16 +202,27 @@ void main()
     }
     color /= float(AA) * float(AA);
 
+    float cornerSize = 0.3;
+
     vec2 st = (2.0 * (gl_FragCoord.xy) + -u_resolution) / u_resolution.xy;
     // vignette
-    color *= 1.0 - 0.5 * pow(length(st) * 0.9, 4.);
+    color *= pow(1.0 - 0.6 * max(0.0, roundedBox(st + vec2(0.035), vec2(0.85),
+                                                 cornerSize)),
+                 3.0);
 
     // border
-    vec3 borderColor = BORDER_COLOR;
-    st.x             = pow(st.x, u_resolution.x / u_resolution.y);
-    float border     = roundedBox(st, vec2(1.0), 0.3);
-    border           = smoothstep(0.0, 0.03, border);
-    color            = mix(color, borderColor, border);
+    vec3 backgroundColor = BACKGROUND_COLOR;
+    float box            = roundedBox(st, vec2(1.0), cornerSize);
+
+    float border      = smoothstep(-0.03, -0.01, box);
+    float borderShade = 0.6;
+    vec3 borderColor =
+        backgroundColor *
+        ((1.0 - borderShade) + borderShade * (2.0 - st.x - st.y) * 0.5);
+    color = mix(color, borderColor, border);
+
+    float background = smoothstep(0.0, 0.02, box);
+    color            = mix(color, backgroundColor, background);
 
     gl_FragColor = vec4(color, 1.0);
 }

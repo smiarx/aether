@@ -118,6 +118,7 @@ class PluginProcessor final : public juce::AudioProcessor,
     const auto *getRMSStackPos() const { return &m_rmsPos; }
 
     auto &getSwitchIndicator() { return m_tapedelay.getSwitchIndicator(); }
+    auto *getShakeAtomic() { return &m_shake; }
 
     PresetManager &getPresetManager() { return m_presetManager; }
 
@@ -131,6 +132,7 @@ class PluginProcessor final : public juce::AudioProcessor,
 
     // atomics
     std::atomic<int> m_rmsPos{0};
+    std::atomic<bool> m_shake{};
 
     bool m_useBeats{false};
     double m_beatsMult{1};

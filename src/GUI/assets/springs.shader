@@ -135,7 +135,7 @@ vec3 getColor(vec3 p, float x)
     float cth = cos(theta), sth = sin(theta);
     p.yz *= mat2(cth, sth, -sth, cth);
 
-    const vec3 baseColor = vec3(0.791, 0.862, 1.000);
+    const vec3 baseColor = vec3(0.851, 0.92, 1.000);
     const vec3 specColor = vec3(0.648, 0.706, 0.760);
 
     color = baseColor * (0.25 + 0.10 * (1.0 + (length(p.yz) - 1.0) *

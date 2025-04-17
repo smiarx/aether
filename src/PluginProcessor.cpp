@@ -339,6 +339,12 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
         }
     }
 
+    // shake springs
+    if (m_shake.load()) {
+        m_shake.store(false);
+        m_springs.shake();
+    }
+
     const float *const *ins = buffer.getArrayOfReadPointers();
     float *const *outs      = buffer.getArrayOfWritePointers();
 

@@ -41,7 +41,7 @@ class DelaySection : public juce::Component
         backgroundColourId = 0x1312000,
     };
 
-    DelaySection(PluginProcessor &processor, APVTS &apvts);
+    DelaySection(PluginProcessor &processor);
 
     virtual void resized() override;
     virtual void paint(juce::Graphics &g) override;

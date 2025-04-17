@@ -5,27 +5,28 @@
 namespace aether
 {
 
-DelaySection::DelaySection(PluginProcessor &processor,
-                           juce::AudioProcessorValueTreeState &apvts) :
+DelaySection::DelaySection(PluginProcessor &processor) :
     m_sliders{
-        SliderWithLabel(apvts, std::get<0>(elements[0]),
+        SliderWithLabel(processor.getAPVTS(), std::get<0>(elements[0]),
                         std::get<1>(elements[0])),
-        SliderWithLabel(apvts, std::get<0>(elements[1]),
+        SliderWithLabel(processor.getAPVTS(), std::get<0>(elements[1]),
                         std::get<1>(elements[1])),
-        SliderWithLabel(apvts, std::get<0>(elements[2]),
+        SliderWithLabel(processor.getAPVTS(), std::get<0>(elements[2]),
                         std::get<1>(elements[2])),
-        SliderWithLabel(apvts, std::get<0>(elements[3]),
+        SliderWithLabel(processor.getAPVTS(), std::get<0>(elements[3]),
                         std::get<1>(elements[3])),
-        SliderWithLabel(apvts, std::get<0>(elements[4]),
+        SliderWithLabel(processor.getAPVTS(), std::get<0>(elements[4]),
                         std::get<1>(elements[4])),
-        SliderWithLabel(apvts, std::get<0>(elements[5]),
+        SliderWithLabel(processor.getAPVTS(), std::get<0>(elements[5]),
                         std::get<1>(elements[5])),
-        SliderWithLabel(apvts, std::get<0>(elements[6]),
+        SliderWithLabel(processor.getAPVTS(), std::get<0>(elements[6]),
                         std::get<1>(elements[6])),
     },
-    m_active("Delay"), m_activeAttachment(apvts, "delay_active", m_active),
-    m_modeAttachment(apvts, "delay_mode", m_mode.getComboBox()),
-    m_timeTypeAttachment(apvts, "delay_time_type", m_timeType.getComboBox()),
+    m_active("Delay"),
+    m_activeAttachment(processor.getAPVTS(), "delay_active", m_active),
+    m_modeAttachment(processor.getAPVTS(), "delay_mode", m_mode.getComboBox()),
+    m_timeTypeAttachment(processor.getAPVTS(), "delay_time_type",
+                         m_timeType.getComboBox()),
     m_led(processor.getSwitchIndicator())
 {
     addAndMakeVisible(m_active);
@@ -92,6 +93,9 @@ DelaySection::DelaySection(PluginProcessor &processor,
     m_mode.getComboBox().setTooltip(
         "Delay mode: [Normal] forward direction, [Back & Forth] alternates "
         "between forwards and reverse - [Reverse] Reverse echoes");
+
+    // processor apvts
+    auto &apvts = processor.getAPVTS();
 
     addAndMakeVisible(m_mode);
     m_mode.getComboBox().addItemList(

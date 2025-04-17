@@ -5,29 +5,29 @@
 namespace aether
 {
 
-SpringsSection::SpringsSection(const PluginProcessor &processor,
-                               juce::AudioProcessorValueTreeState &apvts) :
+SpringsSection::SpringsSection(PluginProcessor &processor) :
     m_sliders{
-        SliderWithLabel(apvts, std::get<0>(elements[0]),
+        SliderWithLabel(processor.getAPVTS(), std::get<0>(elements[0]),
                         std::get<1>(elements[0])),
-        SliderWithLabel(apvts, std::get<0>(elements[1]),
+        SliderWithLabel(processor.getAPVTS(), std::get<0>(elements[1]),
                         std::get<1>(elements[1])),
-        SliderWithLabel(apvts, std::get<0>(elements[2]),
+        SliderWithLabel(processor.getAPVTS(), std::get<0>(elements[2]),
                         std::get<1>(elements[2])),
-        SliderWithLabel(apvts, std::get<0>(elements[3]),
+        SliderWithLabel(processor.getAPVTS(), std::get<0>(elements[3]),
                         std::get<1>(elements[3])),
-        SliderWithLabel(apvts, std::get<0>(elements[4]),
+        SliderWithLabel(processor.getAPVTS(), std::get<0>(elements[4]),
                         std::get<1>(elements[4])),
-        SliderWithLabel(apvts, std::get<0>(elements[5]),
+        SliderWithLabel(processor.getAPVTS(), std::get<0>(elements[5]),
                         std::get<1>(elements[5])),
-        SliderWithLabel(apvts, std::get<0>(elements[6]),
+        SliderWithLabel(processor.getAPVTS(), std::get<0>(elements[6]),
                         std::get<1>(elements[6])),
-        SliderWithLabel(apvts, std::get<0>(elements[7]),
+        SliderWithLabel(processor.getAPVTS(), std::get<0>(elements[7]),
                         std::get<1>(elements[7])),
-        SliderWithLabel(apvts, std::get<0>(elements[8]),
+        SliderWithLabel(processor.getAPVTS(), std::get<0>(elements[8]),
                         std::get<1>(elements[8])),
     },
-    m_active("Reverb"), m_activeAttachment(apvts, "springs_active", m_active),
+    m_active("Reverb"),
+    m_activeAttachment(processor.getAPVTS(), "springs_active", m_active),
     m_springsGL(processor)
 {
     addAndMakeVisible(m_springsGL);

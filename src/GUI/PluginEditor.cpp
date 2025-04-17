@@ -4,8 +4,8 @@ namespace aether
 {
 
 PluginEditor::PluginEditor(PluginProcessor &p) :
-    AudioProcessorEditor(&p), preset(p.getPresetManager()),
-    delaySection{p, p.getAPVTS()}, springsSection{p, p.getAPVTS()}
+    AudioProcessorEditor(&p), preset(p.getPresetManager()), delaySection{p},
+    springsSection{p}
 {
     setResizable(true, true);
 

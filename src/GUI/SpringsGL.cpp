@@ -16,8 +16,9 @@ juce::String glslColour(juce::Colour colour)
     return glsl;
 }
 
-SpringsGL::SpringsGL(const PluginProcessor &processor) :
-    rms(processor.getRMSStack()), rmspos(processor.getRMSStackPos())
+SpringsGL::SpringsGL(PluginProcessor &processor) :
+    rms(processor.getRMSStack()), rmspos(processor.getRMSStackPos()),
+    shake(processor.getShakeAtomic())
 {
     setOpaque(true);
     //// Sets the OpenGL version to 3.2

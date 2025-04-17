@@ -15,7 +15,7 @@ class SpringsGL : public juce::Component,
 {
 
   public:
-    SpringsGL(const PluginProcessor &processor);
+    SpringsGL(PluginProcessor &processor);
     ~SpringsGL() override;
 
     static constexpr auto N             = processors::Springs::N;
@@ -117,9 +117,16 @@ class SpringsGL : public juce::Component,
     {
     }
 
+    // click functions
+    void mouseDown(const juce::MouseEvent & /*event*/) override
+    {
+        shake->store(true);
+    }
+
     const dsp::fSample<N> *rms;
     const std::atomic<int> *rmspos;
     float coils = 0.f, radius = 0.f, shape = 0.5f;
+    std::atomic<bool> *shake;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SpringsGL)
 };

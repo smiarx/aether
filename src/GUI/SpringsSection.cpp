@@ -68,7 +68,7 @@ SpringsSection::SpringsSection(PluginProcessor &processor) :
     m_sliders[Scatter].getComponent().setTooltip(
         "How similar or different are the springs properties.");
 
-    static const auto mainColour = juce::Colour(0xfff88261);
+    static const auto mainColour = juce::Colour(CustomLNF::springsMainColour);
 
     m_active.setColour(juce::ToggleButton::tickColourId, mainColour);
 

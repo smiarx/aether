@@ -31,9 +31,9 @@ CustomLNF::CustomLNF()
         juce::ComboBox::ColourIds::textColourId,
         textColour,
         DelaySection::backgroundColourId,
-        0xffd2d6d8,
+        delayBackColour,
         SpringsSection::backgroundColourId,
-        0xffe9e5e2,
+        springsBackColour,
         juce::Slider::rotarySliderFillColourId,
         0xfff5f5f5,
         juce::Slider::trackColourId,
@@ -84,7 +84,7 @@ CustomLNF::CustomLNF()
 
     if (titleTypeface == nullptr) {
         titleTypeface = juce::Typeface::createSystemTypefaceFor(
-            Fonts::NunitoSans150_ttf, Fonts::NunitoSans150_ttfSize);
+            Fonts::NunitoSans320_ttf, Fonts::NunitoSans320_ttfSize);
     }
     if (symbolsTypeface == nullptr) {
         symbolsTypeface = juce::Typeface::createSystemTypefaceFor(

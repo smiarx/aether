@@ -13,32 +13,14 @@ PluginEditor::PluginEditor(PluginProcessor &p) :
     juce::Desktop::getInstance().addGlobalMouseListener(this);
 
     setLookAndFeel(&lookandfeel);
-    addAndMakeVisible(title);
-    addAndMakeVisible(preset);
     addAndMakeVisible(tooltip);
+    addAndMakeVisible(preset);
     addAndMakeVisible(delaySection);
     addAndMakeVisible(springsSection);
 
     setSize(940, 480);
     setResizeLimits(600, 400, std::numeric_limits<int>::max(),
                     std::numeric_limits<int>::max());
-
-    title.setText(juce::String::fromUTF8(titleString),
-                  juce::dontSendNotification);
-    auto titleFont =
-        juce::Font(CustomLNF::titleTypeface).withHeight(headerHeight);
-    titleFont.setDefaultMinimumHorizontalScaleFactor(1.f);
-    titleFont.setExtraKerningFactor(0.3f);
-    title.setFont(titleFont);
-    title.setColour(juce::Label::textColourId, juce::Colour{0xffffffff});
-
-    // fix width
-    titleWidth =
-        titleFont.getStringWidthFloat(juce::String::fromUTF8(titleString));
-    titleWidth += 0.08f * titleWidth;
-
-    tooltip.setFont(juce::Font(CustomLNF::defaultTypeface).withPointHeight(14));
-    tooltip.setColour(juce::Label::textColourId, juce::Colour{0xffffffff});
 
     preset.setArrowsColour(juce::Colour(0xffffffff));
 }
@@ -62,15 +44,21 @@ void PluginEditor::resized()
     juce::FlexBox fb;
     fb.flexDirection = juce::FlexBox::Direction::row;
 
+    juce::Component flextitle;
+    auto titleWidth    = title.getMaxWidth();
+    auto toolTipMargin = getBounds().getWidth() * 0.03f;
+
     fbTitle.items.addArray({
-        juce::FlexItem(title)
+        juce::FlexItem(flextitle)
             .withFlex(0.5f)
             .withMargin(0.f)
             .withHeight(headerHeight)
             .withMaxWidth(titleWidth)
             .withMinWidth(titleWidth),
-        juce::FlexItem(tooltip).withFlex(1.f).withMargin(0.f).withHeight(
-            headerHeight),
+        juce::FlexItem(tooltip)
+            .withFlex(1.f)
+            .withMargin({0, toolTipMargin, 0, toolTipMargin})
+            .withHeight(headerHeight),
         juce::FlexItem(preset)
             .withFlex(0.55f)
             .withHeight(headerHeight / 2)
@@ -94,6 +82,8 @@ void PluginEditor::resized()
     bounds.reduce(CustomLNF::margin, 0);
     bounds.removeFromBottom(CustomLNF::margin);
     fbMain.performLayout(bounds);
+
+    title.setBounds(flextitle.getBounds().toFloat());
 }
 
 void PluginEditor::paint(juce::Graphics &g)
@@ -109,6 +99,8 @@ void PluginEditor::paint(juce::Graphics &g)
 
     g.setColour(juce::Colour{0xffafafaf});
     g.strokePath(win, juce::PathStrokeType(2));
+
+    title.draw(g);
 }
 
 void PluginEditor::mouseMove(const juce::MouseEvent &event)

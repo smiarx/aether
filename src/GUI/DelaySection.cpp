@@ -33,7 +33,7 @@ DelaySection::DelaySection(PluginProcessor &processor) :
     addAndMakeVisible(m_led);
 
     // set colours
-    const auto mainColour = juce::Colour(0xff609ccd);
+    const auto mainColour = juce::Colour(CustomLNF::delayMainColour);
 
     m_mode.setArrowsColour(mainColour);
     m_timeType.setArrowsColour(mainColour);

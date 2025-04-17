@@ -16,6 +16,11 @@ class CustomLNF : public juce::LookAndFeel_V4
 
     static constexpr auto textPointHeight = 13;
 
+    static constexpr auto delayMainColour   = 0xff609ccd;
+    static constexpr auto delayBackColour   = 0xffd2d6d8;
+    static constexpr auto springsMainColour = 0xfff88261;
+    static constexpr auto springsBackColour = 0xffe9e5e2;
+
     static juce::Typeface::Ptr titleTypeface;
     static juce::Typeface::Ptr symbolsTypeface;
     static juce::Typeface::Ptr defaultTypeface;

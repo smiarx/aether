@@ -6,6 +6,7 @@
 #include "DelaySection.h"
 #include "PresetComponent.h"
 #include "SpringsSection.h"
+#include "Title.h"
 #include "ToolTip.h"
 
 namespace aether
@@ -14,8 +15,6 @@ namespace aether
 class PluginEditor : public juce::AudioProcessorEditor
 {
   public:
-    static constexpr auto titleString = u8"ÆTHER";
-
     static constexpr auto titleHeight  = 50.f;
     static constexpr auto titleMargin  = 5.f;
     static constexpr auto headerHeight = titleHeight + 2.f;
@@ -35,10 +34,9 @@ class PluginEditor : public juce::AudioProcessorEditor
 
   private:
     CustomLNF lookandfeel;
-    juce::Label title;
-    int titleWidth;
-    PresetComponent preset;
+    Title title;
     ToolTip tooltip;
+    PresetComponent preset;
     DelaySection delaySection;
     SpringsSection springsSection;
 

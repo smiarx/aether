@@ -9,6 +9,7 @@ target_sources(${PROJECT_NAME}
         Led.cpp
         PresetComponent.cpp
         ArrowButton.cpp
+        Title.cpp
     )
 
 add_subdirectory(assets/)

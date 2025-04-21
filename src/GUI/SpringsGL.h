@@ -74,10 +74,12 @@ class SpringsGL : public juce::Component,
             rms.reset(createUniform(t_openGLContext, t_shaderProgram, "u_rms"));
             rmspos.reset(
                 createUniform(t_openGLContext, t_shaderProgram, "u_rmspos"));
+            time.reset(
+                createUniform(t_openGLContext, t_shaderProgram, "u_time"));
         }
 
         std::unique_ptr<juce::OpenGLShaderProgram::Uniform> coils, radius,
-            shape, resolution, rms, rmspos;
+            shape, resolution, rms, rmspos, time;
 
       private:
         static juce::OpenGLShaderProgram::Uniform *
@@ -123,6 +125,9 @@ class SpringsGL : public juce::Component,
         shake->store(true);
     }
 
+    PluginProcessor &m_processor;
+
+    float time{};
     const dsp::fSample<N> *rms;
     const std::atomic<int> *rmspos;
     float coils = 0.f, radius = 0.f, shape = 0.5f;

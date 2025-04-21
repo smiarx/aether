@@ -15,7 +15,12 @@ PluginProcessor::PluginProcessor() :
     for (auto *param : getParameters()) addProcessorAsListener(param);
 }
 
-PluginProcessor::~PluginProcessor() {}
+PluginProcessor::~PluginProcessor()
+{
+    for (auto *param : getParameters()) {
+        param->removeListener(this);
+    }
+}
 
 //==============================================================================
 juce::AudioProcessorValueTreeState::ParameterLayout

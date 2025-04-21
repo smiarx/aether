@@ -33,7 +33,6 @@ precision mediump float;
 #define AA    4
 
 #ifdef DUMMY
-uniform float u_time;
 const float u_coils  = 0.552;
 const float u_radius = 0.524;
 const float u_shape  = 0.5;
@@ -44,6 +43,7 @@ uniform float u_coils;
 uniform float u_radius;
 uniform float u_shape;
 #endif
+uniform float u_time;
 uniform vec2 u_resolution;
 
 // constants
@@ -81,12 +81,7 @@ float getRMS(float x, int springId)
     // scale & clamp
     rms = pow(rms, 1.0 / 2.5);
 
-    // window to multuply displacement
-    float winoverflow = 0.8;
-    float winpower    = .8;
-    float win         = pow(cos(x * winoverflow * PI / 2.0), winpower);
-
-    return 5.0 * rms * win;
+    return 5.0 * rms; // 5.0 * rms;
 }
 #endif
 
@@ -108,7 +103,21 @@ vec3 transformSpace(vec3 p, float x)
     float springMove = getRMS(x, id);
 #endif
 
-    p.x = p.x * springCoils - springMove + (float(id) - 0.394) * 24.1498;
+    // window to multuply displacement
+    float winoverflow = 0.85;
+    float winpower    = .8;
+    float win         = pow(cos(x * winoverflow * PI / 2.0), winpower);
+    springMove *= win;
+
+    float fid = float(id);
+
+    p.x = p.x * springCoils - springMove + (fid - 0.394) * 24.1498;
+
+    float transverse = springMove * 0.006;
+    float rot  = 2 * PI * u_time * (8.123210 + 2.323 * fid) + fid * 124.32;
+    float crot = cos(rot), srot = sin(rot);
+    p.y += crot * transverse;
+    p.z += srot * transverse;
 
     return p;
 }
@@ -173,7 +182,7 @@ void main()
             float dist = 0.0;
             for (int i = 0; i < NITER; ++i) {
                 vec3 p      = ro + dist * rd;
-                float delta = map(p, xpos);
+                float delta = 0.95 * map(p, xpos);
                 dist += delta;
                 if (delta < 0.001) {
                     p = ro + dist * rd;
@@ -212,7 +221,9 @@ void main()
 
     // border
     vec3 backgroundColor = BACKGROUND_COLOR;
-    float box            = roundedBox(st, vec2(1.0), cornerSize);
+    float xyratio        = u_resolution.x / u_resolution.y;
+    st.x *= xyratio;
+    float box = roundedBox(st, vec2(xyratio, 1.0), cornerSize);
 
     float border      = smoothstep(-0.03, -0.01, box);
     float borderShade = 0.6;

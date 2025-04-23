@@ -1,31 +1,35 @@
 #include "PresetComponent.h"
-#include <memory.h>
+#include "../Presets/PresetManager.h"
+#include "juce_graphics/juce_graphics.h"
+#include "juce_gui_basics/juce_gui_basics.h"
+#include <cstddef>
+#include <memory>
 
 namespace aether
 {
 
 PresetComponent::PresetComponent(PresetManager &presetManager) :
-    m_presetManager(presetManager), m_prevButton("presetPrev", 0.5f),
-    m_nextButton("presetNext", 0.f)
+    presetManager_(presetManager), prevButton_("presetPrev", 0.5f),
+    nextButton_("presetNext", 0.f)
 {
     updatePresetName();
 
-    m_presetManager.addListener(this);
-    m_prevButton.addListener(this);
-    m_nextButton.addListener(this);
-    m_presetButton.addListener(this);
+    presetManager_.addListener(this);
+    prevButton_.addListener(this);
+    nextButton_.addListener(this);
+    presetButton_.addListener(this);
 
-    addAndMakeVisible(m_prevButton);
-    addAndMakeVisible(m_nextButton);
-    addAndMakeVisible(m_presetButton);
+    addAndMakeVisible(prevButton_);
+    addAndMakeVisible(nextButton_);
+    addAndMakeVisible(presetButton_);
 }
 
 PresetComponent::~PresetComponent()
 {
-    m_presetManager.removeListener(this);
-    m_prevButton.removeListener(this);
-    m_nextButton.removeListener(this);
-    m_presetButton.removeListener(this);
+    presetManager_.removeListener(this);
+    prevButton_.removeListener(this);
+    nextButton_.removeListener(this);
+    presetButton_.removeListener(this);
 }
 
 void PresetComponent::paint(juce::Graphics &g)
@@ -38,80 +42,78 @@ void PresetComponent::resized()
 {
     auto area        = getLocalBounds();
     auto buttonWidth = area.getWidth() * 0.1f;
-    m_prevButton.setBounds(
-        area.removeFromLeft(buttonWidth)
-            .withSizeKeepingCentre(buttonWidth, buttonWidth));
-    m_nextButton.setBounds(
-        area.removeFromRight(buttonWidth)
-            .withSizeKeepingCentre(buttonWidth, buttonWidth));
+    prevButton_.setBounds(area.removeFromLeft(buttonWidth)
+                              .withSizeKeepingCentre(buttonWidth, buttonWidth));
+    nextButton_.setBounds(area.removeFromRight(buttonWidth)
+                              .withSizeKeepingCentre(buttonWidth, buttonWidth));
     area.reduce(3, 0);
-    m_presetButton.setBounds(area);
+    presetButton_.setBounds(area);
 }
 
 void PresetComponent::buttonClicked(juce::Button *button)
 {
-    if (button == &m_prevButton) {
+    if (button == &prevButton_) {
         // Load previous factory preset
-        m_presetManager.prevPreset();
-        m_presetButton.setButtonText(m_presetManager.getPresetName());
-    } else if (button == &m_nextButton) {
+        presetManager_.prevPreset();
+        presetButton_.setButtonText(presetManager_.getPresetName());
+    } else if (button == &nextButton_) {
         // Load next factory preset
-        m_presetManager.nextPreset();
-        m_presetButton.setButtonText(m_presetManager.getPresetName());
-    } else if (button == &m_presetButton) {
+        presetManager_.nextPreset();
+        presetButton_.setButtonText(presetManager_.getPresetName());
+    } else if (button == &presetButton_) {
         juce::PopupMenu popupMenu;
 
-        constexpr auto defaultId = 1;
-        popupMenu.addItem(defaultId, PresetManager::defaultName);
+        constexpr auto kDefaultId = 1;
+        popupMenu.addItem(kDefaultId, PresetManager::kDefaultName);
 
-        int index = defaultId;
-        for (const auto &data : m_presetManager.getFactoryPresets()) {
+        int index = kDefaultId;
+        for (const auto &data : presetManager_.getFactoryPresets()) {
             popupMenu.addItem(++index, std::get<0>(data));
         }
         popupMenu.addSeparator();
         popupMenu.setLookAndFeel(&getLookAndFeel());
 
-        constexpr auto saveId = 100;
-        constexpr auto loadId = 101;
-        popupMenu.addItem(saveId, "Save Preset to File...");
-        popupMenu.addItem(loadId, "Load Preset from File...");
+        constexpr auto kSaveId = 100;
+        constexpr auto kLoadId = 101;
+        popupMenu.addItem(kSaveId, "Save Preset to File...");
+        popupMenu.addItem(kLoadId, "Load Preset from File...");
 
         popupMenu.showMenuAsync(
-            juce::PopupMenu::Options().withTargetComponent(&m_presetButton),
+            juce::PopupMenu::Options().withTargetComponent(&presetButton_),
             [this](int result) {
-                if (result == defaultId) {
-                    m_presetManager.loadDefault();
-                } else if (result > defaultId &&
+                if (result == kDefaultId) {
+                    presetManager_.loadDefault();
+                } else if (result > kDefaultId &&
                            result <=
-                               PresetManager::nFactoryPreset + defaultId) {
-                    m_presetManager.loadFactoryPreset(
-                        static_cast<size_t>(result - defaultId - 1));
-                } else if (result == saveId) {
-                    constexpr auto fileBrowserFlags =
+                               PresetManager::kNFactoryPreset + kDefaultId) {
+                    presetManager_.loadFactoryPreset(
+                        static_cast<size_t>(result - kDefaultId - 1));
+                } else if (result == kSaveId) {
+                    constexpr auto kFileBrowserFlags =
                         juce::FileBrowserComponent::saveMode |
                         juce::FileBrowserComponent::canSelectFiles;
-                    m_fileChooser = std::make_unique<juce::FileChooser>(
+                    fileChooser_ = std::make_unique<juce::FileChooser>(
                         juce::String("Save Preset"), juce::String(),
                         juce::String("*." +
-                                     juce::String(PresetManager::extension)));
-                    m_fileChooser->launchAsync(
-                        fileBrowserFlags, [this](const juce::FileChooser &fc) {
+                                     juce::String(PresetManager::kExtension)));
+                    fileChooser_->launchAsync(
+                        kFileBrowserFlags, [this](const juce::FileChooser &fc) {
                             auto file = fc.getResult();
-                            m_presetManager.savePresetToFile(file);
+                            presetManager_.savePresetToFile(file);
                         });
-                } else if (result == loadId) {
-                    constexpr auto fileBrowserFlags =
+                } else if (result == kLoadId) {
+                    constexpr auto kFileBrowserFlags =
                         juce::FileBrowserComponent::openMode |
                         juce::FileBrowserComponent::canSelectFiles;
-                    m_fileChooser = std::make_unique<juce::FileChooser>(
+                    fileChooser_ = std::make_unique<juce::FileChooser>(
                         juce::String("Load Preset"), juce::String(),
                         juce::String("*." +
-                                     juce::String(PresetManager::extension)));
-                    m_fileChooser->launchAsync(
-                        fileBrowserFlags, [this](const juce::FileChooser &fc) {
+                                     juce::String(PresetManager::kExtension)));
+                    fileChooser_->launchAsync(
+                        kFileBrowserFlags, [this](const juce::FileChooser &fc) {
                             auto file = fc.getResult();
                             if (file.exists()) {
-                                m_presetManager.loadPresetFromFile(file);
+                                presetManager_.loadPresetFromFile(file);
                             }
                         });
                 }
@@ -121,11 +123,11 @@ void PresetComponent::buttonClicked(juce::Button *button)
 
 void PresetComponent::updatePresetName()
 {
-    auto name = m_presetManager.getPresetName();
-    if (m_presetManager.isPresetNotSaved()) {
+    auto name = presetManager_.getPresetName();
+    if (presetManager_.isPresetNotSaved()) {
         name += "*";
     }
-    m_presetButton.setButtonText(name);
+    presetButton_.setButtonText(name);
 }
 
 void PresetComponent::presetManagerChanged(PresetManager & /*presetManager*/)

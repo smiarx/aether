@@ -15,12 +15,12 @@ namespace aether
 class PluginEditor : public juce::AudioProcessorEditor
 {
   public:
-    static constexpr auto titleHeight  = 50.f;
-    static constexpr auto titleMargin  = 5.f;
-    static constexpr auto headerHeight = titleHeight + 2.f;
+    static constexpr auto kTitleHeight  = 50.f;
+    static constexpr auto kTitleMargin  = 5.f;
+    static constexpr auto kHeaderHeight = kTitleHeight + 2.f;
 
     enum ColourIDs {
-        Separator = 0x1312039,
+        kSeparator = 0x1312039,
     };
 
     PluginEditor(PluginProcessor &);
@@ -30,17 +30,17 @@ class PluginEditor : public juce::AudioProcessorEditor
     void paint(juce::Graphics &) override;
     void resized() override;
 
-    virtual void mouseMove(const juce::MouseEvent &event) override;
+    void mouseMove(const juce::MouseEvent &event) override;
 
   private:
-    CustomLNF lookandfeel;
-    Title title;
-    ToolTip tooltip;
-    PresetComponent preset;
-    DelaySection delaySection;
-    SpringsSection springsSection;
+    CustomLNF lookandfeel_;
+    Title title_;
+    ToolTip tooltip_;
+    PresetComponent preset_;
+    DelaySection delaySection_;
+    SpringsSection springsSection_;
 
-    juce::ComponentBoundsConstrainer constrainer;
+    juce::ComponentBoundsConstrainer constrainer_;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginEditor)
 };

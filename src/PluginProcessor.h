@@ -54,51 +54,51 @@ class PluginProcessor final : public juce::AudioProcessor,
 
     //=============================================================================
     enum class ParamId {
-        DelayActive,
-        DelayDrywet,
-        DelayTimeType,
-        DelaySeconds,
-        DelayBeats,
-        DelayFeedback,
-        DelayCutLow,
-        DelayCutHi,
-        DelaySaturation,
-        DelayDrift,
-        DelayMode,
-        SpringsActive,
-        SpringsDryWet,
-        SpringsWidth,
-        SpringsLength,
-        SpringsDecay,
-        SpringsDamp,
-        SpringsShape,
-        SpringsTone,
-        SpringsScatter,
-        SpringsChaos,
+        kDelayActive,
+        kDelayDrywet,
+        kDelayTimeType,
+        kDelaySeconds,
+        kDelayBeats,
+        kDelayFeedback,
+        kDelayCutLow,
+        kDelayCutHi,
+        kDelaySaturation,
+        kDelayDrift,
+        kDelayMode,
+        kSpringsActive,
+        kSpringsDryWet,
+        kSpringsWidth,
+        kSpringsLength,
+        kSpringsDecay,
+        kSpringsDamp,
+        kSpringsShape,
+        kSpringsTone,
+        kSpringsScatter,
+        kSpringsChaos,
     };
 
     enum BeatMult {
-        Beat1_32,
-        Beat1_16,
-        Beat1_8,
-        Beat1_4,
-        Beat1_3,
-        Beat1_2,
-        Beat1,
-        Beat2,
+        kBeat132,
+        kBeat116,
+        kBeat18,
+        kBeat14,
+        kBeat13,
+        kBeat12,
+        kBeat1,
+        kBeat2,
     };
 
     struct ParamEvent {
         ParamEvent() = default;
-        ParamEvent(int t_id, float t_value) :
-            id(static_cast<ParamId>(t_id)), value(t_value)
+        ParamEvent(int tId, float tValue) :
+            id(static_cast<ParamId>(tId)), value(tValue)
         {
         }
         ParamId id{};
         float value{};
     };
 
-    juce::AudioProcessorValueTreeState::ParameterLayout createLayout();
+    static juce::AudioProcessorValueTreeState::ParameterLayout createLayout();
     void addProcessorAsListener(juce::AudioProcessorParameter *param);
     void parameterValueChanged(int id, float newValue) override;
     void parameterGestureChanged(int /*parameterIndex*/,
@@ -106,44 +106,44 @@ class PluginProcessor final : public juce::AudioProcessor,
     {
     }
 
-    juce::AudioProcessorValueTreeState &getAPVTS() { return m_parameters; }
+    juce::AudioProcessorValueTreeState &getAPVTS() { return parameters_; }
     const juce::AudioProcessorValueTreeState &getAPVTS() const
     {
-        return m_parameters;
+        return parameters_;
     }
 
-    auto &getSprings() const { return m_springs; }
+    auto &getSprings() const { return springs_; }
 
-    const auto *getRMSStack() const { return m_springs.getRMSStack(); }
-    const auto *getRMSStackPos() const { return &m_rmsPos; }
+    const auto *getRMSStack() const { return springs_.getRMSStack(); }
+    const auto *getRMSStackPos() const { return &rmsPos_; }
 
-    auto &getSwitchIndicator() { return m_tapedelay.getSwitchIndicator(); }
-    auto *getShakeAtomic() { return &m_shake; }
+    auto &getSwitchIndicator() { return tapedelay_.getSwitchIndicator(); }
+    auto *getShakeAtomic() { return &shake_; }
 
-    PresetManager &getPresetManager() { return m_presetManager; }
+    PresetManager &getPresetManager() { return presetManager_; }
 
   private:
-    juce::AudioProcessorValueTreeState m_parameters;
-    PresetManager m_presetManager{m_parameters};
-    moodycamel::ReaderWriterQueue<ParamEvent> m_paramEvents{32};
+    juce::AudioProcessorValueTreeState parameters_;
+    PresetManager presetManager_{parameters_};
+    moodycamel::ReaderWriterQueue<ParamEvent> paramEvents_{32};
 
-    bool m_activeTapeDelay{true};
-    bool m_activeSprings{true};
+    bool activeTapeDelay_{true};
+    bool activeSprings_{true};
 
     // atomics
-    std::atomic<int> m_rmsPos{0};
-    std::atomic<bool> m_shake{};
+    std::atomic<int> rmsPos_{0};
+    std::atomic<bool> shake_{};
 
-    bool m_useBeats{false};
-    double m_beatsMult{1};
-    double m_bpm{120};
+    bool useBeats_{false};
+    double beatsMult_{1};
+    double bpm_{120};
 
     // used to sync reverse delay
-    bool m_isPlaying{false};
-    double m_nextSync{-1};
+    bool isPlaying_{false};
+    double nextSync_{-1};
 
-    processors::TapeDelay m_tapedelay;
-    processors::Springs m_springs;
+    processors::TapeDelay tapedelay_;
+    processors::Springs springs_;
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginProcessor)

@@ -5,6 +5,10 @@
 #include "Slider.h"
 #include "SpringsSection.h"
 #include "juce_core/juce_core.h"
+#include "juce_graphics/juce_graphics.h"
+#include "juce_gui_basics/juce_gui_basics.h"
+#include <cstdint>
+#include <cstdlib>
 
 namespace aether
 {
@@ -16,47 +20,47 @@ juce::Typeface::Ptr CustomLNF::defaultMonoTypeface = nullptr;
 
 CustomLNF::CustomLNF()
 {
-    constexpr auto textColour                  = 0xff000000;
-    constexpr auto titleColour                 = 0xffffffff;
-    constexpr auto backgroundColour            = 0xff393939;
-    static constexpr uint32_t definedColours[] = {
+    constexpr auto kTextColour                  = 0xff000000;
+    constexpr auto kTitleColour                 = 0xffffffff;
+    constexpr auto kBackgroundColour            = 0xff393939;
+    static constexpr uint32_t kDefinedColours[] = {
         juce::BubbleComponent::backgroundColourId,
-        backgroundColour,
+        kBackgroundColour,
         juce::BubbleComponent::outlineColourId,
         0xffeeeeee,
         juce::ResizableWindow::backgroundColourId,
-        backgroundColour,
+        kBackgroundColour,
         juce::Label::textColourId,
-        textColour,
+        kTextColour,
         juce::ComboBox::ColourIds::textColourId,
-        textColour,
-        DelaySection::backgroundColourId,
-        delayBackColour,
-        SpringsSection::backgroundColourId,
-        springsBackColour,
+        kTextColour,
+        DelaySection::kBackgroundColourId,
+        kDelayBackColour,
+        SpringsSection::kBackgroundColourId,
+        kSpringsBackColour,
         juce::Slider::rotarySliderFillColourId,
         0xfff5f5f5,
         juce::Slider::trackColourId,
         0xff999999,
         juce::Slider::rotarySliderOutlineColourId,
         0xff333333,
-        PluginEditor::Separator,
+        PluginEditor::kSeparator,
         0xc9000000,
         juce::ToggleButton::tickDisabledColourId,
         0xff999999,
         juce::ToggleButton::tickColourId,
         0xff00ff00,
         juce::ToggleButton::textColourId,
-        textColour,
+        kTextColour,
 
         juce::PopupMenu::ColourIds::backgroundColourId,
-        backgroundColour,
+        kBackgroundColour,
         juce::PopupMenu::ColourIds::textColourId,
-        titleColour,
+        kTitleColour,
         juce::PopupMenu::ColourIds::highlightedBackgroundColourId,
         0xffa0a0a0,
         juce::PopupMenu::ColourIds::highlightedTextColourId,
-        textColour,
+        kTextColour,
         juce::PopupMenu::ColourIds::headerTextColourId,
         0xffbfbfbf,
 
@@ -70,15 +74,16 @@ CustomLNF::CustomLNF()
         0xffffffff,
     };
 
-    for (int i = 0; i < juce::numElementsInArray(definedColours); i += 2)
-        setColour((int)definedColours[i], juce::Colour(definedColours[i + 1]));
+    for (int i = 0; i < juce::numElementsInArray(kDefinedColours); i += 2)
+        setColour((int)kDefinedColours[i],
+                  juce::Colour(kDefinedColours[i + 1]));
 
     // noise
-    for (int x = 0; x < noise.getWidth(); ++x) {
-        for (int y = 0; y < noise.getWidth(); ++y) {
+    for (int x = 0; x < noise_.getWidth(); ++x) {
+        for (int y = 0; y < noise_.getWidth(); ++y) {
             juce::PixelAlpha alpha;
             alpha.setAlpha(std::rand());
-            noise.setPixelAt(x, y, alpha);
+            noise_.setPixelAt(x, y, alpha);
         }
     }
 
@@ -137,7 +142,7 @@ void CustomLNF::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
     auto arcWidth = juce::jmin(6.f, juce::jmax(2.f, radius * 0.14f));
 
     // parameters
-    Slider::Polarity polarity = Slider::Unipolar;
+    Slider::Polarity polarity = Slider::kUnipolar;
     bool hasOutline           = false;
     Slider *aetherSlider;
     if ((aetherSlider = dynamic_cast<Slider *>(&slider))) {
@@ -147,12 +152,13 @@ void CustomLNF::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
 
     /* INDICATOR ARC */
     // get polarity of slider
-    auto lowColour  = polarity == Slider::Unipolar ? sliderColour : trackColour;
-    auto highColour = polarity == Slider::Unipolar ? trackColour : sliderColour;
-    auto stopAngle  = posAngle;
-    auto endAngle   = rotaryEndAngle;
+    auto lowColour = polarity == Slider::kUnipolar ? sliderColour : trackColour;
+    auto highColour =
+        polarity == Slider::kUnipolar ? trackColour : sliderColour;
+    auto stopAngle = posAngle;
+    auto endAngle  = rotaryEndAngle;
 
-    if (polarity == Slider::Bipolar) {
+    if (polarity == Slider::kBipolar) {
         if (stopAngle > middleAngle) {
             stopAngle = middleAngle;
             endAngle  = posAngle;
@@ -178,7 +184,7 @@ void CustomLNF::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
     g.setGradientFill(arcGradient);
     g.strokePath(arcActive, strokeType);
 
-    if (polarity == Slider::Bipolar) {
+    if (polarity == Slider::kBipolar) {
         juce::Path arcBipolar;
         arcBipolar.addCentredArc(centre.getX(), centre.getY(), arcRadius,
                                  arcRadius, 0.f, endAngle, rotaryEndAngle,
@@ -197,10 +203,10 @@ void CustomLNF::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
     g.strokePath(arcInactive, strokeType);
 
     /* DIAL */
-    constexpr auto outlinePercent = 0.24f;
-    auto outlineSize              = hasOutline ? radius * outlinePercent : 0.f;
-    auto dialMargin               = arcWidth * 2.3f + outlineSize * 0.5f;
-    auto dialRadius               = radius - dialMargin;
+    constexpr auto kOutlinePercent = 0.24f;
+    auto outlineSize = hasOutline ? radius * kOutlinePercent : 0.f;
+    auto dialMargin  = arcWidth * 2.3f + outlineSize * 0.5f;
+    auto dialRadius  = radius - dialMargin;
     auto dialRect = juce::Rectangle<float>(2.f * dialRadius, 2.f * dialRadius)
                         .withCentre(centre);
     juce::Path dial;
@@ -259,7 +265,7 @@ void CustomLNF::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
     juce::ColourGradient thumbGradient(thumbDark, centre, thumbLight,
                                        centre + thumbRotated * thumbStart,
                                        false);
-    thumbGradient.addColour(1 - outlinePercent, thumbDark);
+    thumbGradient.addColour(1 - kOutlinePercent, thumbDark);
     g.setGradientFill(thumbGradient);
     g.fillPath(thumb, juce::AffineTransform::rotation(thumbAngle, centre.getX(),
                                                       centre.getY()));
@@ -271,11 +277,11 @@ void CustomLNF::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
     g.addTransform(juce::AffineTransform::rotation(posAngle, centre.getX(),
                                                    centre.getY()));
 
-    if (dialRect.getWidth() < noise.getWidth() &&
-        dialRect.getHeight() < noise.getHeight()) {
-        g.drawImageAt(noise, dialRect.getX(), dialRect.getY());
+    if (dialRect.getWidth() < noise_.getWidth() &&
+        dialRect.getHeight() < noise_.getHeight()) {
+        g.drawImageAt(noise_, dialRect.getX(), dialRect.getY());
     } else {
-        g.drawImage(noise, dialRect);
+        g.drawImage(noise_, dialRect);
     }
     g.restoreState();
 }
@@ -294,7 +300,7 @@ void CustomLNF::drawBubble(juce::Graphics &g, juce::BubbleComponent &comp,
 juce::Font CustomLNF::getSliderPopupFont(juce::Slider &)
 {
     auto font =
-        juce::Font(defaultMonoTypeface).withPointHeight(textPointHeight);
+        juce::Font(defaultMonoTypeface).withPointHeight(kTextPointHeight);
     return font;
 }
 
@@ -412,7 +418,7 @@ CustomLNF::getTextButtonFont([[maybe_unused]] juce::TextButton &button,
 {
     return juce::Font(defaultTypeface)
         .withPointHeight(
-            juce::jmin((float)textPointHeight, (float)buttonHeight * 0.6f));
+            juce::jmin((float)kTextPointHeight, (float)buttonHeight * 0.6f));
 }
 
 int CustomLNF::getTextButtonWidthToFitText(juce::TextButton &b,
@@ -448,10 +454,10 @@ juce::Font CustomLNF::getComboBoxFont(juce::ComboBox &comboBox)
 {
     if (comboBox.getName() == "TimeType") {
         return juce::Font(defaultMonoTypeface)
-            .withPointHeight(CustomLNF::textPointHeight - 1);
+            .withPointHeight(CustomLNF::kTextPointHeight - 1);
     }
     return juce::Font(defaultTypeface)
-        .withPointHeight(CustomLNF::textPointHeight);
+        .withPointHeight(CustomLNF::kTextPointHeight);
 }
 void CustomLNF::positionComboBoxText(juce::ComboBox &box, juce::Label &label)
 {
@@ -464,7 +470,7 @@ void CustomLNF::positionComboBoxText(juce::ComboBox &box, juce::Label &label)
 ///////////////////////////////////////////////
 juce::Font CustomLNF::getPopupMenuFont()
 {
-    return juce::Font(defaultTypeface).withPointHeight(textPointHeight);
+    return juce::Font(defaultTypeface).withPointHeight(kTextPointHeight);
 }
 
 void CustomLNF::getIdealPopupMenuItemSize(
@@ -480,7 +486,7 @@ void CustomLNF::getIdealPopupMenuItemSize(
         juce::Font font = getPopupMenuFont();
 
         idealHeight =
-            juce::roundToInt(font.getHeight() * popupElementSizeFontRatio);
+            juce::roundToInt(font.getHeight() * kPopupElementSizeFontRatio);
         idealWidth = font.getStringWidth(text) + idealHeight;
     }
 }
@@ -524,7 +530,7 @@ void CustomLNF::drawPopupMenuItem(
         juce::Font font(getPopupMenuFont());
 
         auto maxFontHeight =
-            (float)area.getHeight() / popupElementSizeFontRatio;
+            (float)area.getHeight() / kPopupElementSizeFontRatio;
 
         if (font.getHeight() > maxFontHeight) font.setHeight(maxFontHeight);
 

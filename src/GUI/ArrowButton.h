@@ -14,17 +14,17 @@ class ArrowButton : public juce::Button
     ~ArrowButton() override;
 
     enum ColourIds {
-        arrowColourId = 0x1912323,
+        kArrowColourId = 0x1912323,
     };
 
-    void setColour(juce::Colour clr) { colour = clr; }
+    void setColour(juce::Colour clr) { colour_ = clr; }
 
     /** @internal */
     void paintButton(juce::Graphics &, bool, bool) override;
 
   private:
-    juce::Path path;
-    juce::Colour colour{0xff000000};
+    juce::Path path_;
+    juce::Colour colour_{0xff000000};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ArrowButton)
 };

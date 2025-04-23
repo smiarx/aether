@@ -1,93 +1,97 @@
 #include "SpringsSection.h"
+#include "../PluginProcessor.h"
 #include "CustomLNF.h"
-#include "PluginEditor.h"
+#include "DelaySection.h"
+#include "juce_core/juce_core.h"
+#include "juce_graphics/juce_graphics.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 
 namespace aether
 {
 
 SpringsSection::SpringsSection(PluginProcessor &processor) :
-    m_sliders{
-        SliderWithLabel(processor.getAPVTS(), std::get<0>(elements[0]),
-                        std::get<1>(elements[0])),
-        SliderWithLabel(processor.getAPVTS(), std::get<0>(elements[1]),
-                        std::get<1>(elements[1])),
-        SliderWithLabel(processor.getAPVTS(), std::get<0>(elements[2]),
-                        std::get<1>(elements[2])),
-        SliderWithLabel(processor.getAPVTS(), std::get<0>(elements[3]),
-                        std::get<1>(elements[3])),
-        SliderWithLabel(processor.getAPVTS(), std::get<0>(elements[4]),
-                        std::get<1>(elements[4])),
-        SliderWithLabel(processor.getAPVTS(), std::get<0>(elements[5]),
-                        std::get<1>(elements[5])),
-        SliderWithLabel(processor.getAPVTS(), std::get<0>(elements[6]),
-                        std::get<1>(elements[6])),
-        SliderWithLabel(processor.getAPVTS(), std::get<0>(elements[7]),
-                        std::get<1>(elements[7])),
-        SliderWithLabel(processor.getAPVTS(), std::get<0>(elements[8]),
-                        std::get<1>(elements[8])),
+    sliders_{
+        SliderWithLabel(processor.getAPVTS(), std::get<0>(kElements[0]),
+                        std::get<1>(kElements[0])),
+        SliderWithLabel(processor.getAPVTS(), std::get<0>(kElements[1]),
+                        std::get<1>(kElements[1])),
+        SliderWithLabel(processor.getAPVTS(), std::get<0>(kElements[2]),
+                        std::get<1>(kElements[2])),
+        SliderWithLabel(processor.getAPVTS(), std::get<0>(kElements[3]),
+                        std::get<1>(kElements[3])),
+        SliderWithLabel(processor.getAPVTS(), std::get<0>(kElements[4]),
+                        std::get<1>(kElements[4])),
+        SliderWithLabel(processor.getAPVTS(), std::get<0>(kElements[5]),
+                        std::get<1>(kElements[5])),
+        SliderWithLabel(processor.getAPVTS(), std::get<0>(kElements[6]),
+                        std::get<1>(kElements[6])),
+        SliderWithLabel(processor.getAPVTS(), std::get<0>(kElements[7]),
+                        std::get<1>(kElements[7])),
+        SliderWithLabel(processor.getAPVTS(), std::get<0>(kElements[8]),
+                        std::get<1>(kElements[8])),
     },
-    m_active("Reverb"),
-    m_activeAttachment(processor.getAPVTS(), "springs_active", m_active),
-    m_springsGL(processor)
+    active_("Reverb"),
+    activeAttachment_(processor.getAPVTS(), "springs_active", active_),
+    springsGl_(processor)
 {
-    addAndMakeVisible(m_springsGL);
+    addAndMakeVisible(springsGl_);
 
-    addAndMakeVisible(m_active);
+    addAndMakeVisible(active_);
 
-    for (auto &slider : m_sliders) {
+    for (auto &slider : sliders_) {
         addAndMakeVisible(slider);
         slider.getComponent().setPopupDisplayEnabled(true, false,
                                                      getTopLevelComponent());
     }
 
-    m_sliders[Shape].getComponent().setPolarity(Slider::Bipolar);
+    sliders_[kShape].getComponent().setPolarity(Slider::kBipolar);
 
-    m_sliders[DryWet].getComponent().setTextValueSuffix("%");
-    m_sliders[Width].getComponent().setTextValueSuffix("%");
-    m_sliders[Length].getComponent().setTextValueSuffix("s");
-    m_sliders[Decay].getComponent().setTextValueSuffix("s");
-    m_sliders[Damp].getComponent().setTextValueSuffix("Hz");
-    m_sliders[Chaos].getComponent().setTextValueSuffix("%");
-    m_sliders[Scatter].getComponent().setTextValueSuffix("%");
+    sliders_[kDryWet].getComponent().setTextValueSuffix("%");
+    sliders_[kWidth].getComponent().setTextValueSuffix("%");
+    sliders_[kLength].getComponent().setTextValueSuffix("s");
+    sliders_[kDecay].getComponent().setTextValueSuffix("s");
+    sliders_[kDamp].getComponent().setTextValueSuffix("Hz");
+    sliders_[kChaos].getComponent().setTextValueSuffix("%");
+    sliders_[kScatter].getComponent().setTextValueSuffix("%");
 
-    m_sliders[DryWet].getComponent().setTooltip(
+    sliders_[kDryWet].getComponent().setTooltip(
         "Dry/wet proportion of the output signal.");
-    m_sliders[Width].getComponent().setTooltip(
+    sliders_[kWidth].getComponent().setTooltip(
         "Stereo width of the output signal..");
-    m_sliders[Length].getComponent().setTooltip(
+    sliders_[kLength].getComponent().setTooltip(
         "Length of the echoes produced by the springs.");
-    m_sliders[Decay].getComponent().setTooltip(
+    sliders_[kDecay].getComponent().setTooltip(
         "How long the reverb takes to fade out.");
-    m_sliders[Damp].getComponent().setTooltip(
+    sliders_[kDamp].getComponent().setTooltip(
         "Frequency of the highest compenents produced by the reverb.");
-    m_sliders[Shape].getComponent().setTooltip(
+    sliders_[kShape].getComponent().setTooltip(
         "Shape of the frequency dispertion of the springs.");
-    m_sliders[Tone].getComponent().setTooltip("Shape the tone of the reverb.");
-    m_sliders[Chaos].getComponent().setTooltip(
+    sliders_[kTone].getComponent().setTooltip("Shape the tone of the reverb.");
+    sliders_[kChaos].getComponent().setTooltip(
         "How stochastic & unpredictible the springs become.");
-    m_sliders[Scatter].getComponent().setTooltip(
+    sliders_[kScatter].getComponent().setTooltip(
         "How similar or different are the springs properties.");
 
-    static const auto mainColour = juce::Colour(CustomLNF::springsMainColour);
+    static const auto kMainColour = juce::Colour(CustomLNF::kSpringsMainColour);
 
-    m_active.setColour(juce::ToggleButton::tickColourId, mainColour);
+    active_.setColour(juce::ToggleButton::tickColourId, kMainColour);
 
-    m_sliders[DryWet].setColour(juce::Slider::thumbColourId, mainColour);
-    m_sliders[Width].setColour(juce::Slider::thumbColourId, mainColour);
-    m_sliders[Length].setColour(juce::Slider::thumbColourId, mainColour);
-    m_sliders[Decay].setColour(juce::Slider::thumbColourId, mainColour);
-    m_sliders[Damp].setColour(juce::Slider::thumbColourId, mainColour);
-    m_sliders[Shape].setColour(juce::Slider::thumbColourId, mainColour);
-    m_sliders[Tone].setColour(juce::Slider::thumbColourId, mainColour);
-    m_sliders[Scatter].setColour(juce::Slider::thumbColourId, mainColour);
-    m_sliders[Chaos].setColour(juce::Slider::thumbColourId, mainColour);
+    sliders_[kDryWet].setColour(juce::Slider::thumbColourId, kMainColour);
+    sliders_[kWidth].setColour(juce::Slider::thumbColourId, kMainColour);
+    sliders_[kLength].setColour(juce::Slider::thumbColourId, kMainColour);
+    sliders_[kDecay].setColour(juce::Slider::thumbColourId, kMainColour);
+    sliders_[kDamp].setColour(juce::Slider::thumbColourId, kMainColour);
+    sliders_[kShape].setColour(juce::Slider::thumbColourId, kMainColour);
+    sliders_[kTone].setColour(juce::Slider::thumbColourId, kMainColour);
+    sliders_[kScatter].setColour(juce::Slider::thumbColourId, kMainColour);
+    sliders_[kChaos].setColour(juce::Slider::thumbColourId, kMainColour);
 
-    m_sliders[Decay].setValueAsLabel();
-    m_sliders[Decay].getComponent().setHasOutline(true);
+    sliders_[kDecay].setValueAsLabel();
+    sliders_[kDecay].getComponent().setHasOutline(true);
 
-    m_active.onClick = [this] {
-        bool active = m_active.getToggleState();
-        for (auto &slider : m_sliders) {
+    active_.onClick = [this] {
+        bool active = active_.getToggleState();
+        for (auto &slider : sliders_) {
             slider.setEnabled(active);
         }
     };
@@ -97,18 +101,18 @@ void SpringsSection::resized()
 {
     auto bounds = getLocalBounds();
 
-    constexpr auto margin = CustomLNF::padding / 2;
-    bounds.removeFromTop(margin);
-    bounds.removeFromLeft(margin);
+    constexpr auto kMargin = CustomLNF::kPadding / 2;
+    bounds.removeFromTop(kMargin);
+    bounds.removeFromLeft(kMargin);
 
     auto titleBounds =
-        bounds.removeFromTop(CustomLNF::subtitleSize + 2 * margin);
+        bounds.removeFromTop(CustomLNF::kSubtitleSize + 2 * kMargin);
 
     juce::FlexBox titleFb;
     titleFb.flexDirection = juce::FlexBox::Direction::row;
     titleFb.alignContent  = juce::FlexBox::AlignContent::center;
     titleFb.items         = {
-        juce::FlexItem(m_active).withFlex(1.f).withMargin(margin),
+        juce::FlexItem(active_).withFlex(1.f).withMargin(kMargin),
     };
     titleFb.performLayout(titleBounds);
 
@@ -122,75 +126,75 @@ void SpringsSection::resized()
     grid.templateRows    = {Track(Fr(1)), Track(Fr(1)), Track(Fr(1))};
 
     grid.items = {
-        juce::GridItem(m_sliders[Decay])
+        juce::GridItem(sliders_[kDecay])
             .withArea(1, 1, Span(2), Span(2))
-            .withMargin({margin}),
-        juce::GridItem(m_sliders[Length])
+            .withMargin({kMargin}),
+        juce::GridItem(sliders_[kLength])
             .withArea(1, 3, Span(1), Span(2))
-            .withMargin({margin}),
-        juce::GridItem(m_sliders[Damp])
+            .withMargin({kMargin}),
+        juce::GridItem(sliders_[kDamp])
             .withArea(2, 3, Span(1), Span(2))
-            .withMargin({margin}),
-        juce::GridItem(m_sliders[Shape]).withArea(3, 1).withMargin({margin}),
-        juce::GridItem(m_sliders[Scatter]).withArea(3, 2).withMargin({margin}),
-        juce::GridItem(m_sliders[Chaos]).withArea(3, 3).withMargin({margin}),
-        juce::GridItem(m_sliders[Tone]).withArea(3, 4).withMargin({margin}),
-        juce::GridItem(m_springsGL).withArea(1, 5).withMargin({margin}),
-        juce::GridItem(m_sliders[Width]).withArea(2, 5).withMargin({margin}),
-        juce::GridItem(m_sliders[DryWet]).withArea(3, 5).withMargin({margin}),
+            .withMargin({kMargin}),
+        juce::GridItem(sliders_[kShape]).withArea(3, 1).withMargin({kMargin}),
+        juce::GridItem(sliders_[kScatter]).withArea(3, 2).withMargin({kMargin}),
+        juce::GridItem(sliders_[kChaos]).withArea(3, 3).withMargin({kMargin}),
+        juce::GridItem(sliders_[kTone]).withArea(3, 4).withMargin({kMargin}),
+        juce::GridItem(springsGl_).withArea(1, 5).withMargin({kMargin}),
+        juce::GridItem(sliders_[kWidth]).withArea(2, 5).withMargin({kMargin}),
+        juce::GridItem(sliders_[kDryWet]).withArea(3, 5).withMargin({kMargin}),
     };
     grid.performLayout(bounds);
 
     // move middle element closer
     {
-        auto &damp    = m_sliders[Damp].getComponent();
+        auto &damp    = sliders_[kDamp].getComponent();
         auto dampSize = juce::jmin(damp.getWidth(), damp.getHeight());
-        auto sizeDiff = (m_sliders[Decay].getWidth() - dampSize) * 0.5f;
+        auto sizeDiff = (sliders_[kDecay].getWidth() - dampSize) * 0.5f;
         if (sizeDiff > 0.f) {
             auto interMargin = 0.15f * sizeDiff;
-            m_sliders[Decay].setBounds(m_sliders[Decay].getBounds().translated(
+            sliders_[kDecay].setBounds(sliders_[kDecay].getBounds().translated(
                 sizeDiff - interMargin, 0));
-            m_sliders[Length].setBounds(
-                m_sliders[Length].getBounds().translated(interMargin, 0));
-            m_sliders[Damp].setBounds(
-                m_sliders[Damp].getBounds().translated(interMargin, 0));
+            sliders_[kLength].setBounds(
+                sliders_[kLength].getBounds().translated(interMargin, 0));
+            sliders_[kDamp].setBounds(
+                sliders_[kDamp].getBounds().translated(interMargin, 0));
         }
     }
 
     // extend spring gl
-    auto glBounds = m_springsGL.getBounds();
-    glBounds.translate(0, -headerHeight);
-    glBounds.setHeight(glBounds.getHeight() + headerHeight);
-    m_springsGL.setBounds(glBounds);
+    auto glBounds = springsGl_.getBounds();
+    glBounds.translate(0, -kHeaderHeight);
+    glBounds.setHeight(glBounds.getHeight() + kHeaderHeight);
+    springsGl_.setBounds(glBounds);
 }
 
 void SpringsSection::paint(juce::Graphics &g)
 {
     auto bounds = getLocalBounds().toFloat();
 
-    g.setColour(findColour(backgroundColourId));
+    g.setColour(findColour(kBackgroundColourId));
 
     juce::Path box;
     box.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(),
-                            bounds.getHeight(), CustomLNF::boxRoundSize,
-                            CustomLNF::boxRoundSize, false, true, false, true);
+                            bounds.getHeight(), CustomLNF::kBoxRoundSize,
+                            CustomLNF::kBoxRoundSize, false, true, false, true);
     g.fillPath(box);
 
     // separators;
-    g.setColour(findColour(DelaySection::backgroundColourId));
+    g.setColour(findColour(DelaySection::kBackgroundColourId));
 
-    auto xSep = (m_sliders[Tone].getBoundsInParent().getRight() +
-                 m_springsGL.getBoundsInParent().getX()) /
+    auto xSep = (sliders_[kTone].getBoundsInParent().getRight() +
+                 springsGl_.getBoundsInParent().getX()) /
                 2.f;
-    g.fillRect(xSep - CustomLNF::sepWidth / 2.f, bounds.getY(),
-               CustomLNF::sepWidth, bounds.getHeight());
+    g.fillRect(xSep - CustomLNF::kSepWidth / 2.f, bounds.getY(),
+               CustomLNF::kSepWidth, bounds.getHeight());
 
-    auto ySep = (m_sliders[Damp].getBoundsInParent().getBottom() +
-                 m_sliders[Shape].getBoundsInParent().getY()) /
+    auto ySep = (sliders_[kDamp].getBoundsInParent().getBottom() +
+                 sliders_[kShape].getBoundsInParent().getY()) /
                 2.f;
     auto yWidth = xSep - bounds.getX();
-    g.fillRect(bounds.getX(), ySep - CustomLNF::sepWidth / 2.f, yWidth,
-               CustomLNF::sepWidth);
+    g.fillRect(bounds.getX(), ySep - CustomLNF::kSepWidth / 2.f, yWidth,
+               CustomLNF::kSepWidth);
 }
 
 } // namespace aether

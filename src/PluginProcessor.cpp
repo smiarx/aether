@@ -1,5 +1,13 @@
 #include "PluginProcessor.h"
 #include "GUI/PluginEditor.h"
+#include "Presets/PresetManager.h"
+#include "juce_audio_basics/juce_audio_basics.h"
+#include "juce_audio_processors/juce_audio_processors.h"
+#include "juce_core/juce_core.h"
+#include "juce_core/system/juce_PlatformDefs.h"
+#include <cassert>
+#include <cstddef>
+#include <memory>
 
 namespace aether
 {
@@ -10,7 +18,7 @@ PluginProcessor::PluginProcessor() :
         BusesProperties()
             .withInput("Input", juce::AudioChannelSet::stereo(), true)
             .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
-    m_parameters(*this, nullptr, juce::Identifier(PROJECT_NAME), createLayout())
+    parameters_(*this, nullptr, juce::Identifier(PROJECT_NAME), createLayout())
 {
     for (auto *param : getParameters()) addProcessorAsListener(param);
 }
@@ -44,7 +52,7 @@ PluginProcessor::createLayout()
             "delay_beats", "Delay",
             juce::StringArray{"1/32", "1/16", "1/8", "1/4", "1/3", "1/2", "1",
                               "2"},
-            Beat1),
+            kBeat1),
         std::make_unique<juce::AudioParameterFloat>(
             "delay_feedback", "Feedback",
             juce::NormalisableRange{0.0f, 120.f, 0.1f}, 80.f),
@@ -113,22 +121,22 @@ double PluginProcessor::getTailLengthSeconds() const { return 0.0; }
 
 int PluginProcessor::getNumPrograms()
 {
-    return m_presetManager.nFactoryPreset + 1;
+    return aether::PresetManager::kNFactoryPreset + 1;
 }
 
 int PluginProcessor::getCurrentProgram()
 {
-    return m_presetManager.getPresetId();
+    return presetManager_.getPresetId();
 }
 
 void PluginProcessor::setCurrentProgram(int index)
 {
-    m_presetManager.loadPresetWithId(static_cast<size_t>(index));
+    presetManager_.loadPresetWithId(static_cast<size_t>(index));
 }
 
 const juce::String PluginProcessor::getProgramName(int index)
 {
-    return m_presetManager.getPresetName(static_cast<size_t>(index));
+    return aether::PresetManager::getPresetName(static_cast<size_t>(index));
 }
 
 void PluginProcessor::changeProgramName(int index, const juce::String &newName)
@@ -139,7 +147,7 @@ void PluginProcessor::changeProgramName(int index, const juce::String &newName)
 //==============================================================================
 void PluginProcessor::getStateInformation(juce::MemoryBlock &destData)
 {
-    auto state = m_parameters.copyState();
+    auto state = parameters_.copyState();
     std::unique_ptr<juce::XmlElement> xml(state.createXml());
     copyXmlToBinary(*xml, destData);
 }
@@ -149,17 +157,17 @@ void PluginProcessor::setStateInformation(const void *data, int sizeInBytes)
     std::unique_ptr<juce::XmlElement> xmlState(
         getXmlFromBinary(data, sizeInBytes));
 
-    if (xmlState.get() != nullptr)
-        if (xmlState->hasTagName(m_parameters.state.getType()))
-            m_parameters.replaceState(juce::ValueTree::fromXml(*xmlState));
+    if (xmlState != nullptr)
+        if (xmlState->hasTagName(parameters_.state.getType()))
+            parameters_.replaceState(juce::ValueTree::fromXml(*xmlState));
 }
 
 //==============================================================================
 void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     auto fSampleRate = static_cast<float>(sampleRate);
-    m_springs.prepare(fSampleRate, samplesPerBlock);
-    m_tapedelay.prepare(fSampleRate, samplesPerBlock);
+    springs_.prepare(fSampleRate, samplesPerBlock);
+    tapedelay_.prepare(fSampleRate, samplesPerBlock);
 
     ///* Set springgl uniform values */
     // SpringsGL::setUniforms(m_springs.rms.rms, &m_springs.rms.rms_id,
@@ -169,8 +177,8 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 
 void PluginProcessor::releaseResources()
 {
-    m_springs.free();
-    m_tapedelay.free();
+    springs_.free();
+    tapedelay_.free();
 }
 
 bool PluginProcessor::isBusesLayoutSupported(const BusesLayout &layouts) const
@@ -193,178 +201,177 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
     int count = buffer.getNumSamples();
 
     ParamEvent event;
-    while (m_paramEvents.try_dequeue(event)) {
+    while (paramEvents_.try_dequeue(event)) {
         switch (event.id) {
-        case ParamId::DelayActive:
-            m_activeTapeDelay = event.value > 0.f;
+        case ParamId::kDelayActive:
+            activeTapeDelay_ = event.value > 0.f;
             break;
-        case ParamId::DelayDrywet:
-            m_tapedelay.setDryWet(event.value / 100.f, count);
+        case ParamId::kDelayDrywet:
+            tapedelay_.setDryWet(event.value / 100.f, count);
             break;
-        case ParamId::DelayTimeType:
-            m_useBeats = event.value > 0.f;
-            if (m_useBeats) {
+        case ParamId::kDelayTimeType:
+            useBeats_ = event.value > 0.f;
+            if (useBeats_) {
                 auto *param = static_cast<juce::AudioParameterChoice *>(
-                    getParameters()[static_cast<size_t>(ParamId::DelayBeats)]);
+                    getParameters()[static_cast<size_t>(ParamId::kDelayBeats)]);
                 event.value = static_cast<float>(*param);
             } else {
                 auto *param = static_cast<juce::AudioParameterFloat *>(
                     getParameters()[static_cast<size_t>(
-                        ParamId::DelaySeconds)]);
+                        ParamId::kDelaySeconds)]);
                 event.value = *param;
             }
-        case ParamId::DelayBeats:
-            if (m_useBeats) {
+        case ParamId::kDelayBeats:
+            if (useBeats_) {
                 auto id = static_cast<int>(event.value);
                 double mult;
                 switch (id) {
-                case Beat1_32:
+                case kBeat132:
                     mult = 1.0 / 32.0;
                     break;
-                case Beat1_16:
+                case kBeat116:
                     mult = 1.0 / 16.0;
                     break;
-                case Beat1_8:
+                case kBeat18:
                     mult = 1.0 / 8.0;
                     break;
-                case Beat1_4:
+                case kBeat14:
                     mult = 1.0 / 4.0;
                     break;
-                case Beat1_3:
+                case kBeat13:
                     mult = 1.0 / 3.0;
                     break;
-                case Beat1_2:
+                case kBeat12:
                     mult = 1.0 / 2.0;
                     break;
                 default:
-                case Beat1:
+                case kBeat1:
                     mult = 1.0;
                     break;
-                case Beat2:
+                case kBeat2:
                     mult = 2.0;
                     break;
                 }
-                m_beatsMult = mult;
-                auto time   = static_cast<float>(60 * mult / m_bpm);
-                m_tapedelay.setDelay(time, count);
+                beatsMult_ = mult;
+                auto time  = static_cast<float>(60 * mult / bpm_);
+                tapedelay_.setDelay(time, count);
                 break;
-            } else if (event.id == ParamId::DelayBeats) {
+            } else if (event.id == ParamId::kDelayBeats) {
                 break;
             }
-        case ParamId::DelaySeconds:
-            if (!m_useBeats) {
-                m_tapedelay.setDelay(event.value, count);
+        case ParamId::kDelaySeconds:
+            if (!useBeats_) {
+                tapedelay_.setDelay(event.value, count);
             }
             break;
-        case ParamId::DelayFeedback:
-            m_tapedelay.setFeedback(event.value / 100.f, count);
+        case ParamId::kDelayFeedback:
+            tapedelay_.setFeedback(event.value / 100.f, count);
             break;
-        case ParamId::DelayCutLow:
-            m_tapedelay.setCutLowPass(event.value, count);
+        case ParamId::kDelayCutLow:
+            tapedelay_.setCutLowPass(event.value, count);
             break;
-        case ParamId::DelayCutHi:
-            m_tapedelay.setCutHiPass(event.value, count);
+        case ParamId::kDelayCutHi:
+            tapedelay_.setCutHiPass(event.value, count);
             break;
-        case ParamId::DelaySaturation:
-            m_tapedelay.setSaturation(event.value, count);
+        case ParamId::kDelaySaturation:
+            tapedelay_.setSaturation(event.value, count);
             break;
-        case ParamId::DelayDrift:
-            m_tapedelay.setDrift(event.value / 100.f, count);
+        case ParamId::kDelayDrift:
+            tapedelay_.setDrift(event.value / 100.f, count);
             break;
-        case ParamId::DelayMode:
-            m_tapedelay.setMode(
-                static_cast<decltype(m_tapedelay)::Mode>(event.value), count);
+        case ParamId::kDelayMode:
+            tapedelay_.setMode(
+                static_cast<decltype(tapedelay_)::Mode>(event.value), count);
             break;
-        case ParamId::SpringsActive:
-            m_activeSprings = event.value > 0;
+        case ParamId::kSpringsActive:
+            activeSprings_ = event.value > 0;
             break;
-        case ParamId::SpringsDryWet:
-            m_springs.setDryWet(event.value / 100.f, count);
+        case ParamId::kSpringsDryWet:
+            springs_.setDryWet(event.value / 100.f, count);
             break;
-        case ParamId::SpringsWidth:
-            m_springs.setWidth(event.value / 100.f, count);
+        case ParamId::kSpringsWidth:
+            springs_.setWidth(event.value / 100.f, count);
             break;
-        case ParamId::SpringsLength:
-            m_springs.setTd(event.value, count);
+        case ParamId::kSpringsLength:
+            springs_.setTd(event.value, count);
             break;
-        case ParamId::SpringsDecay:
-            m_springs.setT60(event.value, count);
+        case ParamId::kSpringsDecay:
+            springs_.setT60(event.value, count);
             break;
-        case ParamId::SpringsTone:
-            m_springs.setTone(event.value, count);
+        case ParamId::kSpringsTone:
+            springs_.setTone(event.value, count);
             break;
-        case ParamId::SpringsScatter:
-            m_springs.setScatter(event.value / 100.f, count);
+        case ParamId::kSpringsScatter:
+            springs_.setScatter(event.value / 100.f, count);
             break;
-        case ParamId::SpringsDamp:
-            m_springs.setFreq(event.value, count);
+        case ParamId::kSpringsDamp:
+            springs_.setFreq(event.value, count);
             break;
-        case ParamId::SpringsChaos:
-            m_springs.setChaos(event.value / 100.f, count);
+        case ParamId::kSpringsChaos:
+            springs_.setChaos(event.value / 100.f, count);
             break;
-        case ParamId::SpringsShape:
-            m_springs.setRes(event.value, count);
+        case ParamId::kSpringsShape:
+            springs_.setRes(event.value, count);
             break;
         default:
             break;
         }
     }
 
-    if (m_useBeats) {
+    if (useBeats_) {
         const auto position = getPlayHead()->getPosition();
         if (position.hasValue()) {
             auto bpm = position->getBpm();
-            if (bpm.hasValue() && *bpm != m_bpm) {
-                m_bpm     = *bpm;
-                auto time = static_cast<float>(60.0 * m_beatsMult / m_bpm);
-                m_tapedelay.setDelay(time, count);
+            if (bpm.hasValue() && *bpm != bpm_) {
+                bpm_      = *bpm;
+                auto time = static_cast<float>(60.0 * beatsMult_ / bpm_);
+                tapedelay_.setDelay(time, count);
             }
 
-            if (m_tapedelay.getMode() != processors::TapeDelay::Mode::kNormal) {
+            if (tapedelay_.getMode() != processors::TapeDelay::Mode::kNormal) {
                 if (position->getIsPlaying()) {
                     auto ppq = position->getPpqPosition();
                     if (ppq.hasValue()) {
-                        if (!m_isPlaying) {
-                            m_isPlaying = true;
-                            m_nextSync =
+                        if (!isPlaying_) {
+                            isPlaying_ = true;
+                            nextSync_ =
                                 static_cast<double>(static_cast<int>(*ppq + 1));
                         } else {
-                            if (m_nextSync > 0 && *ppq > m_nextSync) {
+                            if (nextSync_ > 0 && *ppq > nextSync_) {
                                 // today, sample accurate sync
-                                m_tapedelay.setMode(m_tapedelay.getMode(),
-                                                    count);
-                                m_nextSync = -1;
+                                tapedelay_.setMode(tapedelay_.getMode(), count);
+                                nextSync_ = -1;
                             }
                         }
                     }
-                } else if (m_isPlaying) {
-                    m_isPlaying = false;
+                } else if (isPlaying_) {
+                    isPlaying_ = false;
                 }
             }
         }
     }
 
     // shake springs
-    if (m_shake.load()) {
-        m_shake.store(false);
-        m_springs.shake();
+    if (shake_.load()) {
+        shake_.store(false);
+        springs_.shake();
     }
 
     const float *const *ins = buffer.getArrayOfReadPointers();
     float *const *outs      = buffer.getArrayOfWritePointers();
 
-    if (m_activeTapeDelay) {
-        m_tapedelay.process(ins, outs, count);
+    if (activeTapeDelay_) {
+        tapedelay_.process(ins, outs, count);
         ins = outs;
     }
-    if (m_activeSprings) {
-        m_springs.process(ins, outs, count);
+    if (activeSprings_) {
+        springs_.process(ins, outs, count);
         ins = outs;
     }
     assert(ins == outs);
 
     // update rms buffer position
-    m_rmsPos.store(*m_springs.getRMSStackPos());
+    rmsPos_.store(*springs_.getRMSStackPos());
 }
 
 //==============================================================================
@@ -373,7 +380,7 @@ void PluginProcessor::parameterValueChanged(int id, float newValue)
     auto *ptr = static_cast<juce::RangedAudioParameter *>(getParameters()[id]);
     float value = ptr->convertFrom0to1(newValue);
 
-    m_paramEvents.enqueue({id, value});
+    paramEvents_.enqueue({id, value});
 }
 
 void PluginProcessor::addProcessorAsListener(

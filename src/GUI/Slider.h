@@ -9,21 +9,21 @@ class Slider : public juce::Slider
 {
   public:
     enum Polarity {
-        Unipolar,
-        UnipolarReversed,
-        Bipolar,
+        kUnipolar,
+        kUnipolarReversed,
+        kBipolar,
     };
 
     Slider() { setPaintingIsUnclipped(true); }
 
     void setPolarity(Polarity polarity) { polarity_ = polarity; }
-    Polarity getPolarity() const { return polarity_; }
+    [[nodiscard]] Polarity getPolarity() const { return polarity_; }
 
     void setHasOutline(bool hasOutline) { hasOutline_ = hasOutline; }
-    bool getHasOutline() const { return hasOutline_; }
+    [[nodiscard]] bool getHasOutline() const { return hasOutline_; }
 
   private:
-    Polarity polarity_{Unipolar};
+    Polarity polarity_{kUnipolar};
     bool hasOutline_{false};
 };
 } // namespace aether

@@ -1,17 +1,19 @@
 #include "ToolTip.h"
 #include "CustomLNF.h"
+#include "juce_core/juce_core.h"
+#include "juce_graphics/juce_graphics.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 
 namespace aether
 {
 
 void ToolTip::setFromComponent(juce::Component *component)
 {
-    if (component == m_component) return;
+    if (component == component_) return;
 
-    m_component = component;
+    component_ = component;
 
-    juce::TooltipClient *const ttc =
-        dynamic_cast<juce::TooltipClient *>(component);
+    auto *const ttc = dynamic_cast<juce::TooltipClient *>(component);
 
     juce::String toolTip;
     if (ttc != nullptr &&
@@ -20,8 +22,8 @@ void ToolTip::setFromComponent(juce::Component *component)
 
         toolTip = ttc->getTooltip();
         if (toolTip != "") {
-            const auto mainColour = juce::Colour(CustomLNF::delayMainColour);
-            const auto backColour = juce::Colour(CustomLNF::delayBackColour);
+            const auto mainColour = juce::Colour(CustomLNF::kDelayMainColour);
+            const auto backColour = juce::Colour(CustomLNF::kDelayBackColour);
 
             juce::AttributedString attrStr;
             auto font =
@@ -31,20 +33,20 @@ void ToolTip::setFromComponent(juce::Component *component)
             attrStr.setJustification(juce::Justification::verticallyCentred);
 
             auto bounds = getBounds();
-            m_textLayout.createLayout(attrStr, bounds.getWidth(),
-                                      bounds.getHeight());
+            textLayout_.createLayout(attrStr, bounds.getWidth(),
+                                     bounds.getHeight());
             repaint();
             return;
         }
 
-        m_textLayout.createLayout(juce::AttributedString(""), 0.f);
+        textLayout_.createLayout(juce::AttributedString(""), 0.f);
         repaint();
     }
 }
 
 void ToolTip::paint(juce::Graphics &g)
 {
-    m_textLayout.draw(g, getLocalBounds().toFloat());
+    textLayout_.draw(g, getLocalBounds().toFloat());
 }
 
 } // namespace aether

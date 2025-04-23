@@ -13,62 +13,62 @@ using APVTS = juce::AudioProcessorValueTreeState;
 template <class Comp> class Widget : public juce::Component
 {
   public:
-    static constexpr auto textSize    = CustomLNF::textPointHeight;
-    static constexpr auto labelMargin = -3;
+    static constexpr auto kTextSize    = CustomLNF::kTextPointHeight;
+    static constexpr auto kLabelMargin = -3;
 
     template <class... Ts>
-    Widget(const juce::String &name, Ts &&...args) : m_component(args...)
+    Widget(const juce::String &name, Ts &&...args) : component_(args...)
     {
-        addAndMakeVisible(m_component);
-        addAndMakeVisible(m_label);
+        addAndMakeVisible(component_);
+        addAndMakeVisible(label_);
 
-        m_component.setTitle(name);
-        m_label.setText(name.toLowerCase(),
-                        juce::NotificationType::dontSendNotification);
-        m_label.setJustificationType(juce::Justification::centred);
+        component_.setTitle(name);
+        label_.setText(name.toLowerCase(),
+                       juce::NotificationType::dontSendNotification);
+        label_.setJustificationType(juce::Justification::centred);
 
         auto font =
-            juce::Font(CustomLNF::defaultTypeface).withPointHeight(textSize);
-        m_label.setFont(font);
+            juce::Font(CustomLNF::defaultTypeface).withPointHeight(kTextSize);
+        label_.setFont(font);
     }
-    virtual void resized() override
+    void resized() override
     {
         auto bounds = getLocalBounds();
 
-        if (m_labelVisible) {
+        if (labelVisible_) {
             auto textBox = bounds.removeFromBottom(
-                labelMargin + m_label.getFont().getHeight());
-            textBox.removeFromTop(labelMargin);
-            m_label.setBounds(textBox);
+                kLabelMargin + label_.getFont().getHeight());
+            textBox.removeFromTop(kLabelMargin);
+            label_.setBounds(textBox);
         }
-        m_component.setBounds(bounds);
+        component_.setBounds(bounds);
     }
 
     void setLabelVisible(bool labelVisible)
     {
-        m_labelVisible = labelVisible;
-        if (m_labelVisible) {
-            addAndMakeVisible(m_label);
+        labelVisible_ = labelVisible;
+        if (labelVisible_) {
+            addAndMakeVisible(label_);
         } else {
-            removeChildComponent(&m_label);
+            removeChildComponent(&label_);
         }
     }
-    bool isLabelVisible() const { return m_labelVisible; }
+    [[nodiscard]] bool isLabelVisible() const { return labelVisible_; }
 
-    Comp &getComponent() { return m_component; }
-    auto &getLabel() { return m_label; }
+    Comp &getComponent() { return component_; }
+    auto &getLabel() { return label_; }
 
     void setColour(int colourID, juce::Colour colour)
     {
-        m_component.setColour(colourID, colour);
+        component_.setColour(colourID, colour);
     }
 
   protected:
-    Comp m_component;
-    juce::Label m_label;
+    Comp component_;
+    juce::Label label_;
 
   private:
-    bool m_labelVisible{true};
+    bool labelVisible_{true};
 };
 
 class SliderWithLabel : public Widget<Slider>
@@ -76,11 +76,11 @@ class SliderWithLabel : public Widget<Slider>
   public:
     SliderWithLabel(APVTS &apvts, const juce::String &id,
                     const juce::String &name) :
-        Widget<Slider>(name), m_attachment(apvts, id, m_component)
+        Widget<Slider>(name), attachment_(apvts, id, component_)
     {
-        m_component.setSliderStyle(
+        component_.setSliderStyle(
             juce::Slider::SliderStyle::RotaryVerticalDrag);
-        m_component.setTextBoxStyle(
+        component_.setTextBoxStyle(
             juce::Slider::TextEntryBoxPosition::NoTextBox, false, 0, 0);
     }
 
@@ -88,7 +88,7 @@ class SliderWithLabel : public Widget<Slider>
     {
         int removeFromHeight = 0;
         if (isLabelVisible()) {
-            removeFromHeight = labelMargin + m_label.getFont().getHeight();
+            removeFromHeight = kLabelMargin + label_.getFont().getHeight();
         }
         auto bounds = getLocalBounds();
         auto size   = juce::jmin(bounds.getHeight() - removeFromHeight,
@@ -108,39 +108,38 @@ class SliderWithLabel : public Widget<Slider>
         Widget<Slider>::resized();
 
         // update width to be equal to height
-        bounds = m_component.getLocalBounds();
-        m_component.setBounds(bounds.withWidth(bounds.getHeight())
-                                  .withCentre(bounds.getCentre()));
+        bounds = component_.getLocalBounds();
+        component_.setBounds(bounds.withWidth(bounds.getHeight())
+                                 .withCentre(bounds.getCentre()));
     }
 
     void setTextBoxVisible(bool textBoxVisible)
     {
-        m_component.setTextBoxStyle(
+        component_.setTextBoxStyle(
             textBoxVisible ? juce::Slider::TextEntryBoxPosition::TextBoxBelow
                            : juce::Slider::NoTextBox,
-            true, 100, textSize);
+            true, 100, kTextSize);
     }
 
     void setValueAsLabel()
     {
         auto font = juce::Font(CustomLNF::defaultMonoTypeface)
-                        .withPointHeight(textSize - 1);
-        m_label.setFont(font);
+                        .withPointHeight(kTextSize - 1);
+        label_.setFont(font);
 
-        m_component.setPopupDisplayEnabled(false, false, nullptr);
+        component_.setPopupDisplayEnabled(false, false, nullptr);
 
-        m_component.onValueChange = [this] {
-            m_label.setText(
-                m_component.getTextFromValue(m_component.getValue()),
-                juce::NotificationType::dontSendNotification);
+        component_.onValueChange = [this] {
+            label_.setText(component_.getTextFromValue(component_.getValue()),
+                           juce::NotificationType::dontSendNotification);
         };
     }
 
     juce::Slider &getSlider() { return getComponent(); }
-    APVTS::SliderAttachment &getAttachment() { return m_attachment; }
+    APVTS::SliderAttachment &getAttachment() { return attachment_; }
 
   private:
-    APVTS::SliderAttachment m_attachment;
+    APVTS::SliderAttachment attachment_;
 };
 
 } // namespace aether

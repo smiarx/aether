@@ -12,21 +12,21 @@ namespace aether
 class SpringsSection : public juce::Component
 {
     enum {
-        DryWet  = 0,
-        Width   = 1,
-        Length  = 2,
-        Decay   = 3,
-        Damp    = 4,
-        Shape   = 5,
-        Tone    = 6,
-        Scatter = 7,
-        Chaos   = 8,
-        _NumParams,
+        kDryWet  = 0,
+        kWidth   = 1,
+        kLength  = 2,
+        kDecay   = 3,
+        kDamp    = 4,
+        kShape   = 5,
+        kTone    = 6,
+        kScatter = 7,
+        kChaos   = 8,
+        kNumParams,
     };
 
     static constexpr std::array<std::tuple<const char *, const char *>,
-                                _NumParams>
-        elements{{
+                                kNumParams>
+        kElements{{
             {"springs_drywet", "Dry/Wet"},
             {"springs_width", "Width"},
             {"springs_length", "Length"},
@@ -40,22 +40,22 @@ class SpringsSection : public juce::Component
 
   public:
     enum ColourIDs {
-        backgroundColourId = 0x1610100,
+        kBackgroundColourId = 0x1610100,
     };
 
-    static constexpr auto headerHeight = 30.f;
+    static constexpr auto kHeaderHeight = 30.f;
 
     SpringsSection(PluginProcessor &processor);
     void resized() override;
     void paint(juce::Graphics &g) override;
 
   private:
-    SliderWithLabel m_sliders[elements.size()];
+    SliderWithLabel sliders_[kElements.size()];
 
-    juce::ToggleButton m_active;
-    juce::AudioProcessorValueTreeState::ButtonAttachment m_activeAttachment;
+    juce::ToggleButton active_;
+    juce::AudioProcessorValueTreeState::ButtonAttachment activeAttachment_;
 
-    SpringsGL m_springsGL;
+    SpringsGL springsGl_;
 };
 
 } // namespace aether

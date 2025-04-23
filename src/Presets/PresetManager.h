@@ -8,15 +8,15 @@ namespace aether
 class PresetManager : juce::ValueTree::Listener
 {
   public:
-    static constexpr auto extension   = "preset";
-    static constexpr auto defaultName = "default";
+    static constexpr auto kExtension   = "preset";
+    static constexpr auto kDefaultName = "default";
 
     using factoryPreset_t = std::tuple<const char *, const char *, size_t>;
-    static constexpr auto nFactoryPreset = 1;
-    static const std::array<factoryPreset_t, nFactoryPreset> factoryPresets;
+    static constexpr auto kNFactoryPreset = 1;
+    static const std::array<factoryPreset_t, kNFactoryPreset> kFactoryPresets;
 
     PresetManager(juce::AudioProcessorValueTreeState &apvts);
-    ~PresetManager();
+    ~PresetManager() override;
 
     // preset manager listener
     class Listener
@@ -28,16 +28,15 @@ class PresetManager : juce::ValueTree::Listener
     void addListener(Listener *listener)
     {
         if (listener != nullptr) {
-            m_listeners.push_back(listener);
+            listeners_.push_back(listener);
         }
     }
     void removeListener(Listener *listener)
     {
         if (listener != nullptr) {
-            auto it =
-                std::find(m_listeners.begin(), m_listeners.end(), listener);
-            if (it != m_listeners.end()) {
-                m_listeners.erase(it);
+            auto it = std::find(listeners_.begin(), listeners_.end(), listener);
+            if (it != listeners_.end()) {
+                listeners_.erase(it);
             }
         }
     }
@@ -51,32 +50,34 @@ class PresetManager : juce::ValueTree::Listener
     void loadPresetFromFile(const juce::File &file);
     void savePresetToFile(const juce::File &file);
 
-    bool isPresetNotSaved() const { return m_presetNotSaved; }
+    [[nodiscard]] bool isPresetNotSaved() const { return presetNotSaved_; }
 
-    static size_t getNumPresets() { return nFactoryPreset + 1; }
-    size_t getPresetId() const { return m_presetId; }
-    juce::String getPresetName(size_t id) const;
+    static size_t getNumPresets() { return kNFactoryPreset + 1; }
+    [[nodiscard]] size_t getPresetId() const { return presetId_; }
+    [[nodiscard]] static juce::String getPresetName(size_t id);
 
-    juce::ValueTree getCurrentPreset() const { return m_apvts.copyState(); }
-    auto &getPresetName() const { return m_presetName; }
+    [[nodiscard]] juce::ValueTree getCurrentPreset() const
+    {
+        return apvts_.copyState();
+    }
+    [[nodiscard]] auto &getPresetName() const { return presetName_; }
 
-    auto &getFactoryPresets() const { return factoryPresets; }
+    [[nodiscard]] static auto &getFactoryPresets() { return kFactoryPresets; }
 
   private:
-    juce::AudioProcessorValueTreeState &m_apvts;
-    bool m_presetNotSaved{false};
-    size_t m_presetId{0};
-    juce::String m_presetName{defaultName};
+    juce::AudioProcessorValueTreeState &apvts_;
+    bool presetNotSaved_{false};
+    size_t presetId_{0};
+    juce::String presetName_{kDefaultName};
 
-    const juce::ValueTree m_default;
+    const juce::ValueTree default_;
 
-    std::vector<Listener *> m_listeners;
+    std::vector<Listener *> listeners_;
 
     void loadPreset(const juce::String &name, const juce::ValueTree &preset);
     void callListeners();
-    virtual void
-    valueTreePropertyChanged(juce::ValueTree &treeWhosePropertyHasChanged,
-                             const juce::Identifier &property) override;
+    void valueTreePropertyChanged(juce::ValueTree &treeWhosePropertyHasChanged,
+                                  const juce::Identifier &property) override;
 };
 
 } // namespace aether

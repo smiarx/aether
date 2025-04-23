@@ -18,11 +18,11 @@ class SpringsGL : public juce::Component,
     SpringsGL(PluginProcessor &processor);
     ~SpringsGL() override;
 
-    static constexpr auto N             = processors::Springs::N;
-    static constexpr auto RMSStackSize  = processors::Springs::kRmsStackSize;
-    static constexpr float Damp2Density = 4500.f;
+    static constexpr auto kN             = processors::Springs::N;
+    static constexpr auto kRmsStackSize  = processors::Springs::kRmsStackSize;
+    static constexpr float kDamp2Density = 4500.f;
 
-    virtual void timerCallback() override;
+    void timerCallback() override;
 
     //==========================================================================
     // OpenGL Callbacks
@@ -60,22 +60,15 @@ class SpringsGL : public juce::Component,
     //==============================================================================
     // This class just manages the uniform values that the fragment shader uses.
     struct Uniforms {
-        Uniforms(juce::OpenGLContext &t_openGLContext,
-                 juce::OpenGLShaderProgram &t_shaderProgram)
+        Uniforms(juce::OpenGLShaderProgram &tShaderProgram)
         {
-            coils.reset(
-                createUniform(t_openGLContext, t_shaderProgram, "u_coils"));
-            radius.reset(
-                createUniform(t_openGLContext, t_shaderProgram, "u_radius"));
-            shape.reset(
-                createUniform(t_openGLContext, t_shaderProgram, "u_shape"));
-            resolution.reset(createUniform(t_openGLContext, t_shaderProgram,
-                                           "u_resolution"));
-            rms.reset(createUniform(t_openGLContext, t_shaderProgram, "u_rms"));
-            rmspos.reset(
-                createUniform(t_openGLContext, t_shaderProgram, "u_rmspos"));
-            time.reset(
-                createUniform(t_openGLContext, t_shaderProgram, "u_time"));
+            coils.reset(createUniform(tShaderProgram, "u_coils"));
+            radius.reset(createUniform(tShaderProgram, "u_radius"));
+            shape.reset(createUniform(tShaderProgram, "u_shape"));
+            resolution.reset(createUniform(tShaderProgram, "u_resolution"));
+            rms.reset(createUniform(tShaderProgram, "u_rms"));
+            rmspos.reset(createUniform(tShaderProgram, "u_rmspos"));
+            time.reset(createUniform(tShaderProgram, "u_time"));
         }
 
         std::unique_ptr<juce::OpenGLShaderProgram::Uniform> coils, radius,
@@ -83,11 +76,10 @@ class SpringsGL : public juce::Component,
 
       private:
         static juce::OpenGLShaderProgram::Uniform *
-        createUniform(juce::OpenGLContext &openGLContext,
-                      juce::OpenGLShaderProgram &shaderProgram,
+        createUniform(juce::OpenGLShaderProgram &shaderProgram,
                       const char *uniformName)
         {
-            if (openGLContext.extensions.glGetUniformLocation(
+            if (juce::OpenGLExtensionFunctions::glGetUniformLocation(
                     shaderProgram.getProgramID(), uniformName) < 0)
                 return nullptr;
 
@@ -97,11 +89,11 @@ class SpringsGL : public juce::Component,
     };
 
     // OpenGL Variables
-    juce::OpenGLContext openGLContext;
-    GLuint VBO, EBO;
+    juce::OpenGLContext openGlContext_;
+    GLuint vbo_, ebo_;
 
-    std::unique_ptr<juce::OpenGLShaderProgram> shader;
-    std::unique_ptr<Uniforms> uniforms;
+    std::unique_ptr<juce::OpenGLShaderProgram> shader_;
+    std::unique_ptr<Uniforms> uniforms_;
 
     /** DEV NOTE
         If I wanted to optionally have an interchangeable shader system,
@@ -112,26 +104,25 @@ class SpringsGL : public juce::Component,
      */
 
     // AudioProcessorParameter::Listener functions
-    virtual void parameterValueChanged(int parameterIndex,
-                                       float newValue) override;
-    virtual void parameterGestureChanged(int /*parameterIndex*/,
-                                         bool /*gestureIsStarting*/) override
+    void parameterValueChanged(int parameterIndex, float newValue) override;
+    void parameterGestureChanged(int /*parameterIndex*/,
+                                 bool /*gestureIsStarting*/) override
     {
     }
 
     // click functions
     void mouseDown(const juce::MouseEvent & /*event*/) override
     {
-        shake->store(true);
+        shake_->store(true);
     }
 
-    PluginProcessor &m_processor;
+    PluginProcessor &processor_;
 
-    float time{};
-    const dsp::fSample<N> *rms;
-    const std::atomic<int> *rmspos;
-    float coils = 0.f, radius = 0.f, shape = 0.5f;
-    std::atomic<bool> *shake;
+    float time_{};
+    const dsp::fSample<kN> *rms_;
+    const std::atomic<int> *rmspos_;
+    float coils_ = 0.f, radius_ = 0.f, shape_ = 0.5f;
+    std::atomic<bool> *shake_;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SpringsGL)
 };

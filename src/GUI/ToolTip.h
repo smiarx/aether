@@ -7,11 +7,11 @@ class ToolTip : public juce::Component
 {
   public:
     void setFromComponent(juce::Component *component);
-    void paint(juce::Graphics &);
+    void paint(juce::Graphics &) override;
 
   private:
-    juce::TextLayout m_textLayout;
-    juce::Component *m_component{nullptr};
+    juce::TextLayout textLayout_;
+    juce::Component *component_{nullptr};
 };
 
 } // namespace aether

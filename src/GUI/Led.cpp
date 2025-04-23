@@ -1,4 +1,6 @@
 #include "Led.h"
+#include "juce_graphics/juce_graphics.h"
+#include <algorithm>
 
 namespace aether
 {
@@ -6,14 +8,14 @@ namespace aether
 void Led::timerCallback()
 {
     bool ledOn = true;
-    if (m_switchIndicator.compare_exchange_strong(ledOn, false) && ledOn) {
-        m_counter = 0;
+    if (switchIndicator_.compare_exchange_strong(ledOn, false) && ledOn) {
+        counter_ = 0;
     }
-    if (m_counter < LengthMs / TimerMs) {
-        ++m_counter;
-        m_intensity += 0.9f * (1.f - m_intensity);
+    if (counter_ < kLengthMs / kTimerMs) {
+        ++counter_;
+        intensity_ += 0.9f * (1.f - intensity_);
     } else {
-        m_intensity *= (1.f - SmoothCoef);
+        intensity_ *= (1.f - kSmoothCoef);
     }
     repaint();
 }
@@ -31,7 +33,7 @@ void Led::paint(juce::Graphics &g)
 
     auto ledBounds = bounds.reduced(size / 5);
     auto ledSize   = ledBounds.getWidth();
-    auto ledColour = colour.darker(1.f).interpolatedWith(colour, m_intensity);
+    auto ledColour = colour.darker(1.f).interpolatedWith(colour, intensity_);
 
     juce::ColourGradient ledGradient{ledColour, centre,
                                      juce::Colours::black.withAlpha(0.6f),
@@ -40,7 +42,7 @@ void Led::paint(juce::Graphics &g)
     g.fillEllipse(ledBounds);
 
     g.setGradientFill(
-        {colour.withAlpha(0.7f * m_intensity), centre, colour.withAlpha(0.f),
+        {colour.withAlpha(0.7f * intensity_), centre, colour.withAlpha(0.f),
          bounds.reduced(size / 2 * (1.f - 0.707f)).getTopLeft(), true});
     g.fillEllipse(bounds);
 

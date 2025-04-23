@@ -8,16 +8,16 @@ namespace aether
 class Title
 {
   public:
-    static constexpr auto titleString = u8"ÆTHER";
+    static constexpr auto kTitleString = u8"ÆTHER";
 
     Title();
-    void setBounds(juce::Rectangle<float> bounds) { m_bounds = bounds; }
-    float getMaxWidth() const { return m_maxWidth; }
+    void setBounds(juce::Rectangle<float> bounds) { bounds_ = bounds; }
+    [[nodiscard]] float getMaxWidth() const { return maxWidth_; }
     void draw(juce::Graphics &g);
 
   private:
-    juce::TextLayout m_textLayout;
-    juce::Rectangle<float> m_bounds;
-    float m_maxWidth{};
+    juce::TextLayout textLayout_;
+    juce::Rectangle<float> bounds_;
+    float maxWidth_{};
 };
 } // namespace aether

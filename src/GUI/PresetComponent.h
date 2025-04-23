@@ -20,22 +20,22 @@ class PresetComponent : public juce::Component,
 
     void setArrowsColour(juce::Colour colour)
     {
-        m_prevButton.setColour(colour);
-        m_nextButton.setColour(colour);
+        prevButton_.setColour(colour);
+        nextButton_.setColour(colour);
     }
 
   private:
     void updatePresetName();
-    virtual void presetManagerChanged(PresetManager &presetManager) override;
+    void presetManagerChanged(PresetManager &presetManager) override;
     void buttonClicked(juce::Button *button) override;
 
-    PresetManager &m_presetManager;
+    PresetManager &presetManager_;
 
-    ArrowButton m_prevButton;
-    ArrowButton m_nextButton;
-    juce::TextButton m_presetButton;
+    ArrowButton prevButton_;
+    ArrowButton nextButton_;
+    juce::TextButton presetButton_;
 
-    std::unique_ptr<juce::FileChooser> m_fileChooser;
+    std::unique_ptr<juce::FileChooser> fileChooser_;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PresetComponent)
 };

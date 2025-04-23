@@ -7,23 +7,23 @@ namespace aether
 class Led : public juce::Component, private juce::Timer
 {
   public:
-    static constexpr auto TimerMs    = 40;
-    static constexpr auto LengthMs   = 80;
-    static constexpr auto SmoothCoef = 0.72f;
+    static constexpr auto kTimerMs    = 40;
+    static constexpr auto kLengthMs   = 80;
+    static constexpr auto kSmoothCoef = 0.72f;
 
-    Led(std::atomic<bool> &switchIndicator) : m_switchIndicator(switchIndicator)
+    Led(std::atomic<bool> &switchIndicator) : switchIndicator_(switchIndicator)
     {
-        startTimer(TimerMs);
+        startTimer(kTimerMs);
     }
 
     void setFadeOut(int milliseconds);
-    virtual void timerCallback() override;
+    void timerCallback() override;
     void paint(juce::Graphics &g) override;
 
   private:
-    std::atomic<bool> &m_switchIndicator;
-    int m_counter{0};
-    float m_intensity{0.f};
+    std::atomic<bool> &switchIndicator_;
+    int counter_{0};
+    float intensity_{0.f};
 };
 
 } // namespace aether

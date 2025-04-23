@@ -1,0 +1,107 @@
+---
+HeaderFilterRegex: ''
+FormatStyle: 'file'
+Checks: '-*,
+bugprone-*,
+-bugprone-macro-parentheses,
+-bugprone-easily-swappable-parameters,
+cert-dcl58-cpp,
+cert-err34-c,
+cert-err52-cpp,
+cert-err60-cpp,
+cert-flp30-c,
+cert-msc50-cpp,
+cert-msc51-cpp,
+cert-str34-c,
+cppcoreguidelines-*
+google-default-arguments,
+hicpp-exception-baseclass,
+hicpp-multiway-paths-covered,
+misc-*,
+-misc-const-correctness,
+-misc-use-anonymous-namespace,
+modernize-*,
+-modernize-use-trailing-return-type,
+-modernize-avoid-c-arrays,
+mpi-buffer-deref,
+mpi-type-mismatch,
+openmp-use-default-none,
+performance-faster-string-find,
+performance-for-range-copy,
+performance-implicit-conversion-in-loop,
+performance-inefficient-algorithm,
+performance-inefficient-string-concatenation,
+performance-inefficient-vector-operation,
+performance-move-const-arg,
+performance-move-constructor-init,
+performance-no-automatic-move,
+performance-noexcept-move-constructor,
+performance-trivially-destructible,
+performance-type-promotion-in-math-fn,
+performance-unnecessary-copy-initialization,
+performance-unnecessary-value-param,
+readability-avoid-const-params-in-decls,
+readability-const-return-type,
+readability-container-size-empty,
+readability-convert-member-functions-to-static,
+readability-delete-null-pointer,
+readability-deleted-default,
+readability-inconsistent-declaration-parameter-name,
+readability-identifier-naming,
+readability-make-member-function-const,
+readability-misleading-indentation,
+readability-misplaced-array-index,
+readability-non-const-parameter,
+readability-redundant-control-flow,
+readability-redundant-declaration,
+readability-redundant-function-ptr-dereference,
+readability-redundant-smartptr-get,
+readability-redundant-string-cstr,
+readability-redundant-string-init,
+readability-simplify-subscript-expr,
+readability-static-accessed-through-instance,
+readability-static-definition-in-anonymous-namespace,
+readability-string-compare,
+readability-uniqueptr-delete-release,
+readability-use-anyofallof'
+CheckOptions:
+  - key:             readability-identifier-naming.ClassCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.ClassMemberCase
+    value:           camelBack
+  - key:             readability-identifier-naming.EnumCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.EnumConstantCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.EnumConstantPrefix
+    value:           k
+  - key:             readability-identifier-naming.FunctionCase
+    value:           camelBack
+  - key:             readability-identifier-naming.GlobalConstantCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.GlobalConstantPrefix
+    value:           k
+  - key:             readability-identifier-naming.StaticConstantCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.StaticConstantPrefix
+    value:           k
+  - key:             readability-identifier-naming.ConstexprVariableCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.ConstexprVariablePrefix
+    value:           k
+  - key:             readability-identifier-naming.StaticVariableCase
+    value:           camelBack
+  - key:             readability-identifier-naming.PrivateMemberCase
+    value:           camelBack
+  - key:             readability-identifier-naming.PrivateMemberSuffix
+    value:           _
+  - key:             readability-identifier-naming.NamespaceCase
+    value:           lower_case
+  - key:             readability-identifier-naming.ParameterCase
+    value:           camelBack
+  - key:             readability-identifier-naming.VariableCase
+    value:           camelBack
+  - key:             readability-identifier-naming.VariableIgnoredRegexp
+    value:           '^[A-Z]$'
+  - key:             readability-identifier-naming.IgnoreMainLikeFunctions
+    value:           1

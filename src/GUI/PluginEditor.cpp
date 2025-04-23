@@ -1,28 +1,34 @@
 #include "PluginEditor.h"
+#include "../PluginProcessor.h"
+#include "CustomLNF.h"
+#include "juce_audio_processors/juce_audio_processors.h"
+#include "juce_graphics/juce_graphics.h"
+#include "juce_gui_basics/juce_gui_basics.h"
+#include <limits>
 
 namespace aether
 {
 
 PluginEditor::PluginEditor(PluginProcessor &p) :
-    AudioProcessorEditor(&p), preset(p.getPresetManager()), delaySection{p},
-    springsSection{p}
+    AudioProcessorEditor(&p), preset_(p.getPresetManager()), delaySection_{p},
+    springsSection_{p}
 {
     setResizable(true, true);
 
     setInterceptsMouseClicks(false, true);
     juce::Desktop::getInstance().addGlobalMouseListener(this);
 
-    setLookAndFeel(&lookandfeel);
-    addAndMakeVisible(tooltip);
-    addAndMakeVisible(preset);
-    addAndMakeVisible(delaySection);
-    addAndMakeVisible(springsSection);
+    setLookAndFeel(&lookandfeel_);
+    addAndMakeVisible(tooltip_);
+    addAndMakeVisible(preset_);
+    addAndMakeVisible(delaySection_);
+    addAndMakeVisible(springsSection_);
 
     setSize(940, 480);
     setResizeLimits(600, 400, std::numeric_limits<int>::max(),
                     std::numeric_limits<int>::max());
 
-    preset.setArrowsColour(juce::Colour(0xffffffff));
+    preset_.setArrowsColour(juce::Colour(0xffffffff));
 }
 
 PluginEditor::~PluginEditor()
@@ -45,45 +51,45 @@ void PluginEditor::resized()
     fb.flexDirection = juce::FlexBox::Direction::row;
 
     juce::Component flextitle;
-    auto titleWidth    = title.getMaxWidth();
+    auto titleWidth    = title_.getMaxWidth();
     auto toolTipMargin = getBounds().getWidth() * 0.03f;
 
     fbTitle.items.addArray({
         juce::FlexItem(flextitle)
             .withFlex(0.5f)
             .withMargin(0.f)
-            .withHeight(headerHeight)
+            .withHeight(kHeaderHeight)
             .withMaxWidth(titleWidth)
             .withMinWidth(titleWidth),
-        juce::FlexItem(tooltip)
+        juce::FlexItem(tooltip_)
             .withFlex(1.f)
             .withMargin({0, toolTipMargin, 0, toolTipMargin})
-            .withHeight(headerHeight),
-        juce::FlexItem(preset)
+            .withHeight(kHeaderHeight),
+        juce::FlexItem(preset_)
             .withFlex(0.55f)
-            .withHeight(headerHeight / 2)
+            .withHeight(kHeaderHeight / 2)
             .withMaxWidth(130),
     });
 
     fb.items.addArray({
-        juce::FlexItem(delaySection).withFlex(0.68f).withMargin(0.f),
-        juce::FlexItem(springsSection).withFlex(1.f).withMargin(0.f),
+        juce::FlexItem(delaySection_).withFlex(0.68f).withMargin(0.f),
+        juce::FlexItem(springsSection_).withFlex(1.f).withMargin(0.f),
     });
 
     fbMain.items.addArray({
         juce::FlexItem(fbTitle)
             .withFlex(0.f)
-            .withHeight(headerHeight)
-            .withMargin({0, 0, 0, titleMargin}),
+            .withHeight(kHeaderHeight)
+            .withMargin({0, 0, 0, kTitleMargin}),
         juce::FlexItem(fb).withFlex(1.f),
     });
 
     auto bounds = getLocalBounds();
-    bounds.reduce(CustomLNF::margin, 0);
-    bounds.removeFromBottom(CustomLNF::margin);
+    bounds.reduce(CustomLNF::kMargin, 0);
+    bounds.removeFromBottom(CustomLNF::kMargin);
     fbMain.performLayout(bounds);
 
-    title.setBounds(flextitle.getBounds().toFloat());
+    title_.setBounds(flextitle.getBounds().toFloat());
 }
 
 void PluginEditor::paint(juce::Graphics &g)
@@ -93,14 +99,14 @@ void PluginEditor::paint(juce::Graphics &g)
     juce::DropShadow shadow(juce::Colour{0x8f000000}, 5, {-2, 8});
     juce::Path win;
     win.addRoundedRectangle(
-        delaySection.getBounds().getUnion(springsSection.getBounds()),
-        CustomLNF::boxRoundSize);
+        delaySection_.getBounds().getUnion(springsSection_.getBounds()),
+        CustomLNF::kBoxRoundSize);
     shadow.drawForPath(g, win);
 
     g.setColour(juce::Colour{0xffafafaf});
     g.strokePath(win, juce::PathStrokeType(2));
 
-    title.draw(g);
+    title_.draw(g);
 }
 
 void PluginEditor::mouseMove(const juce::MouseEvent &event)
@@ -111,7 +117,7 @@ void PluginEditor::mouseMove(const juce::MouseEvent &event)
     auto *underMouse =
         mouseSource.isTouch() ? nullptr : mouseSource.getComponentUnderMouse();
 
-    tooltip.setFromComponent(underMouse);
+    tooltip_.setFromComponent(underMouse);
 }
 
 } // namespace aether

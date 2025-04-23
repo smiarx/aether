@@ -14,19 +14,19 @@ namespace aether
 class DelaySection : public juce::Component
 {
     enum {
-        DryWet     = 0,
-        Time       = 1,
-        Feedback   = 2,
-        CutLow     = 3,
-        CutHi      = 4,
-        Saturation = 5,
-        Drift      = 6,
-        _NumParams,
+        kDryWet     = 0,
+        kTime       = 1,
+        kFeedback   = 2,
+        kCutLow     = 3,
+        kCutHi      = 4,
+        kSaturation = 5,
+        kDrift      = 6,
+        kNumParams,
     };
 
     static constexpr std::array<std::tuple<const char *, const char *>,
-                                _NumParams>
-        elements{{
+                                kNumParams>
+        kElements{{
             {"delay_drywet", "Dry/Wet"},
             {"delay_seconds", "Time"},
             {"delay_feedback", "Feedback"},
@@ -38,28 +38,28 @@ class DelaySection : public juce::Component
 
   public:
     enum ColourIds {
-        backgroundColourId = 0x1312000,
+        kBackgroundColourId = 0x1312000,
     };
 
     DelaySection(PluginProcessor &processor);
 
-    virtual void resized() override;
-    virtual void paint(juce::Graphics &g) override;
+    void resized() override;
+    void paint(juce::Graphics &g) override;
 
   private:
-    SliderWithLabel m_sliders[elements.size()];
+    SliderWithLabel sliders_[kElements.size()];
 
-    juce::ToggleButton m_active;
-    juce::AudioProcessorValueTreeState::ButtonAttachment m_activeAttachment;
+    juce::ToggleButton active_;
+    juce::AudioProcessorValueTreeState::ButtonAttachment activeAttachment_;
 
-    ComboBox m_mode;
-    juce::AudioProcessorValueTreeState::ComboBoxAttachment m_modeAttachment;
+    ComboBox mode_;
+    juce::AudioProcessorValueTreeState::ComboBoxAttachment modeAttachment_;
 
-    bool m_useBeats{false};
-    ComboBox m_timeType;
-    juce::AudioProcessorValueTreeState::ComboBoxAttachment m_timeTypeAttachment;
+    bool useBeats_{false};
+    ComboBox timeType_;
+    juce::AudioProcessorValueTreeState::ComboBoxAttachment timeTypeAttachment_;
 
-    Led m_led;
+    Led led_;
 };
 
 } // namespace aether

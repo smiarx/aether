@@ -34,7 +34,6 @@ add_subdirectory(submodules/dsp/)
 add_subdirectory(submodules/readerwriterqueue/)
 add_subdirectory(src/)
 
-
 target_compile_definitions(${PROJECT_NAME}
     PUBLIC
         JUCE_WEB_BROWSER=0  # If you remove this, add `NEEDS_WEB_BROWSER TRUE` to the `juce_add_plugin` call
@@ -51,6 +50,10 @@ target_compile_definitions(${PROJECT_NAME}
 target_compile_options(${PROJECT_NAME} PRIVATE
        -fopenmp-simd
    )
+
+set_property(TARGET readerwriterqueue PROPERTY SYSTEM TRUE)
+set_property(TARGET dsp_tapedelay_processor PROPERTY SYSTEM TRUE)
+set_property(TARGET dsp_springs_processor PROPERTY SYSTEM TRUE)
 
 target_link_libraries(${PROJECT_NAME}
     PRIVATE

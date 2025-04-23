@@ -1,18 +1,20 @@
 #include "Title.h"
 #include "CustomLNF.h"
 #include "PluginEditor.h"
+#include "juce_core/juce_core.h"
+#include "juce_graphics/juce_graphics.h"
 
 namespace aether
 {
 
 Title::Title()
 {
-    const auto mainColour = juce::Colour(CustomLNF::delayMainColour);
-    const auto backColour = juce::Colour(CustomLNF::delayBackColour);
+    const auto mainColour = juce::Colour(CustomLNF::kDelayMainColour);
+    const auto backColour = juce::Colour(CustomLNF::kDelayBackColour);
 
     auto titleFont = juce::Font(CustomLNF::titleTypeface)
-                         .withHeight(PluginEditor::headerHeight);
-    titleFont.setDefaultMinimumHorizontalScaleFactor(1.f);
+                         .withHeight(PluginEditor::kHeaderHeight);
+    juce::Font::setDefaultMinimumHorizontalScaleFactor(1.f);
 
     juce::AttributedString attrString;
 
@@ -20,14 +22,14 @@ Title::Title()
     attrString.append(juce::String("THER"), titleFont, backColour);
 
     // fix width
-    m_maxWidth =
-        titleFont.getStringWidthFloat(juce::String::fromUTF8(titleString));
-    m_maxWidth += 0.08f * m_maxWidth;
+    maxWidth_ =
+        titleFont.getStringWidthFloat(juce::String::fromUTF8(kTitleString));
+    maxWidth_ += 0.08f * maxWidth_;
 
-    m_textLayout.createLayout(attrString, m_maxWidth,
-                              PluginEditor::headerHeight);
+    textLayout_.createLayout(attrString, maxWidth_,
+                             PluginEditor::kHeaderHeight);
 }
 
-void Title::draw(juce::Graphics &g) { m_textLayout.draw(g, m_bounds); }
+void Title::draw(juce::Graphics &g) { textLayout_.draw(g, bounds_); }
 
 } // namespace aether

@@ -320,7 +320,7 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
                 m_tapedelay.setDelay(time, count);
             }
 
-            if (m_tapedelay.getMode() != processors::TapeDelay::Mode::Normal) {
+            if (m_tapedelay.getMode() != processors::TapeDelay::Mode::kNormal) {
                 if (position->getIsPlaying()) {
                     auto ppq = position->getPpqPosition();
                     if (ppq.hasValue()) {

@@ -19,7 +19,7 @@ class SpringsGL : public juce::Component,
     ~SpringsGL() override;
 
     static constexpr auto N             = processors::Springs::N;
-    static constexpr auto RMSStackSize  = processors::Springs::RMSStackSize;
+    static constexpr auto RMSStackSize  = processors::Springs::kRmsStackSize;
     static constexpr float Damp2Density = 4500.f;
 
     virtual void timerCallback() override;

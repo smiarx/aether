@@ -1,6 +1,7 @@
 #include "Title.h"
 #include "CustomLNF.h"
 #include "PluginEditor.h"
+#include "Typefaces.h"
 #include "juce_core/juce_core.h"
 #include "juce_graphics/juce_graphics.h"
 
@@ -12,7 +13,7 @@ Title::Title()
     const auto mainColour = juce::Colour(CustomLNF::kDelayMainColour);
     const auto backColour = juce::Colour(CustomLNF::kDelayBackColour);
 
-    auto titleFont = juce::Font(CustomLNF::titleTypeface)
+    auto titleFont = juce::Font(Typefaces::getInstance()->title)
                          .withHeight(PluginEditor::kHeaderHeight);
     juce::Font::setDefaultMinimumHorizontalScaleFactor(1.f);
 

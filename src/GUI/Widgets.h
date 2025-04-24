@@ -2,6 +2,7 @@
 
 #include "CustomLNF.h"
 #include "Slider.h"
+#include "Typefaces.h"
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
@@ -27,8 +28,8 @@ template <class Comp> class Widget : public juce::Component
                        juce::NotificationType::dontSendNotification);
         label_.setJustificationType(juce::Justification::centred);
 
-        auto font =
-            juce::Font(CustomLNF::defaultTypeface).withPointHeight(kTextSize);
+        auto font = juce::Font(Typefaces::getInstance()->dfault)
+                        .withPointHeight(kTextSize);
         label_.setFont(font);
     }
     void resized() override
@@ -123,7 +124,7 @@ class SliderWithLabel : public Widget<Slider>
 
     void setValueAsLabel()
     {
-        auto font = juce::Font(CustomLNF::defaultMonoTypeface)
+        auto font = juce::Font(Typefaces::getInstance()->defaultMono)
                         .withPointHeight(kTextSize - 1);
         label_.setFont(font);
 

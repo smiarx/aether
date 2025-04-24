@@ -10,6 +10,7 @@ target_sources(${PROJECT_NAME}
         PresetComponent.cpp
         ArrowButton.cpp
         Title.cpp
+        Typefaces.cpp
     )
 
 add_subdirectory(assets/)

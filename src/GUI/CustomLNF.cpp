@@ -1,9 +1,9 @@
 #include "CustomLNF.h"
 #include "DelaySection.h"
-#include "Fonts.h"
 #include "PluginEditor.h"
 #include "Slider.h"
 #include "SpringsSection.h"
+#include "Typefaces.h"
 #include "juce_core/juce_core.h"
 #include "juce_graphics/juce_graphics.h"
 #include "juce_gui_basics/juce_gui_basics.h"
@@ -12,11 +12,6 @@
 
 namespace aether
 {
-
-juce::Typeface::Ptr CustomLNF::titleTypeface       = nullptr;
-juce::Typeface::Ptr CustomLNF::symbolsTypeface     = nullptr;
-juce::Typeface::Ptr CustomLNF::defaultTypeface     = nullptr;
-juce::Typeface::Ptr CustomLNF::defaultMonoTypeface = nullptr;
 
 CustomLNF::CustomLNF()
 {
@@ -87,23 +82,7 @@ CustomLNF::CustomLNF()
         }
     }
 
-    if (titleTypeface == nullptr) {
-        titleTypeface = juce::Typeface::createSystemTypefaceFor(
-            Fonts::NunitoSans320_ttf, Fonts::NunitoSans320_ttfSize);
-    }
-    if (symbolsTypeface == nullptr) {
-        symbolsTypeface = juce::Typeface::createSystemTypefaceFor(
-            Fonts::Symbols_ttf, Fonts::Symbols_ttfSize);
-    }
-    if (defaultTypeface == nullptr) {
-        defaultTypeface = juce::Typeface::createSystemTypefaceFor(
-            Fonts::Lexend300_ttf, Fonts::Lexend300_ttfSize);
-    }
-    if (defaultMonoTypeface == nullptr) {
-        defaultMonoTypeface = juce::Typeface::createSystemTypefaceFor(
-            Fonts::Roboto425_ttf, Fonts::Roboto425_ttfSize);
-    }
-    setDefaultSansSerifTypeface(defaultTypeface);
+    setDefaultSansSerifTypeface(Typefaces::getInstance()->dfault);
 }
 
 void CustomLNF::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
@@ -299,8 +278,8 @@ void CustomLNF::drawBubble(juce::Graphics &g, juce::BubbleComponent &comp,
 
 juce::Font CustomLNF::getSliderPopupFont(juce::Slider &)
 {
-    auto font =
-        juce::Font(defaultMonoTypeface).withPointHeight(kTextPointHeight);
+    auto font = juce::Font(Typefaces::getInstance()->defaultMono)
+                    .withPointHeight(kTextPointHeight);
     return font;
 }
 
@@ -401,7 +380,8 @@ void CustomLNF::drawToggleButton(
         button.findColour(juce::ToggleButton::ColourIds::textColourId);
     g.setColour(textColour);
     auto fontSize = button.getHeight();
-    g.setFont(juce::Font(defaultTypeface).withHeight(fontSize));
+    g.setFont(
+        juce::Font(Typefaces::getInstance()->dfault).withHeight(fontSize));
 
     if (!button.isEnabled()) g.setOpacity(0.5f);
 
@@ -416,7 +396,7 @@ juce::Font
 CustomLNF::getTextButtonFont([[maybe_unused]] juce::TextButton &button,
                              int buttonHeight)
 {
-    return juce::Font(defaultTypeface)
+    return juce::Font(Typefaces::getInstance()->dfault)
         .withPointHeight(
             juce::jmin((float)kTextPointHeight, (float)buttonHeight * 0.6f));
 }
@@ -453,10 +433,10 @@ void CustomLNF::drawComboBox(juce::Graphics &, int, int, bool, int, int, int,
 juce::Font CustomLNF::getComboBoxFont(juce::ComboBox &comboBox)
 {
     if (comboBox.getName() == "TimeType") {
-        return juce::Font(defaultMonoTypeface)
+        return juce::Font(Typefaces::getInstance()->defaultMono)
             .withPointHeight(CustomLNF::kTextPointHeight - 1);
     }
-    return juce::Font(defaultTypeface)
+    return juce::Font(Typefaces::getInstance()->dfault)
         .withPointHeight(CustomLNF::kTextPointHeight);
 }
 void CustomLNF::positionComboBoxText(juce::ComboBox &box, juce::Label &label)
@@ -470,7 +450,8 @@ void CustomLNF::positionComboBoxText(juce::ComboBox &box, juce::Label &label)
 ///////////////////////////////////////////////
 juce::Font CustomLNF::getPopupMenuFont()
 {
-    return juce::Font(defaultTypeface).withPointHeight(kTextPointHeight);
+    return juce::Font(Typefaces::getInstance()->dfault)
+        .withPointHeight(kTextPointHeight);
 }
 
 void CustomLNF::getIdealPopupMenuItemSize(

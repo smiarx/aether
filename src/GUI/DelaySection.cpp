@@ -2,6 +2,7 @@
 #include "../PluginProcessor.h"
 #include "CustomLNF.h"
 #include "SpringsSection.h"
+#include "Typefaces.h"
 #include "juce_core/juce_core.h"
 #include "juce_events/juce_events.h"
 #include "juce_graphics/juce_graphics.h"
@@ -59,7 +60,7 @@ DelaySection::DelaySection(PluginProcessor &processor) :
     sliders_[kTime].getLabel().setText(
         "", juce::NotificationType::dontSendNotification);
 
-    const auto symbolFont = juce::Font(CustomLNF::symbolsTypeface)
+    const auto symbolFont = juce::Font(Typefaces::getInstance()->symbols)
                                 .withPointHeight(CustomLNF::kTextPointHeight);
     sliders_[kCutHi].getComponent().setPolarity(Slider::kUnipolarReversed);
     sliders_[kCutHi].getLabel().setText(

@@ -18,7 +18,7 @@ PluginEditor::PluginEditor(PluginProcessor &p) :
     setInterceptsMouseClicks(false, true);
     juce::Desktop::getInstance().addGlobalMouseListener(this);
 
-    setLookAndFeel(&lookandfeel_);
+    juce::LookAndFeel::setDefaultLookAndFeel(&lookandfeel_);
     addAndMakeVisible(tooltip_);
     addAndMakeVisible(preset_);
     addAndMakeVisible(delaySection_);

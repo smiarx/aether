@@ -1,5 +1,6 @@
 #include "ToolTip.h"
 #include "CustomLNF.h"
+#include "Typefaces.h"
 #include "juce_core/juce_core.h"
 #include "juce_graphics/juce_graphics.h"
 #include "juce_gui_basics/juce_gui_basics.h"
@@ -26,8 +27,8 @@ void ToolTip::setFromComponent(juce::Component *component)
             const auto backColour = juce::Colour(CustomLNF::kDelayBackColour);
 
             juce::AttributedString attrStr;
-            auto font =
-                juce::Font(CustomLNF::defaultTypeface).withPointHeight(14);
+            auto font = juce::Font(Typefaces::getInstance()->dfault)
+                            .withPointHeight(14);
             attrStr.append(component->getTitle() + ": ", font, mainColour);
             attrStr.append(toolTip, font, backColour);
             attrStr.setJustification(juce::Justification::verticallyCentred);

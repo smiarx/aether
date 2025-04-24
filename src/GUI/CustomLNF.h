@@ -20,11 +20,6 @@ class CustomLNF : public juce::LookAndFeel_V4
     static constexpr auto kDelayBackColour   = 0xffd2d6d8;
     static constexpr auto kSpringsMainColour = 0xfff88261;
     static constexpr auto kSpringsBackColour = 0xffe9e5e2;
-
-    static juce::Typeface::Ptr titleTypeface;
-    static juce::Typeface::Ptr symbolsTypeface;
-    static juce::Typeface::Ptr defaultTypeface;
-    static juce::Typeface::Ptr defaultMonoTypeface;
     CustomLNF();
 
     void drawRotarySlider(juce::Graphics &g, int x, int y, int width,

@@ -30,11 +30,16 @@ DelaySection::DelaySection(PluginProcessor &processor) :
     },
     active_("Delay"),
     activeAttachment_(processor.getAPVTS(), "delay_active", active_),
+
+    mode_("Mode"),
     modeAttachment_(processor.getAPVTS(), "delay_mode", mode_.getComboBox()),
+    timeType_("TimeType"),
     timeTypeAttachment_(processor.getAPVTS(), "delay_time_type",
                         timeType_.getComboBox()),
     led_(processor.getSwitchIndicator())
 {
+    setName("Delay");
+
     addAndMakeVisible(active_);
     addAndMakeVisible(led_);
 
@@ -81,24 +86,32 @@ DelaySection::DelaySection(PluginProcessor &processor) :
     sliders_[kSaturation].getComponent().setTextValueSuffix("dB");
     sliders_[kDrift].getComponent().setTextValueSuffix("%");
 
+    active_.setName("Delay");
+    active_.setTitle(active_.getName());
+
+    active_.setTooltip("Bypass section.");
     sliders_[kDryWet].getComponent().setTooltip(
         "Dry/wet proportion of the output signal");
-    sliders_[kTime].getComponent().setTooltip("Delay time.");
+    sliders_[kTime].getComponent().setTooltip("Duration of the delay.");
     sliders_[kFeedback].getComponent().setTooltip(
-        "How much of the delayed signal is fed back into the delay.");
+        "How much of the delayed signal is fed back into the delay. Can be "
+        "more than 100% if drive is positive.");
     sliders_[kCutLow].getComponent().setTooltip(
         "Cutoff frequency of the low pass filter.");
     sliders_[kCutHi].getComponent().setTooltip(
         "Cutoff frequency of the high pass filter.");
     sliders_[kSaturation].getComponent().setTooltip(
-        "Saturation level in decibels of the delayed signal. Saturations of "
-        "more than 0dB allows to set feedback levels of more than 100%.");
+        "Saturation level of the delayed signal in decibels.");
     sliders_[kDrift].getComponent().setTooltip(
-        "How much the tape speed will be modulated. This effects as pitch "
+        "How much the tape speed will be modulated. This works as pitch "
         "wobble.");
     mode_.getComboBox().setTooltip(
-        "Delay mode: [Normal] forward direction, [Back & Forth] alternates "
-        "between forwards and reverse - [Reverse] Reverse echoes");
+        "[Normal] normal echoes - [Back & Forth] alternates "
+        "between forwards and reverse - [Reverse] reverse echoes.");
+    mode_.getComboBox().setTitle("Mode");
+    timeType_.getComboBox().setTooltip(
+        "Set delay in seconds or relative to the host bpm.");
+    timeType_.getComboBox().setTitle("Type");
 
     // processor apvts
     auto &apvts = processor.getAPVTS();
@@ -111,7 +124,6 @@ DelaySection::DelaySection(PluginProcessor &processor) :
     auto &timeTypeComboBox = timeType_.getComboBox();
     timeTypeComboBox.addItemList(
         apvts.getParameter("delay_time_type")->getAllValueStrings(), 1);
-    timeTypeComboBox.setName("TimeType");
 
     timeTypeComboBox.onChange = [this, &apvts]() {
         auto &component  = sliders_[kTime].getComponent();

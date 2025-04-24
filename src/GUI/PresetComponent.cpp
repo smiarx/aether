@@ -22,6 +22,9 @@ PresetComponent::PresetComponent(PresetManager &presetManager) :
     addAndMakeVisible(prevButton_);
     addAndMakeVisible(nextButton_);
     addAndMakeVisible(presetButton_);
+
+    presetButton_.setTitle("Preset");
+    presetButton_.setTooltip("Edit, load and save presets");
 }
 
 PresetComponent::~PresetComponent()

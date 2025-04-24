@@ -9,6 +9,7 @@ namespace aether
 {
 
 class SpringsGL : public juce::Component,
+                  public juce::SettableTooltipClient,
                   public juce::OpenGLRenderer,
                   public juce::Timer,
                   public juce::AudioProcessorParameter::Listener

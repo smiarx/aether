@@ -34,8 +34,9 @@ SpringsSection::SpringsSection(PluginProcessor &processor) :
     activeAttachment_(processor.getAPVTS(), "springs_active", active_),
     springsGl_(processor)
 {
-    addAndMakeVisible(springsGl_);
+    setName("Springs");
 
+    addAndMakeVisible(springsGl_);
     addAndMakeVisible(active_);
 
     for (auto &slider : sliders_) {
@@ -43,6 +44,11 @@ SpringsSection::SpringsSection(PluginProcessor &processor) :
         slider.getComponent().setPopupDisplayEnabled(true, false,
                                                      getTopLevelComponent());
     }
+
+    active_.setName("Reverb");
+    active_.setTitle(active_.getName());
+    springsGl_.setName("Springs");
+    springsGl_.setTitle(springsGl_.getName());
 
     sliders_[kShape].getComponent().setPolarity(Slider::kBipolar);
 
@@ -54,23 +60,25 @@ SpringsSection::SpringsSection(PluginProcessor &processor) :
     sliders_[kChaos].getComponent().setTextValueSuffix("%");
     sliders_[kScatter].getComponent().setTextValueSuffix("%");
 
+    active_.setTooltip("Bypass section.");
     sliders_[kDryWet].getComponent().setTooltip(
         "Dry/wet proportion of the output signal.");
     sliders_[kWidth].getComponent().setTooltip(
-        "Stereo width of the output signal..");
+        "Stereo width of the output signal.");
     sliders_[kLength].getComponent().setTooltip(
         "Length of the echoes produced by the springs.");
     sliders_[kDecay].getComponent().setTooltip(
         "How long the reverb takes to fade out.");
     sliders_[kDamp].getComponent().setTooltip(
-        "Frequency of the highest compenents produced by the reverb.");
+        "Frequency of the highest components produced by the reverb.");
     sliders_[kShape].getComponent().setTooltip(
         "Shape of the frequency dispertion of the springs.");
-    sliders_[kTone].getComponent().setTooltip("Shape the tone of the reverb.");
+    sliders_[kTone].getComponent().setTooltip("Set the tone of the reverb.");
     sliders_[kChaos].getComponent().setTooltip(
         "How stochastic & unpredictible the springs become.");
     sliders_[kScatter].getComponent().setTooltip(
         "How similar or different are the springs properties.");
+    springsGl_.setTooltip("Click to shake springs.");
 
     static const auto kMainColour = juce::Colour(CustomLNF::kSpringsMainColour);
 

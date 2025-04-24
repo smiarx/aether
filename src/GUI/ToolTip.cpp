@@ -23,13 +23,31 @@ void ToolTip::setFromComponent(juce::Component *component)
 
         toolTip = ttc->getTooltip();
         if (toolTip != "") {
-            const auto mainColour = juce::Colour(CustomLNF::kDelayMainColour);
+            auto mainColour       = juce::Colour(CustomLNF::kDelayMainColour);
             const auto backColour = juce::Colour(CustomLNF::kDelayBackColour);
+
+            auto *parent = component->getParentComponent();
+            if (parent != nullptr) {
+                auto name = parent->getName();
+                if (name == "") {
+                    /* might be grand-parent */
+                    parent = parent->getParentComponent();
+                    if (parent != nullptr) name = parent->getName();
+                }
+                if (name == "Springs") {
+                    mainColour = juce::Colour(CustomLNF::kSpringsMainColour);
+                }
+            }
+
+            auto title = component->getTitle();
+            if (title == "") {
+                title = parent->getTitle();
+            }
 
             juce::AttributedString attrStr;
             auto font = juce::Font(Typefaces::getInstance()->dfault)
                             .withPointHeight(14);
-            attrStr.append(component->getTitle() + ": ", font, mainColour);
+            attrStr.append(title + ": ", font, mainColour);
             attrStr.append(toolTip, font, backColour);
             attrStr.setJustification(juce::Justification::verticallyCentred);
 
@@ -39,10 +57,10 @@ void ToolTip::setFromComponent(juce::Component *component)
             repaint();
             return;
         }
-
-        textLayout_.createLayout(juce::AttributedString(""), 0.f);
-        repaint();
     }
+
+    textLayout_.createLayout(juce::AttributedString(""), 0.f);
+    repaint();
 }
 
 void ToolTip::paint(juce::Graphics &g)

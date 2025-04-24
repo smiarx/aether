@@ -8,7 +8,8 @@ namespace aether
 class ComboBox : public juce::Component
 {
   public:
-    ComboBox() : left_{"prev", 0.5}, right_{"next", 0}
+    ComboBox(const juce::String &name = {}) :
+        left_{"prev", 0.5}, right_{"next", 0}, comboBox_{name}
     {
         addAndMakeVisible(comboBox_);
         addAndMakeVisible(left_);

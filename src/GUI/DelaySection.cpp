@@ -153,6 +153,7 @@ DelaySection::DelaySection(PluginProcessor &processor) :
             apvts, id, component);
         timeType_.defaultCallback();
         sliders_[kTime].getSlider().onValueChange();
+        mode_.getComboBox().onChange();
     };
 
     // limit seconds size to one third when in reverse mode
@@ -165,7 +166,7 @@ DelaySection::DelaySection(PluginProcessor &processor) :
         auto selected  = comboBox.getSelectedId();
         auto &slider   = sliders_[kTime].getComponent();
 
-        slider.setMaxPos(selected == 3 ? oneThird : 1.f);
+        slider.setMaxPos(selected == 3 && !useBeats_ ? oneThird : 1.f);
     };
 
     sliders_[kTime].getSlider().onValueChange = [this] {

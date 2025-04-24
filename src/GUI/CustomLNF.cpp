@@ -123,10 +123,12 @@ void CustomLNF::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
     // parameters
     Slider::Polarity polarity = Slider::kUnipolar;
     bool hasOutline           = false;
-    Slider *aetherSlider;
-    if ((aetherSlider = dynamic_cast<Slider *>(&slider))) {
+    float maxPos              = 1.0f;
+    auto *aetherSlider        = dynamic_cast<Slider *>(&slider);
+    if (aetherSlider != nullptr) {
         polarity   = aetherSlider->getPolarity();
         hasOutline = aetherSlider->getHasOutline();
+        maxPos     = aetherSlider->getMaxPos();
     }
 
     /* INDICATOR ARC */
@@ -135,7 +137,11 @@ void CustomLNF::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
     auto highColour =
         polarity == Slider::kUnipolar ? trackColour : sliderColour;
     auto stopAngle = posAngle;
-    auto endAngle  = rotaryEndAngle;
+    if (maxPos < sliderPos) {
+        stopAngle =
+            rotaryStartAngle + maxPos * (rotaryEndAngle - rotaryStartAngle);
+    }
+    auto endAngle = rotaryEndAngle;
 
     if (polarity == Slider::kBipolar) {
         if (stopAngle > middleAngle) {

@@ -46,10 +46,12 @@ PluginProcessor::createLayout()
             "delay_time_type", "Type", juce::StringArray{"seconds", "beats"},
             0),
         std::make_unique<juce::AudioParameterFloat>(
-            "delay_seconds", "Delay",
-            juce::NormalisableRange<float>{0.01f, 2.f, 0.001f, 0.5f}, 0.12f),
+            "delay_seconds", "Delay Seconds",
+            juce::NormalisableRange<float>{
+                0.01f, processors::TapeDelay::kMaxDelay, 0.001f, 0.5f},
+            0.2f),
         std::make_unique<juce::AudioParameterChoice>(
-            "delay_beats", "Delay",
+            "delay_beats", "Delay Beats",
             juce::StringArray{"1/32", "1/16", "1/8", "1/4", "1/3", "1/2", "1",
                               "2"},
             kBeat1),

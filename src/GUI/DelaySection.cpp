@@ -143,6 +143,19 @@ DelaySection::DelaySection(PluginProcessor &processor) :
         sliders_[kTime].getSlider().onValueChange();
     };
 
+    // limit seconds size to one third when in reverse mode
+    auto *secondsParam = processor.getAPVTS().getParameter("delay_seconds");
+    auto oneThird      = secondsParam->convertTo0to1(
+        secondsParam->convertFrom0to1(1.f) /
+        processors::TapeDelay::kReverseDelayMaxRatio);
+    mode_.getComboBox().onChange = [this, oneThird] {
+        auto &comboBox = mode_.getComboBox();
+        auto selected  = comboBox.getSelectedId();
+        auto &slider   = sliders_[kTime].getComponent();
+
+        slider.setMaxPos(selected == 3 ? oneThird : 1.f);
+    };
+
     sliders_[kTime].getSlider().onValueChange = [this] {
         auto &timeTypeCombo = timeType_.getComboBox();
         auto &slider        = sliders_[kTime].getSlider();

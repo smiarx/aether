@@ -22,8 +22,16 @@ class Slider : public juce::Slider
     void setHasOutline(bool hasOutline) { hasOutline_ = hasOutline; }
     [[nodiscard]] bool getHasOutline() const { return hasOutline_; }
 
+    void setMaxPos(float maxPos)
+    {
+        maxPos_ = maxPos;
+        repaint();
+    }
+    [[nodiscard]] float getMaxPos() const { return maxPos_; }
+
   private:
     Polarity polarity_{kUnipolar};
     bool hasOutline_{false};
+    float maxPos_{1.f};
 };
 } // namespace aether

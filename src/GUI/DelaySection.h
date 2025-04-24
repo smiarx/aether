@@ -32,7 +32,7 @@ class DelaySection : public juce::Component
             {"delay_feedback", "Feedback"},
             {"delay_cutoff_low", "Low pass"},
             {"delay_cutoff_hi", "High pass"},
-            {"delay_saturation", "Gain"},
+            {"delay_saturation", "Drive"},
             {"delay_drift", "Drift"},
         }};
 

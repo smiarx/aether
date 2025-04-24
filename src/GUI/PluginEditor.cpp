@@ -24,8 +24,10 @@ PluginEditor::PluginEditor(PluginProcessor &p) :
     addAndMakeVisible(delaySection_);
     addAndMakeVisible(springsSection_);
 
-    setSize(940, 480);
-    setResizeLimits(600, 400, std::numeric_limits<int>::max(),
+    constexpr auto kWidth  = 720;
+    constexpr auto kHeight = 400;
+    setSize(kWidth, kHeight);
+    setResizeLimits(kWidth, kHeight, std::numeric_limits<int>::max(),
                     std::numeric_limits<int>::max());
 
     preset_.setArrowsColour(juce::Colour(0xffffffff));

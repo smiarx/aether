@@ -16,11 +16,11 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
         build_type: [Release]
-        c_compiler: [gcc, clang, clang-cl]
+        c_compiler: [gcc, clang]
         include:
           - os: windows-latest
-            c_compiler: clang-cl
-            cpp_compiler: clang-cl
+            c_compiler: clang
+            cpp_compiler: clang++
             cmake_gen: -G"Ninja Multi-Config"
           - os: ubuntu-latest
             c_compiler: gcc
@@ -31,10 +31,6 @@ jobs:
         exclude:
           - os: windows-latest
             c_compiler: gcc
-          - os: windows-latest
-            c_compiler: clang
-          - os: ubuntu-latest
-            c_compiler: clang-cl
 
     steps:
     - uses: actions/checkout@v4
@@ -69,5 +65,5 @@ jobs:
 
     - uses: actions/upload-artifact@v4
       with:
-        name: Aether_${{ runner.os }}
+        name: Aether_${{ runner.os }}_${{ matrix.cpp_compiler }}
         path: ${{ steps.strings.outputs.build-output-dir }}/Aether_artefacts/Release/VST3/Aether.vst3

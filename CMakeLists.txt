@@ -49,10 +49,18 @@ target_compile_definitions(${PROJECT_NAME}
         TAPEDELAY_SWITCH_INDICATOR
     )
 
+target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_17)
+
 #ignore omp simd pragma
+if(MSVC)
+target_compile_options(${PROJECT_NAME} PRIVATE
+       /openmp
+   )
+else()
 target_compile_options(${PROJECT_NAME} PRIVATE
        -fopenmp-simd
    )
+endif()
 
 set_property(TARGET readerwriterqueue PROPERTY SYSTEM TRUE)
 set_property(TARGET dsp_tapedelay_processor PROPERTY SYSTEM TRUE)

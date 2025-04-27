@@ -141,6 +141,8 @@ DelaySection::DelaySection(PluginProcessor &processor) :
             useBeats_ = false;
             break;
         case 2:
+        case 3:
+            isDotted_ = selected == 3;
             id        = "delay_beats";
             suffix    = "";
             useBeats_ = true;
@@ -178,7 +180,11 @@ DelaySection::DelaySection(PluginProcessor &processor) :
                                       "ms",
                                   juce::NotificationType::dontSendNotification);
         } else {
-            timeTypeCombo.setText(slider.getTextFromValue(value),
+            auto valueStr = slider.getTextFromValue(value);
+            if (isDotted_) {
+                valueStr += "½";
+            }
+            timeTypeCombo.setText(valueStr,
                                   juce::NotificationType::dontSendNotification);
         }
     };

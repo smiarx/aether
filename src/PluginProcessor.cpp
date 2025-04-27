@@ -43,8 +43,8 @@ PluginProcessor::createLayout()
             "delay_drywet", "Dry/Wet",
             juce::NormalisableRange<float>{0.f, 100.f, 0.1f}, 20.f),
         std::make_unique<juce::AudioParameterChoice>(
-            "delay_time_type", "Type", juce::StringArray{"seconds", "beats"},
-            0),
+            "delay_time_type", "Type",
+            juce::StringArray{"seconds", "beats", "dotted"}, 0),
         std::make_unique<juce::AudioParameterFloat>(
             "delay_seconds", "Delay Seconds",
             juce::NormalisableRange<float>{
@@ -52,8 +52,8 @@ PluginProcessor::createLayout()
             0.2f),
         std::make_unique<juce::AudioParameterChoice>(
             "delay_beats", "Delay Beats",
-            juce::StringArray{"1/32", "1/16", "1/8", "1/4", "1/3", "1/2", "1",
-                              "2"},
+            juce::StringArray{"1/32", "1/16", "1/8", "1/6", "1/4", "1/3", "1/2",
+                              "1", "2", "4"},
             kBeat1),
         std::make_unique<juce::AudioParameterFloat>(
             "delay_feedback", "Feedback",
@@ -214,6 +214,7 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
         case ParamId::kDelayTimeType:
             useBeats_ = event.value > 0.f;
             if (useBeats_) {
+                isDotted_   = event.value > 1.f;
                 auto *param = static_cast<juce::AudioParameterChoice *>(
                     getParameters()[static_cast<size_t>(ParamId::kDelayBeats)]);
                 event.value = static_cast<float>(*param);
@@ -237,6 +238,9 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
                 case kBeat18:
                     mult = 1.0 / 8.0;
                     break;
+                case kBeat16:
+                    mult = 1.0 / 6.0;
+                    break;
                 case kBeat14:
                     mult = 1.0 / 4.0;
                     break;
@@ -253,6 +257,12 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
                 case kBeat2:
                     mult = 2.0;
                     break;
+                case kBeat4:
+                    mult = 4.0;
+                    break;
+                }
+                if (isDotted_) {
+                    mult += mult * 0.5;
                 }
                 beatsMult_ = mult;
                 auto time  = static_cast<float>(60 * mult / bpm_);

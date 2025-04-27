@@ -81,11 +81,13 @@ class PluginProcessor final : public juce::AudioProcessor,
         kBeat132,
         kBeat116,
         kBeat18,
+        kBeat16,
         kBeat14,
         kBeat13,
         kBeat12,
         kBeat1,
         kBeat2,
+        kBeat4,
     };
 
     struct ParamEvent {
@@ -135,6 +137,7 @@ class PluginProcessor final : public juce::AudioProcessor,
     std::atomic<bool> shake_{};
 
     bool useBeats_{false};
+    bool isDotted_{false};
     double beatsMult_{1};
     double bpm_{120};
 

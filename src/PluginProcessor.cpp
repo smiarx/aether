@@ -88,7 +88,7 @@ PluginProcessor::createLayout()
             juce::NormalisableRange<float>{0.02f, 0.2f, 0.001f, 0.6f}, 0.05f),
         std::make_unique<juce::AudioParameterFloat>(
             "springs_decay", "Decay",
-            juce::NormalisableRange<float>{0.01f, 10.f, 0.001f, 0.6f}, 3.f),
+            juce::NormalisableRange<float>{0.3f, 10.f, 0.001f, 0.6f}, 3.f),
         std::make_unique<juce::AudioParameterFloat>(
             "springs_damp", "Damp",
             juce::NormalisableRange<float>{200.f, 12000.f, 1.f, 0.5f}, 4500.f),
@@ -98,9 +98,11 @@ PluginProcessor::createLayout()
         std::make_unique<juce::AudioParameterFloat>("springs_tone", "Tone", 0.f,
                                                     1.f, 0.5f),
         std::make_unique<juce::AudioParameterFloat>(
-            "springs_scatter", "Scatter", 0.f, 120.f, 0.1f),
-        std::make_unique<juce::AudioParameterFloat>("springs_chaos", "Chaos",
-                                                    0.f, 100.f, 0.1f)));
+            "springs_scatter", "Scatter",
+            juce::NormalisableRange<float>{0.f, 120.f, 0.1f}, 50.f),
+        std::make_unique<juce::AudioParameterFloat>(
+            "springs_chaos", "Chaos",
+            juce::NormalisableRange<float>{0.f, 100.f, 0.1f}, 25.f)));
     return layout;
 }
 

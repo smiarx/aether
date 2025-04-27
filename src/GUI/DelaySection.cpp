@@ -126,6 +126,7 @@ DelaySection::DelaySection(PluginProcessor &processor) :
         apvts.getParameter("delay_time_type")->getAllValueStrings(), 1);
 
     timeTypeComboBox.onChange = [this, &apvts]() {
+        timeType_.defaultCallback();
         auto &component  = sliders_[kTime].getComponent();
         auto &attachment = sliders_[kTime].getAttachment();
         auto &comboBox   = timeType_.getComboBox();
@@ -164,6 +165,7 @@ DelaySection::DelaySection(PluginProcessor &processor) :
         secondsParam->convertFrom0to1(1.f) /
         processors::TapeDelay::kReverseDelayMaxRatio);
     mode_.getComboBox().onChange = [this, oneThird] {
+        mode_.defaultCallback();
         auto &comboBox = mode_.getComboBox();
         auto selected  = comboBox.getSelectedId();
         auto &slider   = sliders_[kTime].getComponent();

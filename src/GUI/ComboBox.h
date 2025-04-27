@@ -30,7 +30,11 @@ class ComboBox : public juce::Component
         };
     }
 
-    void defaultCallback() { selected_ = comboBox_.getSelectedId(); }
+    void defaultCallback()
+    {
+        auto selected = comboBox_.getSelectedId();
+        if (selected != 0) selected_ = selected;
+    }
 
     void resized() override
     {

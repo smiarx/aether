@@ -4,6 +4,9 @@ project(Aether VERSION 0.0.1)
 
 set(COMPANY_NAME "S-audio")
 
+
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
+
 find_package(JUCE CONFIG QUIET)
 if(NOT ${JUCE_FOUND})
 add_subdirectory(submodules/JUCE)
@@ -68,7 +71,6 @@ target_link_libraries(${PROJECT_NAME}
         dsp_tapedelay_processor
     PUBLIC
         juce::juce_recommended_config_flags
-        juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags
     )
 

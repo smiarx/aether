@@ -119,6 +119,9 @@ DelaySection::DelaySection(PluginProcessor &processor) :
     addAndMakeVisible(mode_);
     mode_.getComboBox().addItemList(
         apvts.getParameter("delay_mode")->getAllValueStrings(), 1);
+    mode_.getComboBox().setSelectedId(
+        static_cast<int>(apvts.getParameter("delay_mode")->getValue()) + 1,
+        juce::NotificationType::dontSendNotification);
 
     addAndMakeVisible(timeType_);
     auto &timeTypeComboBox = timeType_.getComboBox();
@@ -190,6 +193,8 @@ DelaySection::DelaySection(PluginProcessor &processor) :
                                   juce::NotificationType::dontSendNotification);
         }
     };
+    // init slider time
+    sliders_[kTime].getSlider().onValueChange();
 
     active_.onClick = [this]() {
         bool active = active_.getToggleState();

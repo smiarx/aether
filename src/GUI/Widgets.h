@@ -134,6 +134,8 @@ class SliderWithLabel : public Widget<Slider>
             label_.setText(component_.getTextFromValue(component_.getValue()),
                            juce::NotificationType::dontSendNotification);
         };
+        // update
+        component_.onValueChange();
     }
 
     juce::Slider &getSlider() { return getComponent(); }

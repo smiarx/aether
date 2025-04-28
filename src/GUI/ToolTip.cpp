@@ -50,6 +50,7 @@ void ToolTip::setFromComponent(juce::Component *component)
             attrStr.append(title + ": ", font, mainColour);
             attrStr.append(toolTip, font, backColour);
             attrStr.setJustification(juce::Justification::verticallyCentred);
+            attrStr.setLineSpacing(0.0f);
 
             auto bounds = getBounds();
             textLayout_.createLayout(attrStr, bounds.getWidth(),

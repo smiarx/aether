@@ -36,9 +36,9 @@ SpringsGL::SpringsGL(PluginProcessor &processor) :
     rmspos_(processor.getRMSStackPos()), shake_(processor.getShakeAtomic())
 {
     setOpaque(true);
-    //// Sets the OpenGL version to 3.2
-    // openGLContext.setOpenGLVersionRequired(
-    //     juce::OpenGLContext::OpenGLVersion::openGL3_2);
+    // Sets the OpenGL version to 3.2
+    openGlContext_.setOpenGLVersionRequired(
+        juce::OpenGLContext::OpenGLVersion::openGL3_2);
 
     // Attach the OpenGL context but do not start [ see start() ]
     openGlContext_.setComponentPaintingEnabled(true);
@@ -140,27 +140,30 @@ void SpringsGL::renderOpenGL()
     //                      juce::gl::GL_ONE_MINUS_SRC_ALPHA);
 
     // Use Shader Program that's been defined
-    shader_->use();
+    if (shader_ != nullptr) shader_->use();
 
     // Setup the Uniforms for use in the Shader
 
-    if (uniforms_->resolution != nullptr)
-        uniforms_->resolution->set((GLfloat)renderingScale * getWidth(),
-                                   (GLfloat)renderingScale * getHeight());
+    if (uniforms_ != nullptr) {
+        if (uniforms_->resolution != nullptr)
+            uniforms_->resolution->set((GLfloat)renderingScale * getWidth(),
+                                       (GLfloat)renderingScale * getHeight());
 
-    if (uniforms_->rms != nullptr)
-        uniforms_->rms->set((GLfloat *)&rms_[0][0], kRmsStackSize * kN);
+        if (uniforms_->rms != nullptr)
+            uniforms_->rms->set((GLfloat *)&rms_[0][0], kRmsStackSize * kN);
 
-    if (uniforms_->rmspos != nullptr) uniforms_->rmspos->set((GLint)*rmspos_);
+        if (uniforms_->rmspos != nullptr)
+            uniforms_->rmspos->set((GLint)*rmspos_);
 
-    if (uniforms_->coils != nullptr)
-        uniforms_->coils->set((GLfloat *)&coils_, 1);
-    if (uniforms_->radius != nullptr)
-        uniforms_->radius->set((GLfloat *)&radius_, 1);
-    if (uniforms_->shape != nullptr)
-        uniforms_->shape->set((GLfloat *)&shape_, 1);
-    if (uniforms_->time != nullptr) {
-        uniforms_->time->set((GLfloat *)&time_, 1);
+        if (uniforms_->coils != nullptr)
+            uniforms_->coils->set((GLfloat *)&coils_, 1);
+        if (uniforms_->radius != nullptr)
+            uniforms_->radius->set((GLfloat *)&radius_, 1);
+        if (uniforms_->shape != nullptr)
+            uniforms_->shape->set((GLfloat *)&shape_, 1);
+        if (uniforms_->time != nullptr) {
+            uniforms_->time->set((GLfloat *)&time_, 1);
+        }
     }
 
     juce::gl::glBindBuffer(juce::gl::GL_ARRAY_BUFFER, vbo_);

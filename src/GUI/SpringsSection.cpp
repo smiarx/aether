@@ -120,7 +120,10 @@ void SpringsSection::resized()
     titleFb.flexDirection = juce::FlexBox::Direction::row;
     titleFb.alignContent  = juce::FlexBox::AlignContent::center;
     titleFb.items         = {
-        juce::FlexItem(active_).withFlex(1.f).withMargin(kMargin),
+        juce::FlexItem(active_)
+            .withFlex(1.f)
+            .withMaxWidth(100) // 100 is arbitrary we should compute value
+            .withMargin(kMargin),
     };
     titleFb.performLayout(titleBounds);
 

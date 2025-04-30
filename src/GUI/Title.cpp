@@ -14,7 +14,7 @@ Title::Title()
     const auto backColour = juce::Colour(CustomLNF::kDelayBackColour);
 
     auto titleFont = juce::Font(Typefaces::getInstance()->title)
-                         .withHeight(PluginEditor::kHeaderHeight);
+                         .withHeight(PluginEditor::kHeaderHeight - 0.5);
     juce::Font::setDefaultMinimumHorizontalScaleFactor(1.f);
 
     juce::AttributedString attrString;

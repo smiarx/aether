@@ -46,7 +46,7 @@ void ToolTip::setFromComponent(juce::Component *component)
 
             juce::AttributedString attrStr;
             auto font = juce::Font(Typefaces::getInstance()->dfault)
-                            .withPointHeight(14);
+                            .withHeight(kTextHeight);
             attrStr.append(title + ": ", font, mainColour);
             attrStr.append(toolTip, font, backColour);
             attrStr.setJustification(juce::Justification::verticallyCentred);

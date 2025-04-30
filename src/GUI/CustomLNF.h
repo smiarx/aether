@@ -70,7 +70,14 @@ class CustomLNF : public juce::LookAndFeel_V4
                            const juce::Colour *textColourToUse) override;
 
   private:
-    juce::Image noise_{juce::Image::PixelFormat::SingleChannel, 40, 40, false};
+    juce::Image noise_{
+// SingleChannel doesn't seem to work on macos
+#ifdef __APPLE__
+        juce::Image::PixelFormat::ARGB,
+#else
+        juce::Image::PixelFormat::SingleChannel,
+#endif
+        40, 40, false};
 };
 
 } // namespace aether

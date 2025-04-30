@@ -77,7 +77,7 @@ CustomLNF::CustomLNF()
     for (int x = 0; x < noise_.getWidth(); ++x) {
         for (int y = 0; y < noise_.getWidth(); ++y) {
             juce::PixelAlpha alpha;
-            alpha.setAlpha(std::rand());
+            alpha.setAlpha(static_cast<uint8_t>(std::rand() & 0xff));
             noise_.setPixelAt(x, y, alpha);
         }
     }
@@ -107,7 +107,7 @@ void CustomLNF::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
 
     auto radius    = juce::jmin(fwidth, fheight) / 2.f;
     auto centre    = juce::Point<float>(fx + fwidth / 2.f, fy + fheight / 2.f);
-    auto rectangle = juce::Rectangle<float>(fx, fy, width, height);
+    auto rectangle = juce::Rectangle<int>(x, y, width, height).toFloat();
 
     auto posAngle =
         rotaryStartAngle + sliderPos * (rotaryEndAngle - rotaryStartAngle);
@@ -164,8 +164,8 @@ void CustomLNF::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
     arcGradient.point1 = rectangle.getBottomLeft();
     arcGradient.point2 = rectangle.getTopLeft();
 
-    arcGradient.addColour(0.f, lowColour.darker(0.2));
-    arcGradient.addColour(1.f, lowColour.brighter(0.2));
+    arcGradient.addColour(0.f, lowColour.darker(0.2f));
+    arcGradient.addColour(1.f, lowColour.brighter(0.2f));
     g.setGradientFill(arcGradient);
     g.strokePath(arcActive, strokeType);
 
@@ -182,8 +182,8 @@ void CustomLNF::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
                               arcRadius, 0.f, stopAngle, endAngle, true);
 
     arcGradient.clearColours();
-    arcGradient.addColour(0.f, highColour.darker(0.2));
-    arcGradient.addColour(1.f, highColour.brighter(0.2));
+    arcGradient.addColour(0.f, highColour.darker(0.2f));
+    arcGradient.addColour(1.f, highColour.brighter(0.2f));
     g.setGradientFill(arcGradient);
     g.strokePath(arcInactive, strokeType);
 
@@ -262,9 +262,10 @@ void CustomLNF::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
     g.addTransform(juce::AffineTransform::rotation(posAngle, centre.getX(),
                                                    centre.getY()));
 
-    if (dialRect.getWidth() < noise_.getWidth() &&
-        dialRect.getHeight() < noise_.getHeight()) {
-        g.drawImageAt(noise_, dialRect.getX(), dialRect.getY());
+    auto idialRect = dialRect.toNearestInt();
+    if (idialRect.getWidth() < noise_.getWidth() &&
+        idialRect.getHeight() < noise_.getHeight()) {
+        g.drawImageAt(noise_, idialRect.getX(), idialRect.getY());
     } else {
         g.drawImage(noise_, dialRect);
     }
@@ -371,7 +372,7 @@ void CustomLNF::drawToggleButton(
     g.fillPath(mainBox);
 
     // shadow
-    auto shadowRadius = circleBounds.getWidth() * 0.2f;
+    auto shadowRadius = static_cast<int>(circleBounds.getWidth() * 0.2f);
     juce::DropShadow(juce::Colour(0x7f000000), shadowRadius,
                      {0, static_cast<int>(circleReduce)})
         .drawForPath(g, circle);
@@ -385,7 +386,7 @@ void CustomLNF::drawToggleButton(
     auto textColour =
         button.findColour(juce::ToggleButton::ColourIds::textColourId);
     g.setColour(textColour);
-    auto fontSize = button.getHeight();
+    auto fontSize = static_cast<float>(button.getHeight());
     g.setFont(
         juce::Font(Typefaces::getInstance()->dfault).withHeight(fontSize));
 

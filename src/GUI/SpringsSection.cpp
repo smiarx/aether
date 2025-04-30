@@ -160,23 +160,25 @@ void SpringsSection::resized()
     {
         auto &damp    = sliders_[kDamp].getComponent();
         auto dampSize = juce::jmin(damp.getWidth(), damp.getHeight());
-        auto sizeDiff = (sliders_[kDecay].getWidth() - dampSize) * 0.5f;
+        auto sizeDiff =
+            static_cast<float>(sliders_[kDecay].getWidth() - dampSize) * 0.5f;
         if (sizeDiff > 0.f) {
-            auto interMargin = 0.15f * sizeDiff;
+            auto interMargin  = 0.15f * sizeDiff;
+            auto iInterMargin = static_cast<int>(interMargin);
             sliders_[kDecay].setBounds(sliders_[kDecay].getBounds().translated(
-                sizeDiff - interMargin, 0));
+                static_cast<int>(sizeDiff - interMargin), 0));
             sliders_[kLength].setBounds(
-                sliders_[kLength].getBounds().translated(interMargin, 0));
+                sliders_[kLength].getBounds().translated(iInterMargin, 0));
             sliders_[kDamp].setBounds(
-                sliders_[kDamp].getBounds().translated(interMargin, 0));
+                sliders_[kDamp].getBounds().translated(iInterMargin, 0));
         }
     }
 
     // extend spring gl
-    auto glBounds = springsGl_.getBounds();
+    auto glBounds = springsGl_.getBounds().toFloat();
     glBounds.translate(0, -kHeaderHeight);
     glBounds.setHeight(glBounds.getHeight() + kHeaderHeight);
-    springsGl_.setBounds(glBounds);
+    springsGl_.setBounds(glBounds.toNearestInt());
 }
 
 void SpringsSection::paint(juce::Graphics &g)
@@ -194,15 +196,17 @@ void SpringsSection::paint(juce::Graphics &g)
     // separators;
     g.setColour(findColour(DelaySection::kBackgroundColourId));
 
-    auto xSep = (sliders_[kTone].getBoundsInParent().getRight() +
-                 springsGl_.getBoundsInParent().getX()) /
-                2.f;
+    auto xSep =
+        static_cast<float>(sliders_[kTone].getBoundsInParent().getRight() +
+                           springsGl_.getBoundsInParent().getX()) /
+        2.f;
     g.fillRect(xSep - CustomLNF::kSepWidth / 2.f, bounds.getY(),
                CustomLNF::kSepWidth, bounds.getHeight());
 
-    auto ySep = (sliders_[kDamp].getBoundsInParent().getBottom() +
-                 sliders_[kShape].getBoundsInParent().getY()) /
-                2.f;
+    auto ySep =
+        static_cast<float>(sliders_[kDamp].getBoundsInParent().getBottom() +
+                           sliders_[kShape].getBoundsInParent().getY()) /
+        2.f;
     auto yWidth = xSep - bounds.getX();
     g.fillRect(bounds.getX(), ySep - CustomLNF::kSepWidth / 2.f, yWidth,
                CustomLNF::kSepWidth);

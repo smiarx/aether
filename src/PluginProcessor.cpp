@@ -130,7 +130,7 @@ int PluginProcessor::getNumPrograms()
 
 int PluginProcessor::getCurrentProgram()
 {
-    return presetManager_.getPresetId();
+    return static_cast<int>(presetManager_.getPresetId());
 }
 
 void PluginProcessor::setCurrentProgram(int index)
@@ -385,7 +385,7 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
     assert(ins == outs);
 
     // update rms buffer position
-    rmsPos_.store(*springs_.getRMSStackPos());
+    rmsPos_.store(static_cast<int>(*springs_.getRMSStackPos()));
 }
 
 //==============================================================================

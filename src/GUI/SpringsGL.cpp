@@ -126,9 +126,11 @@ void SpringsGL::renderOpenGL()
     jassert(juce::OpenGLHelpers::isContextActive());
 
     // Setup Viewport
+    auto bounds               = getLocalBounds().toFloat();
     const auto renderingScale = (float)openGlContext_.getRenderingScale();
-    juce::gl::glViewport(0, 0, juce::roundToInt(renderingScale * getWidth()),
-                         juce::roundToInt(renderingScale * getHeight()));
+    juce::gl::glViewport(0, 0,
+                         juce::roundToInt(renderingScale * bounds.getWidth()),
+                         juce::roundToInt(renderingScale * bounds.getHeight()));
 
     // Set background Color
     juce::OpenGLHelpers::clear(
@@ -146,8 +148,9 @@ void SpringsGL::renderOpenGL()
 
     if (uniforms_ != nullptr) {
         if (uniforms_->resolution != nullptr)
-            uniforms_->resolution->set((GLfloat)renderingScale * getWidth(),
-                                       (GLfloat)renderingScale * getHeight());
+            uniforms_->resolution->set(
+                (GLfloat)renderingScale * bounds.getWidth(),
+                (GLfloat)renderingScale * bounds.getHeight());
 
         if (uniforms_->rms != nullptr)
             uniforms_->rms->set((GLfloat *)&rms_[0][0], kRmsStackSize * kN);

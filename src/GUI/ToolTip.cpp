@@ -52,7 +52,7 @@ void ToolTip::setFromComponent(juce::Component *component)
             attrStr.setJustification(juce::Justification::verticallyCentred);
             attrStr.setLineSpacing(0.0f);
 
-            auto bounds = getBounds();
+            auto bounds = getBounds().toFloat();
             textLayout_.createLayout(attrStr, bounds.getWidth(),
                                      bounds.getHeight());
             repaint();

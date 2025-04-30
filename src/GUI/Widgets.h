@@ -15,7 +15,7 @@ template <class Comp> class Widget : public juce::Component
 {
   public:
     static constexpr auto kTextSize    = CustomLNF::kTextPointHeight;
-    static constexpr auto kLabelMargin = -3;
+    static constexpr auto kLabelMargin = -3.f;
 
     template <class... Ts>
     Widget(const juce::String &name, Ts &&...args) : component_(args...)
@@ -38,8 +38,8 @@ template <class Comp> class Widget : public juce::Component
 
         if (labelVisible_) {
             auto textBox = bounds.removeFromBottom(
-                kLabelMargin + label_.getFont().getHeight());
-            textBox.removeFromTop(kLabelMargin);
+                static_cast<int>(kLabelMargin + label_.getFont().getHeight()));
+            textBox.removeFromTop(static_cast<int>(kLabelMargin));
             label_.setBounds(textBox);
         }
         component_.setBounds(bounds);
@@ -85,13 +85,13 @@ class SliderWithLabel : public Widget<Slider>
             juce::Slider::TextEntryBoxPosition::NoTextBox, false, 0, 0);
     }
 
-    int getMaxHeight()
+    float getMaxHeight()
     {
-        int removeFromHeight = 0;
+        auto removeFromHeight = 0.f;
         if (isLabelVisible()) {
             removeFromHeight = kLabelMargin + label_.getFont().getHeight();
         }
-        auto bounds = getLocalBounds();
+        auto bounds = getLocalBounds().toFloat();
         auto size   = juce::jmin(bounds.getHeight() - removeFromHeight,
                                  bounds.getWidth());
         size += removeFromHeight;
@@ -102,16 +102,18 @@ class SliderWithLabel : public Widget<Slider>
     {
         // set height to maximum possible value
         auto maxHeight = getMaxHeight();
-        auto bounds    = getBounds();
-        setBounds(bounds.withHeight(maxHeight).withCentre(bounds.getCentre()));
+        auto bounds    = getBounds().toFloat();
+        setBounds(bounds.withHeight(maxHeight)
+                      .withCentre(bounds.getCentre())
+                      .toNearestInt());
 
         // call parent
         Widget<Slider>::resized();
 
         // update width to be equal to height
-        bounds = component_.getLocalBounds();
-        component_.setBounds(bounds.withWidth(bounds.getHeight())
-                                 .withCentre(bounds.getCentre()));
+        auto ibounds = component_.getLocalBounds();
+        component_.setBounds(ibounds.withWidth(ibounds.getHeight())
+                                 .withCentre(ibounds.getCentre()));
     }
 
     void setTextBoxVisible(bool textBoxVisible)

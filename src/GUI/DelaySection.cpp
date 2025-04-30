@@ -260,11 +260,13 @@ void DelaySection::resized()
     {
         auto &drywet    = sliders_[kDryWet].getComponent();
         auto drywetSize = juce::jmin(drywet.getWidth(), drywet.getHeight());
-        auto sizeDiff   = (sliders_[kTime].getWidth() - drywetSize) * 0.5f;
+        auto sizeDiff =
+            static_cast<float>((sliders_[kTime].getWidth() - drywetSize)) *
+            0.5f;
         if (sizeDiff > 0.f) {
-            auto interMargin = 0.15f * sizeDiff;
+            auto interMargin = static_cast<int>(0.15f * sizeDiff);
             sliders_[kTime].setBounds(sliders_[kTime].getBounds().translated(
-                sizeDiff - interMargin, 0));
+                static_cast<int>(sizeDiff) - interMargin, 0));
             sliders_[kFeedback].setBounds(
                 sliders_[kFeedback].getBounds().translated(interMargin, 0));
             sliders_[kDryWet].setBounds(
@@ -300,9 +302,10 @@ void DelaySection::paint(juce::Graphics &g)
     g.fillPath(box);
 
     // separator
-    auto ySep = (sliders_[kDryWet].getBoundsInParent().getBottom() +
-                 sliders_[kCutLow].getBoundsInParent().getY()) /
-                2.f;
+    auto ySep =
+        static_cast<float>(sliders_[kDryWet].getBoundsInParent().getBottom() +
+                           sliders_[kCutLow].getBoundsInParent().getY()) /
+        2.f;
     g.setColour(findColour(SpringsSection::kBackgroundColourId));
     g.fillRect(bounds.getX(), ySep - CustomLNF::kSepWidth / 2.f,
                bounds.getWidth(), CustomLNF::kSepWidth);

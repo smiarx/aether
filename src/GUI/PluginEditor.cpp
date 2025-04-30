@@ -54,7 +54,7 @@ void PluginEditor::resized()
 
     juce::Component flextitle;
     auto titleWidth    = title_.getMaxWidth();
-    auto toolTipMargin = getBounds().getWidth() * 0.03f;
+    auto toolTipMargin = getBounds().toFloat().getWidth() * 0.03f;
 
     fbTitle.items.addArray({
         juce::FlexItem(flextitle)

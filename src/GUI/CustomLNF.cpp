@@ -255,7 +255,6 @@ void CustomLNF::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
     g.fillPath(thumb, juce::AffineTransform::rotation(thumbAngle, centre.getX(),
                                                       centre.getY()));
 
-#ifndef __APPLE__
     /* NOISE */
     g.saveState();
     g.reduceClipRegion(dial);
@@ -270,7 +269,6 @@ void CustomLNF::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
         g.drawImage(noise_, dialRect);
     }
     g.restoreState();
-#endif
 }
 
 void CustomLNF::drawBubble(juce::Graphics &g, juce::BubbleComponent &comp,

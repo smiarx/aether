@@ -30,18 +30,19 @@ precision mediump float;
 #endif
 
 #define NITER 80
-#define AA    4
 
 #ifdef DUMMY
-const float u_coils  = 0.552;
-const float u_radius = 0.524;
-const float u_shape  = 0.5;
+const float u_coils     = 0.552;
+const float u_radius    = 0.524;
+const float u_shape     = 0.5;
+const int u_aasubpixels = 1;
 #else
 uniform float u_rms[RMS_BUFFER_SIZE * NSPRINGS];
 uniform int u_rmspos;
 uniform float u_coils;
 uniform float u_radius;
 uniform float u_shape;
+uniform int u_aasubpixels;
 #endif
 uniform float u_time;
 uniform vec2 u_resolution;
@@ -165,10 +166,10 @@ void main()
     vec3 color = vec3(0.0);
 
     // perform multiple pass per pixel for antialiasing
-    for (int aax = 0; aax < AA; ++aax) {
-        for (int aay = 0; aay < AA; ++aay) {
+    for (int aax = 0; aax < u_aasubpixels; ++aax) {
+        for (int aay = 0; aay < u_aasubpixels; ++aay) {
             // subpixel
-            vec2 aa = vec2(float(aax), float(aay)) / float(AA);
+            vec2 aa = vec2(float(aax), float(aay)) / float(u_aasubpixels);
             // cordinnates
             vec2 st = (2.0 * (gl_FragCoord.xy + aa) + -u_resolution);
             // value in the x axis
@@ -209,7 +210,7 @@ void main()
             }
         }
     }
-    color /= float(AA) * float(AA);
+    color /= float(u_aasubpixels) * float(u_aasubpixels);
 
     float cornerSize = 0.3;
 

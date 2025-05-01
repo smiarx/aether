@@ -167,6 +167,15 @@ void SpringsGL::renderOpenGL()
         if (uniforms_->time != nullptr) {
             uniforms_->time->set((GLfloat *)&time_, 1);
         }
+        if (uniforms_->aaSubPixels != nullptr) {
+            constexpr auto kIdealWidth = 800;
+            auto aasubpixels =
+                kIdealWidth /
+                static_cast<int>(bounds.getWidth() * renderingScale);
+            aasubpixels = juce::jmin(aasubpixels, 4);
+            aasubpixels = juce::jmax(aasubpixels, 2);
+            uniforms_->aaSubPixels->set((GLint)aasubpixels);
+        }
     }
 
     juce::gl::glBindBuffer(juce::gl::GL_ARRAY_BUFFER, vbo_);

@@ -70,10 +70,11 @@ class SpringsGL : public juce::Component,
             rms.reset(createUniform(tShaderProgram, "u_rms"));
             rmspos.reset(createUniform(tShaderProgram, "u_rmspos"));
             time.reset(createUniform(tShaderProgram, "u_time"));
+            aaSubPixels.reset(createUniform(tShaderProgram, "u_aasubpixels"));
         }
 
         std::unique_ptr<juce::OpenGLShaderProgram::Uniform> coils, radius,
-            shape, resolution, rms, rmspos, time;
+            shape, resolution, rms, rmspos, time, aaSubPixels;
 
       private:
         static juce::OpenGLShaderProgram::Uniform *

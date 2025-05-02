@@ -40,10 +40,10 @@ PluginProcessor::createLayout()
         std::make_unique<juce::AudioParameterBool>("delay_active", "Active",
                                                    true),
         std::make_unique<juce::AudioParameterFloat>(
-            "delay_drywet", "Dry/Wet",
+            "delay_drywet", "Delay Dry/Wet",
             juce::NormalisableRange<float>{0.f, 100.f, 0.1f}, 20.f),
         std::make_unique<juce::AudioParameterChoice>(
-            "delay_time_type", "Type",
+            "delay_time_type", "Delay Type",
             juce::StringArray{"seconds", "beats", "dotted"}, 0),
         std::make_unique<juce::AudioParameterFloat>(
             "delay_seconds", "Delay Seconds",
@@ -56,52 +56,52 @@ PluginProcessor::createLayout()
                               "1", "2", "4"},
             kBeat1),
         std::make_unique<juce::AudioParameterFloat>(
-            "delay_feedback", "Feedback",
+            "delay_feedback", "Delay Feedback",
             juce::NormalisableRange{0.0f, 120.f, 0.1f}, 80.f),
         std::make_unique<juce::AudioParameterFloat>(
-            "delay_cutoff_low", "Cut Low",
+            "delay_cutoff_low", "Delay Lowpass",
             juce::NormalisableRange{100.f, 20000.f, 1.f, 0.5f}, 20000.f),
         std::make_unique<juce::AudioParameterFloat>(
-            "delay_cutoff_hi", "Cut High",
+            "delay_cutoff_hi", "Delay Highpass",
             juce::NormalisableRange{20.f, 3000.f, 1.f, 0.5f}, 20.f),
         std::make_unique<juce::AudioParameterFloat>(
-            "delay_saturation", "saturation", -40.f, 15.f, -40.f),
+            "delay_saturation", "Delay Drive", -40.f, 15.f, -40.f),
         std::make_unique<juce::AudioParameterFloat>(
-            "delay_drift", "Drift", juce::NormalisableRange{0.f, 100.f, 0.1f},
-            0.f),
+            "delay_drift", "Delay Drift",
+            juce::NormalisableRange{0.f, 100.f, 0.1f}, 0.f),
         std::make_unique<juce::AudioParameterChoice>(
-            "delay_mode", "Mode",
+            "delay_mode", "Delay Mode",
             juce::StringArray{"Normal", "Back & Forth", "Reverse"}, 0)));
 
     layout.add(std::make_unique<juce::AudioProcessorParameterGroup>(
         "springs", "Reverb", "|",
-        std::make_unique<juce::AudioParameterBool>("springs_active", "Active",
-                                                   true),
+        std::make_unique<juce::AudioParameterBool>("springs_active",
+                                                   "Reverb Active", true),
         std::make_unique<juce::AudioParameterFloat>(
-            "springs_drywet", "Dry/Wet",
+            "springs_drywet", "Reverb Dry/Wet",
             juce::NormalisableRange<float>{0.f, 100.f, 0.1f}, 20.f),
         std::make_unique<juce::AudioParameterFloat>(
-            "springs_width", "Width",
+            "springs_width", "Reverb Width",
             juce::NormalisableRange<float>{0.f, 100.f, 0.1f}, 100.f),
         std::make_unique<juce::AudioParameterFloat>(
-            "springs_length", "Length",
+            "springs_length", "Reverb Length",
             juce::NormalisableRange<float>{0.02f, 0.2f, 0.001f, 0.6f}, 0.05f),
         std::make_unique<juce::AudioParameterFloat>(
-            "springs_decay", "Decay",
+            "springs_decay", "Reverb Decay",
             juce::NormalisableRange<float>{0.3f, 10.f, 0.001f, 0.6f}, 3.f),
         std::make_unique<juce::AudioParameterFloat>(
-            "springs_damp", "Damp",
+            "springs_damp", "Reverb Damp",
             juce::NormalisableRange<float>{200.f, 12000.f, 1.f, 0.5f}, 4500.f),
         std::make_unique<juce::AudioParameterFloat>(
-            "springs_shape", "Shape",
+            "springs_shape", "Reverb Shape",
             juce::NormalisableRange<float>{-5.f, 5.f, 0.01f, 0.3f, true}, 0.5f),
-        std::make_unique<juce::AudioParameterFloat>("springs_tone", "Tone", 0.f,
-                                                    1.f, 0.5f),
         std::make_unique<juce::AudioParameterFloat>(
-            "springs_scatter", "Scatter",
+            "springs_tone", "Reverb Tone", 0.f, 1.f, 0.5f),
+        std::make_unique<juce::AudioParameterFloat>(
+            "springs_scatter", "Reverb Scatter",
             juce::NormalisableRange<float>{0.f, 120.f, 0.1f}, 50.f),
         std::make_unique<juce::AudioParameterFloat>(
-            "springs_chaos", "Chaos",
+            "springs_chaos", "Reverb Chaos",
             juce::NormalisableRange<float>{0.f, 100.f, 0.1f}, 25.f)));
     return layout;
 }

@@ -13,7 +13,7 @@ PluginEditor::PluginEditor(PluginProcessor &p) :
     AudioProcessorEditor(&p), preset_(p.getPresetManager()), delaySection_{p},
     springsSection_{p}
 {
-    setResizable(true, true);
+    setResizable(true, false);
 
     setInterceptsMouseClicks(false, true);
     juce::Desktop::getInstance().addGlobalMouseListener(this);

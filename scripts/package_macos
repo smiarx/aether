@@ -1,0 +1,92 @@
+#!/bin/bash
+
+working_dir="${1:-.}"
+
+cmake_cache="${working_dir}/CMakeCache.txt"
+
+company_name="S-audio"
+project_name=$(cut -f 2 -d '=' <<<"$(grep 'CMAKE_PROJECT_NAME:STATIC' ${cmake_cache})")
+version=$(cut -f 2 -d '=' <<<"$(grep 'CMAKE_PROJECT_VERSION:STATIC' ${cmake_cache})")
+
+artefacts="${working_dir}/${project_name}_artefacts/Release"
+packaging="${working_dir}/packaging"
+
+identifier="com.${company_name}.${project_name}"
+
+# prepare packaging
+mkdir -p "${packaging}"
+
+makepkg() {
+    type="$1"
+    ext="$2"
+
+    mkdir -p "${working_dir}/scripts_${type}"
+    cat >"${working_dir}/scripts_${type}/postinstall" <<SCRIPTEND
+#!/bin/sh
+
+FILE="${project_name}.${ext}"
+DEST="\${HOME}/Library/Audio/Plug-Ins/${type}"
+
+mkdir -p "\${DEST}"
+
+if [[ -d "\${DEST}/\${FILE}" ]]; then
+    rm -r "\${DEST}/\${FILE}"
+fi
+mv "/tmp/${project_name}/\${FILE}" "\${DEST}/"
+
+# remove plugin from quarantine
+xattr -rd com.apple.quaratine "\${DEST}/\${FILE}"
+# codesign plugin locally
+codesign -f -s - "\${DEST}/\${FILE}"
+
+SCRIPTEND
+
+    chmod a+x "${working_dir}/scripts_${type}/postinstall"
+
+    # set xml vars
+    DISTRIB_CHOICE="${DISTRIB_CHOICE} <line choice=\"${type}\"/>"
+    DISTRIB_CHOICE_DEF="${DISTRIB_CHOICE_DEF} <choice id=\"${type}\" visible=\"true\" start_selected=\"true\" title=\"${project_name} ${type}\"><pkg-ref id=\"${identifier}.${ext}.pkg\" version=\"${version}\" onConclusion=\"none\">${project_name}.${ext}.pkg</pkg-ref></choice>"
+
+    # make pkg
+    pkgbuild --identifier "${identifier}.${ext}" --version "${version}" --component ${artefacts}/${type}/${project_name}.${ext} --install-location "/tmp/${project_name}" --scripts ${working_dir}/scripts_${type} "${packaging}/${project_name}.${ext}.pkg"
+}
+
+# make VST pkg
+if [[ -d "${artefacts}/VST3/${project_name}.vst3" ]]; then
+    makepkg "VST3" "vst3"
+fi
+
+# make AU pkg
+if [[ -d "${artefacts}/AU/${project_name}.component" ]]; then
+    makepkg "AU" "component"
+fi
+
+cat >"${packaging}/distribution.xml" <<XMLEND
+<?xml version="1.0" encoding="utf-8"?>
+<installer-gui-script minSpecVersion="2">
+    <title>${project_name} ${version}</title>
+    <allowed-os-versions>
+        <os-version min="10.10" />
+    </allowed-os-versions>
+    <license file="License.txt" />
+    <readme file="Readme.rtf" />
+    <options customize="always" rootVolumeOnly="true" hostArchitectures="x86_64,arm64" />
+    <domain enable_anywhere="false" enable_currentUserHome="true" enable_localSystem="true" />
+
+    <choices-outline>
+		${DISTRIB_CHOICE}
+    </choices-outline>
+
+	${DISTRIB_CHOICE_DEF}
+
+</installer-gui-script>
+XMLEND
+
+pushd "${packaging}" || exit
+
+# make final pkg
+productbuild --distribution "distribution.xml" --timestamp "${project_name}.pkg"
+
+mv "${project_name}.pkg" ..
+
+popd || exit

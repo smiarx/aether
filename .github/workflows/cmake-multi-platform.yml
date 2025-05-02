@@ -91,7 +91,32 @@ jobs:
         7z x pluginval_${{ matrix.name }}.zip
         ${{ matrix.pluginval }} --strictness-level 10 --verbose --validate "${{ steps.strings.outputs.build-output-dir }}/${{ env.PROJECT }}_artefacts/${{ env.BUILD_TYPE }}/VST3/${{ env.PROJECT }}.vst3"
 
+    - name: Create Installer Package (macOS)
+      if: runner.os == 'MacOS'
+      shell: bash
+      run: |
+        ${{ github.workspace }}/scripts/package_macos ${{ steps.strings.outputs.build-output-dir }}
+
+    - name: Create Installer dmg (macOS)
+      if: runner.os == 'MacOS'
+      env:
+        FILENAME: "${{ env.PROJECT }}-${{ matrix.name}}"
+      run: |
+        mkdir -p /tmp/${{ env.PROJECT }}
+        mv ${{ steps.strings.outputs.build-output-dir }}/${{ env.PROJECT }}.pkg /tmp/${{ env.PROJECT }}
+        hdiutil create /tmp/tmp.dmg -ov -volname "${{ env.FILENAME }}" -fs HFS+ -srcfolder "/tmp/${{ env.PROJECT }}"
+        hdiutil convert /tmp/tmp.dmg -format UDZO -o "${{ runner.temp }}/${{ env.FILENAME }}.dmg"
+
     - uses: actions/upload-artifact@v4
       with:
         name: Aether_${{ runner.os }}_${{ matrix.cpp_compiler }}
         path: ${{ steps.strings.outputs.build-output-dir }}/Aether_artefacts/Release/
+
+    - name: Upload .dmg (macOS)
+      if: ${{ matrix.name == 'macOS' }}
+      uses: actions/upload-artifact@v4
+      env:
+        FILENAME: "${{ env.PROJECT }}-${{ matrix.name}}"
+      with:
+        name: ${{ env.FILENAME }}.dmg
+        path: ${{ runner.temp }}/${{ env.FILENAME }}.dmg

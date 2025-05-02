@@ -15,6 +15,14 @@ if(NOT ${JUCE_FOUND})
 add_subdirectory(submodules/JUCE)
 endif()
 
+
+set(JUCE_FORMATS VST3 AU)
+# Build LV2 only on Linux
+if(UNIX AND NOT APPLE)
+    message(STATUS "Building LV2 plugin format")
+    list(APPEND JUCE_FORMATS LV2)
+endif()
+
 juce_add_plugin(${PROJECT_NAME}
     COMPANY_NAME "${COMPANY_NAME}"
     IS_SYNTH FALSE
@@ -25,8 +33,9 @@ juce_add_plugin(${PROJECT_NAME}
     # COPY_PLUGIN_AFTER_BUILD TRUE/FALSE
     PLUGIN_MANUFACTURER_CODE Saud
     PLUGIN_CODE Aeth
+    LV2URI https://github.com/smiarx/aether
 
-    FORMATS VST3 AU
+    FORMATS VST3 ${JUCE_FORMATS}
     PRODUCT_NAME "${PROJECT_NAME}")
 
 set(DSP_SPRINGS_RMS ON CACHE INTERNAL "")

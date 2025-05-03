@@ -13,6 +13,8 @@ concurrency:
     
 env:
   PROJECT: Aether
+  COMPANY: S-audio
+  VERSION: 0.0.1
   BUILD_TYPE: Release
   BUILD_DIR: build
   DISPLAY: :0 # linux pluginval needs this
@@ -107,6 +109,19 @@ jobs:
         hdiutil create /tmp/tmp.dmg -ov -volname "${{ env.FILENAME }}" -fs HFS+ -srcfolder "/tmp/${{ env.PROJECT }}"
         hdiutil convert /tmp/tmp.dmg -format UDZO -o "${{ runner.temp }}/${{ env.FILENAME }}.dmg"
 
+    - name: Create Installer (Windows)
+      if: runner.os == 'Windows'
+      shell: bash
+      env:
+        INSTALLER_SCRIPT: "${{ steps.strings.outputs.build-output-dir }}/install.iss"
+      run: |
+        cp "${{ github.workspace }}/scripts/package_win/install.iss" "${{ env.INSTALLER_SCRIPT }}"
+        sed -i "s/##PROJECT##/${{ env.PROJECT }}/g" "${{ env.INSTALLER_SCRIPT }}"
+        sed -i "s/##COMPANY##/${{ env.COMPANY }}/g" "${{ env.INSTALLER_SCRIPT }}"
+        sed -i "s/##VERSION##/${{ env.VERSION }}/g" "${{ env.INSTALLER_SCRIPT }}"
+        iscc "${{ env.INSTALLER_SCRIPT }}"
+        ls "${{ steps.strings.outputs.build-output-dir }}"
+
     - uses: actions/upload-artifact@v4
       with:
         name: Aether_${{ runner.os }}_${{ matrix.cpp_compiler }}
@@ -120,3 +135,12 @@ jobs:
       with:
         name: ${{ env.FILENAME }}.dmg
         path: ${{ runner.temp }}/${{ env.FILENAME }}.dmg
+
+    - name: Upload .exe (Windows)
+      if: runner.os == 'Windows'
+      uses: actions/upload-artifact@v4
+      env:
+        FILENAME: "${{ env.PROJECT }}-${{ matrix.name}}"
+      with:
+        name: ${{ env.FILENAME }}.exe
+        path: "${{ steps.strings.outputs.build-output-dir }}/Output/${{ env.FILENAME }}.exe"

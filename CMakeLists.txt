@@ -4,9 +4,7 @@ set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.10" CACHE STRING "" FORCE)
 
 project(Aether VERSION 0.0.1)
-
 set(COMPANY_NAME "S-audio")
-
 
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
 
@@ -14,7 +12,6 @@ find_package(JUCE CONFIG QUIET)
 if(NOT ${JUCE_FOUND})
 add_subdirectory(submodules/JUCE)
 endif()
-
 
 set(JUCE_FORMATS VST3 AU)
 # Build LV2 only on Linux
@@ -38,6 +35,14 @@ juce_add_plugin(${PROJECT_NAME}
     FORMATS VST3 ${JUCE_FORMATS}
     PRODUCT_NAME "${PROJECT_NAME}")
 
+# tests
+include(CTest)
+option(BUILD_TESTING "Build tests" ON)
+if (BUILD_TESTING)
+   enable_testing()
+endif()
+
+# set dsp options itnernally
 set(DSP_SPRINGS_RMS ON CACHE INTERNAL "")
 set(DSP_SPRINGS_SHAKE ON CACHE INTERNAL "")
 set(DSP_TAPEDELAY_SWITCH_INDICATOR ON CACHE INTERNAL "")

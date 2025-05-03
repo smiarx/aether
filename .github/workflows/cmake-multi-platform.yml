@@ -82,7 +82,8 @@ jobs:
 
     - name: Test
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
-      run: ctest --build-config ${{ env.BUILD_TYPE }}
+      run: |
+        ctest --build-config ${{ env.BUILD_TYPE }} --output-on-failure
 
     - name: Pluginval
       if: runner.os == 'MacOS'

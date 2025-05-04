@@ -1,22 +1,25 @@
-![A screenshot of the Æther plugin](images/screen.png)
+[![Build multi-platform](https://github.com/smiarx/aether/actions/workflows/cmake-multi-platform.yml/badge.svg)](https://github.com/smiarx/aether/actions/workflows/cmake-multi-platform.yml)
+
+![A screenshot of the Æther plugin](images/screenshot.png)
 
 ÆTHER
 =====
 
-ÆTHER is a delay and reverb plugin. The delay is based on tape delay
-mechanisms. The reverb part is based on (but not restricted to) spring reverbs.
+ÆTHER is a delay and reverb plugin. The delay is based on tape-delay
+mechanisms, while the reverb is inspired by (but not limited to) spring
+reverbs.
 
-It is designed for a variety of applications, from subtle spring reverbed
-guitars to dreamy synth pads as well as as dub styled snare sounds.
+It is designed for a variety of applications, from subtle spring-reverb guitar
+tones to dreamy synth pads, as well as dub-style snare sounds.
 
 ## Downloads
 
-The plugin is still in developping phase, but binaries for windows,macOS and
-linux will be distributed as soon as a first stable release is available.
+The plugin is still in development, but binaries for Windows, macOS, and Linux
+will be distributed as soon as the first stable release is available.
 
 ## Building
 
-To build ÆTHER, CMake is needed:
+To build ÆTHER, you need CMake:
 
 ```bash
 # Clone the repository and update submodules
@@ -38,7 +41,7 @@ $ cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-march=native" .
 $ cmake --build build --config Release --parallel 4
 ```
 
-### Fonts
+## Fonts
 
 - [Roboto](https://fonts.google.com/specimen/Roboto)
 - [Nunito](https://fonts.google.com/specimen/Nunito)

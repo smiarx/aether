@@ -62,23 +62,28 @@ SpringsSection::SpringsSection(PluginProcessor &processor) :
 
     active_.setTooltip("Bypass section.");
     sliders_[kDryWet].getComponent().setTooltip(
-        "Dry/wet proportion of the output signal.");
+        "How much of the original and processed signal are mixed in the "
+        "output.");
     sliders_[kWidth].getComponent().setTooltip(
-        "Stereo width of the output signal.");
+        "Adjust how wide or narrow the sound is spread in the stereo field.");
     sliders_[kLength].getComponent().setTooltip(
-        "Length of the echoes produced by the springs.");
+        "Sets the duration of the echoes produced by the springs.");
     sliders_[kDecay].getComponent().setTooltip(
         "How long the reverb takes to fade out.");
     sliders_[kDamp].getComponent().setTooltip(
         "Frequency of the highest components produced by the reverb.");
     sliders_[kShape].getComponent().setTooltip(
-        "Shape of the frequency dispertion of the springs.");
-    sliders_[kTone].getComponent().setTooltip("Set the tone of the reverb.");
+        "Control the frequency dispersion in the springs - values below 0 or "
+        "above 1 create unnatural dispersion effects.");
+    sliders_[kTone].getComponent().setTooltip(
+        "Shapes the overall tonal character of the reverb.");
     sliders_[kChaos].getComponent().setTooltip(
-        "How stochastic & unpredictible the springs become.");
+        "How stochastic and unpredictable the behavior of the springs "
+        "becomes.");
     sliders_[kScatter].getComponent().setTooltip(
-        "How similar or different are the springs properties.");
-    springsGl_.setTooltip("Click to shake springs.");
+        "How  different the properties of individual springs are, resulting in "
+        "more diffusion.");
+    springsGl_.setTooltip("Click to shake the springs.");
 
     static const auto kMainColour = juce::Colour(CustomLNF::kSpringsMainColour);
 

@@ -91,26 +91,31 @@ DelaySection::DelaySection(PluginProcessor &processor) :
 
     active_.setTooltip("Bypass section.");
     sliders_[kDryWet].getComponent().setTooltip(
-        "Dry/wet proportion of the output signal");
+        "How much of the original and processed signal are mixed in the "
+        "output.");
     sliders_[kTime].getComponent().setTooltip("Duration of the delay.");
     sliders_[kFeedback].getComponent().setTooltip(
-        "How much of the delayed signal is fed back into the delay. Can be "
-        "more than 100% if drive is positive.");
+        "How much of the delayed signal is fed back into the delay - values "
+        "can exceed 100% if drive is positive.");
     sliders_[kCutLow].getComponent().setTooltip(
-        "Cutoff frequency of the low pass filter.");
+        "Cutoff frequency for the low-pass filter applied to the delayed "
+        "signal.");
     sliders_[kCutHi].getComponent().setTooltip(
-        "Cutoff frequency of the high pass filter.");
+        "Cutoff frequency for the high-pass filter applied to the delayed "
+        "signal.");
     sliders_[kSaturation].getComponent().setTooltip(
-        "Saturation level of the delayed signal in decibels.");
+        "Saturation level of the delayed signal in decibels (dB).");
     sliders_[kDrift].getComponent().setTooltip(
-        "How much the tape speed will be modulated. This works as pitch "
-        "wobble.");
+        "How much the tape speed is modulated. This creates a pitch wobble "
+        "effect.");
     mode_.getComboBox().setTooltip(
-        "[Normal] normal echoes - [Back & Forth] alternates "
-        "between forwards and reverse - [Reverse] reverse echoes.");
+        "[Normal]: Produces standard echoes. [Back & Forth]: Alternates "
+        "between forward and reversed echoes. [Reverse]: Produces reversed "
+        "echoes.");
+
     mode_.getComboBox().setTitle("Mode");
     timeType_.getComboBox().setTooltip(
-        "Set delay in seconds or relative to the host bpm.");
+        "Set the delay time in seconds or relative to the host's BPM.");
     timeType_.getComboBox().setTitle("Type");
 
     // processor apvts

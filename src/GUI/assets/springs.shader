@@ -82,7 +82,7 @@ float getRMS(float x, int springId)
     // scale & clamp
     rms = pow(rms, 1.0 / 2.5);
 
-    return 5.0 * rms; // 5.0 * rms;
+    return 5.0 * rms;
 }
 #endif
 
@@ -154,6 +154,7 @@ vec3 getColor(vec3 p, float x)
     p.x -= 0.66 + u_radius * 0.5;
     p.z = max(-p.z, 0.) - sin(2.0 * (p.x + u_shape * atan(p.y, p.z))) * 0.10;
 
+    p.z = abs(p.z);
     color += baseColor * pow(p.z * 0.25, 1.0);
     color += specColor * (pow(p.z * 0.845, 60.0));
 

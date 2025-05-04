@@ -90,7 +90,8 @@ void PresetManager::savePresetToFile(const juce::File &file)
 {
     std::unique_ptr<juce::XmlElement> xml(getCurrentPreset().createXml());
     if (xml != nullptr) {
-        xml->writeTo(file, {});
+        auto fileWithExtension = file.withFileExtension(".preset");
+        xml->writeTo(fileWithExtension, {});
         presetName_     = file.getFileNameWithoutExtension();
         presetNotSaved_ = false;
         callListeners();

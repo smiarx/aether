@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Aether>
+  <PARAM id="delay_active" value="1.0"/>
+  <PARAM id="delay_beats" value="6.0"/>
+  <PARAM id="delay_cutoff_hi" value="20.0"/>
+  <PARAM id="delay_cutoff_low" value="788.0"/>
+  <PARAM id="delay_drift" value="76.0"/>
+  <PARAM id="delay_drywet" value="36.79999923706055"/>
+  <PARAM id="delay_feedback" value="80.0"/>
+  <PARAM id="delay_mode" value="0.0"/>
+  <PARAM id="delay_saturation" value="-23.72000122070312"/>
+  <PARAM id="delay_seconds" value="0.7540000081062317"/>
+  <PARAM id="delay_time_type" value="1.0"/>
+  <PARAM id="springs_active" value="1.0"/>
+  <PARAM id="springs_chaos" value="69.69999694824219"/>
+  <PARAM id="springs_damp" value="5397.0"/>
+  <PARAM id="springs_decay" value="5.430000305175781"/>
+  <PARAM id="springs_drywet" value="34.0"/>
+  <PARAM id="springs_length" value="0.05100000277161598"/>
+  <PARAM id="springs_scatter" value="67.80000305175781"/>
+  <PARAM id="springs_shape" value="0.5"/>
+  <PARAM id="springs_tone" value="0.6200000047683716"/>
+  <PARAM id="springs_width" value="100.0"/>
+</Aether>

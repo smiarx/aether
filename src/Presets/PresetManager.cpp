@@ -9,8 +9,15 @@ namespace aether
 {
 
 const std::array<PresetManager::factoryPreset_t, PresetManager::kNFactoryPreset>
-    PresetManager::kFactoryPresets = {
-        {{"test", Factory::test_preset, Factory::test_presetSize}}};
+    PresetManager::kFactoryPresets = {{
+        {"dreamy", Factory::dreamy_preset, Factory::dreamy_presetSize},
+        {"springreverb", Factory::springreverb_preset,
+         Factory::springreverb_presetSize},
+        {"otherworldly", Factory::otherworldly_preset,
+         Factory::otherworldly_presetSize},
+        {"reverse", Factory::reverse_preset, Factory::reverse_presetSize},
+        {"chaotic", Factory::chaotic_preset, Factory::chaotic_presetSize},
+    }};
 
 PresetManager::PresetManager(juce::AudioProcessorValueTreeState &apvts) :
     apvts_(apvts), default_(apvts.copyState())

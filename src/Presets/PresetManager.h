@@ -12,7 +12,7 @@ class PresetManager : juce::ValueTree::Listener
     static constexpr auto kDefaultName = "default";
 
     using factoryPreset_t = std::tuple<const char *, const char *, size_t>;
-    static constexpr auto kNFactoryPreset = 1;
+    static constexpr auto kNFactoryPreset = 5;
     static const std::array<factoryPreset_t, kNFactoryPreset> kFactoryPresets;
 
     PresetManager(juce::AudioProcessorValueTreeState &apvts);

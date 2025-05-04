@@ -123,13 +123,15 @@ jobs:
         iscc "${{ env.INSTALLER_SCRIPT }}"
         ls "${{ steps.strings.outputs.build-output-dir }}"
 
-    - uses: actions/upload-artifact@v4
+    - name: Ulpoad .zip (Linux)
+      if: runner.os == 'Linux'
+      uses: actions/upload-artifact@v4
       with:
         name: Aether_${{ runner.os }}_${{ matrix.cpp_compiler }}
         path: ${{ steps.strings.outputs.build-output-dir }}/Aether_artefacts/Release/
 
     - name: Upload .dmg (macOS)
-      if: ${{ matrix.name == 'macOS' }}
+      if: runner.os == 'MacOS'
       uses: actions/upload-artifact@v4
       env:
         FILENAME: "${{ env.PROJECT }}-${{ matrix.name}}"

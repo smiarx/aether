@@ -10,6 +10,7 @@ ArchitecturesInstallIn64BitMode=x64
 ArchitecturesAllowed=x64
 DefaultDirName="{commoncf64}\VST3\{#PluginName}.vst3\"
 DisableDirPage=yes
+LicenseFile="..\LICENSE"
 OutputBaseFilename={#PluginName}-windows
 UninstallFilesDir={commonappdata}\{#PluginName}\uninstall
 

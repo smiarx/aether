@@ -1,5 +1,6 @@
 #!/bin/bash
 
+basedir=$(dirname "$0")
 working_dir="${1:-.}"
 
 cmake_cache="${working_dir}/CMakeCache.txt"
@@ -10,11 +11,16 @@ version=$(cut -f 2 -d '=' <<<"$(grep 'CMAKE_PROJECT_VERSION:STATIC' ${cmake_cach
 
 artefacts="${working_dir}/${project_name}_artefacts/Release"
 packaging="${working_dir}/packaging"
+resources="${working_dir}/resources"
 
 identifier="com.${company_name}.${project_name}"
 
 # prepare packaging
 mkdir -p "${packaging}"
+
+# prepare resources
+mkdir -p "${resources}"
+cp "${basedir}/../LICENSE" "${resources}/License.txt"
 
 makepkg() {
     type="$1"
@@ -48,7 +54,7 @@ SCRIPTEND
     DISTRIB_CHOICE_DEF="${DISTRIB_CHOICE_DEF} <choice id=\"${type}\" visible=\"true\" start_selected=\"true\" title=\"${project_name} ${type}\"><pkg-ref id=\"${identifier}.${ext}.pkg\" version=\"${version}\" onConclusion=\"none\">${project_name}.${ext}.pkg</pkg-ref></choice>"
 
     # make pkg
-    pkgbuild --identifier "${identifier}.${ext}" --version "${version}" --component ${artefacts}/${type}/${project_name}.${ext} --install-location "/tmp/${project_name}" --scripts ${working_dir}/scripts_${type} "${packaging}/${project_name}.${ext}.pkg"
+    pkgbuild --identifier "${identifier}.${ext}" --version "${version}" --component "${artefacts}/${type}/${project_name}.${ext}" --install-location "/tmp/${project_name}" --scripts "${working_dir}/scripts_${type}" "${packaging}/${project_name}.${ext}.pkg"
 }
 
 # make VST pkg
@@ -69,7 +75,6 @@ cat >"${packaging}/distribution.xml" <<XMLEND
         <os-version min="10.10" />
     </allowed-os-versions>
     <license file="License.txt" />
-    <readme file="Readme.rtf" />
     <options customize="always" rootVolumeOnly="true" hostArchitectures="x86_64,arm64" />
     <domain enable_anywhere="false" enable_currentUserHome="true" enable_localSystem="true" />
 
@@ -85,7 +90,7 @@ XMLEND
 pushd "${packaging}" || exit
 
 # make final pkg
-productbuild --distribution "distribution.xml" --timestamp "${project_name}.pkg"
+productbuild --distribution "distribution.xml" --resources "${resources}" --timestamp "${project_name}.pkg"
 
 mv "${project_name}.pkg" ..
 

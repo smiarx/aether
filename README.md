@@ -12,10 +12,11 @@ reverbs.
 It is designed for a variety of applications, from subtle spring-reverb guitar
 tones to dreamy synth pads, as well as dub-style snare sounds.
 
+[See quick demo on youtube](https://www.youtube.com/watch?v=IVb2rDe2hM4)
+
 ## Downloads
 
-The plugin is still in development, but binaries for Windows, macOS, and Linux
-will be distributed as soon as the first stable release is available.
+The plugin is available in VST, AU and LV2 format on the [release page](https://github.com/smiarx/aether/releases)
 
 ## Building
 

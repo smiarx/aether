@@ -19,7 +19,7 @@ class SpringsGL : public juce::Component,
     SpringsGL(PluginProcessor &processor);
     ~SpringsGL() override;
 
-    static constexpr auto kN             = processors::Springs::N;
+    static constexpr auto kN             = processors::Springs::kN;
     static constexpr auto kRmsStackSize  = processors::Springs::kRmsStackSize;
     static constexpr float kDamp2Density = 4500.f;
 
@@ -121,7 +121,7 @@ class SpringsGL : public juce::Component,
     PluginProcessor &processor_;
 
     float time_{};
-    const dsp::fSample<kN> *rms_;
+    const dsp::mfloat<kN> *rms_;
     const std::atomic<int> *rmspos_;
     float coils_ = 0.f, radius_ = 0.f, shape_ = 0.5f;
     std::atomic<bool> *shake_;

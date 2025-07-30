@@ -2,6 +2,7 @@
 #include "../PluginProcessor.h"
 #include "CustomLNF.h"
 #include "SpringsSection.h"
+#include "TapeDelay.h"
 #include "Typefaces.h"
 #include "juce_core/juce_core.h"
 #include "juce_events/juce_events.h"

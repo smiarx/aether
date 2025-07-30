@@ -5,6 +5,8 @@
 #include "../PluginProcessor.h"
 #include "juce_audio_processors/juce_audio_processors.h"
 
+#include "Springs.h"
+
 namespace aether
 {
 
@@ -121,7 +123,7 @@ class SpringsGL : public juce::Component,
     PluginProcessor &processor_;
 
     float time_{};
-    const dsp::mfloat<kN> *rms_;
+    const float *rms_;
     const std::atomic<int> *rmspos_;
     float coils_ = 0.f, radius_ = 0.f, shape_ = 0.5f;
     std::atomic<bool> *shake_;

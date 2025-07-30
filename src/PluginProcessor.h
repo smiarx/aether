@@ -5,16 +5,16 @@
 #include "readerwriterqueue.h"
 
 #include "Presets/PresetManager.h"
+#include "dsp/cpu/infos.h"
 
-#include "Springs.h"
 #include "TapeDelay.h"
 
 namespace aether
 {
 
 //==============================================================================
-class PluginProcessor final : public juce::AudioProcessor,
-                              juce::AudioProcessorParameter::Listener
+class PluginProcessor : public juce::AudioProcessor,
+                        juce::AudioProcessorParameter::Listener
 {
   public:
     //==============================================================================
@@ -22,13 +22,7 @@ class PluginProcessor final : public juce::AudioProcessor,
     ~PluginProcessor() override;
 
     //==============================================================================
-    void prepareToPlay(double sampleRate, int samplesPerBlock) override;
-    void releaseResources() override;
-
     bool isBusesLayoutSupported(const BusesLayout &layouts) const override;
-
-    void processBlock(juce::AudioBuffer<float> &, juce::MidiBuffer &) override;
-    using AudioProcessor::processBlock;
 
     //==============================================================================
     juce::AudioProcessorEditor *createEditor() override;
@@ -114,12 +108,10 @@ class PluginProcessor final : public juce::AudioProcessor,
         return parameters_;
     }
 
-    auto &getSprings() const { return springs_; }
-
-    const auto *getRMSStack() const { return springs_.getRMSStack(); }
+    virtual const float *getRMSStack() const = 0;
     const auto *getRMSStackPos() const { return &rmsPos_; }
 
-    auto &getSwitchIndicator() { return tapedelay_.getSwitchIndicator(); }
+    virtual std::atomic<bool> &getSwitchIndicator() = 0;
     auto *getShakeAtomic() { return &shake_; }
 
     PresetManager &getPresetManager() { return presetManager_; }
@@ -127,6 +119,8 @@ class PluginProcessor final : public juce::AudioProcessor,
   private:
     juce::AudioProcessorValueTreeState parameters_;
     PresetManager presetManager_{parameters_};
+
+  protected:
     moodycamel::ReaderWriterQueue<ParamEvent> paramEvents_{32};
 
     bool activeTapeDelay_{true};
@@ -145,10 +139,12 @@ class PluginProcessor final : public juce::AudioProcessor,
     bool isPlaying_{false};
     double nextSync_{-1};
 
-    processors::TapeDelay tapedelay_;
-    processors::Springs springs_;
-
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginProcessor)
 };
+
+juce::AudioProcessor *loadPluginDefault();
+#if DSP_X86_DISPATCH
+juce::AudioProcessor *loadPluginAVX2();
+#endif
 } // namespace aether

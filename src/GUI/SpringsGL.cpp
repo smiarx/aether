@@ -153,7 +153,7 @@ void SpringsGL::renderOpenGL()
                 (GLfloat)renderingScale * bounds.getHeight());
 
         if (uniforms_->rms != nullptr)
-            uniforms_->rms->set((GLfloat *)&rms_[0][0], kRmsStackSize * kN);
+            uniforms_->rms->set((GLfloat *)rms_, kRmsStackSize * kN);
 
         if (uniforms_->rmspos != nullptr)
             uniforms_->rmspos->set((GLint)*rmspos_);

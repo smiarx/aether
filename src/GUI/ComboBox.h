@@ -2,7 +2,7 @@
 
 #include "ArrowButton.h"
 
-namespace aether
+namespace aelapse
 {
 
 class ComboBox : public juce::Component
@@ -60,4 +60,4 @@ class ComboBox : public juce::Component
     int selected_{0};
 };
 
-} // namespace aether
+} // namespace aelapse

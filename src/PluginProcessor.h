@@ -9,7 +9,7 @@
 
 #include "TapeDelay.h"
 
-namespace aether
+namespace aelapse
 {
 
 //==============================================================================
@@ -147,4 +147,4 @@ juce::AudioProcessor *loadPluginDefault();
 #if DSP_X86_DISPATCH
 juce::AudioProcessor *loadPluginAVX2();
 #endif
-} // namespace aether
+} // namespace aelapse

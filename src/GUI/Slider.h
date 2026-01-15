@@ -2,7 +2,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
-namespace aether
+namespace aelapse
 {
 
 class Slider : public juce::Slider
@@ -34,4 +34,4 @@ class Slider : public juce::Slider
     bool hasOutline_{false};
     float maxPos_{1.f};
 };
-} // namespace aether
+} // namespace aelapse

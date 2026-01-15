@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.15)
 set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.10" CACHE STRING "" FORCE)
 
-project(Aether VERSION 1.0.0)
+project(Aelapse VERSION 1.0.0)
 set(COMPANY_NAME "S-audio")
 
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
@@ -37,7 +37,7 @@ juce_add_plugin(${PROJECT_NAME}
     # COPY_PLUGIN_AFTER_BUILD TRUE/FALSE
     PLUGIN_MANUFACTURER_CODE Saud
     PLUGIN_CODE Aeth
-    LV2URI https://github.com/smiarx/aether
+    LV2URI https://github.com/smiarx/aelapse
 
     FORMATS VST3 ${JUCE_FORMATS}
     PRODUCT_NAME "${PROJECT_NAME}")

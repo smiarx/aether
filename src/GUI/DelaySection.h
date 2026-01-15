@@ -8,7 +8,7 @@
 #include "Led.h"
 #include "Widgets.h"
 
-namespace aether
+namespace aelapse
 {
 
 class DelaySection : public juce::Component
@@ -63,4 +63,4 @@ class DelaySection : public juce::Component
     Led led_;
 };
 
-} // namespace aether
+} // namespace aelapse

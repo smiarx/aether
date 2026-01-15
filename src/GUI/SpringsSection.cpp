@@ -6,7 +6,7 @@
 #include "juce_graphics/juce_graphics.h"
 #include "juce_gui_basics/juce_gui_basics.h"
 
-namespace aether
+namespace aelapse
 {
 
 SpringsSection::SpringsSection(PluginProcessor &processor) :
@@ -219,4 +219,4 @@ void SpringsSection::paint(juce::Graphics &g)
                CustomLNF::kSepWidth);
 }
 
-} // namespace aether
+} // namespace aelapse

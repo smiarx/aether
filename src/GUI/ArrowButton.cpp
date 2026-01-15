@@ -3,7 +3,7 @@
 #include "juce_graphics/juce_graphics.h"
 #include "juce_gui_basics/juce_gui_basics.h"
 
-namespace aether
+namespace aelapse
 {
 
 ArrowButton::ArrowButton(const juce::String &name,
@@ -46,4 +46,4 @@ void ArrowButton::paintButton(juce::Graphics &g,
     g.strokePath(p, juce::PathStrokeType(1.f));
 }
 
-} // namespace aether
+} // namespace aelapse

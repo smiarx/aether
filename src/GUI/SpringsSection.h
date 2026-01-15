@@ -6,7 +6,7 @@
 #include "SpringsGL.h"
 #include "Widgets.h"
 
-namespace aether
+namespace aelapse
 {
 
 class SpringsSection : public juce::Component
@@ -58,4 +58,4 @@ class SpringsSection : public juce::Component
     SpringsGL springsGl_;
 };
 
-} // namespace aether
+} // namespace aelapse

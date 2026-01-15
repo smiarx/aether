@@ -11,7 +11,7 @@
 #include "juce_opengl/juce_opengl.h"
 #include "juce_opengl/opengl/juce_gl.h"
 
-namespace aether
+namespace aelapse
 {
 
 static constexpr auto kRefreshTimeMs = 17;
@@ -247,4 +247,4 @@ void SpringsGL::parameterValueChanged(int parameterIndex, float newValue)
     }
 }
 
-} // namespace aether
+} // namespace aelapse

@@ -9,7 +9,7 @@
 #include "Title.h"
 #include "ToolTip.h"
 
-namespace aether
+namespace aelapse
 {
 
 class PluginEditor : public juce::AudioProcessorEditor
@@ -45,4 +45,4 @@ class PluginEditor : public juce::AudioProcessorEditor
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginEditor)
 };
 
-} // namespace aether
+} // namespace aelapse

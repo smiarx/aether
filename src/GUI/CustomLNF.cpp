@@ -10,7 +10,7 @@
 #include <cstdint>
 #include <cstdlib>
 
-namespace aether
+namespace aelapse
 {
 
 CustomLNF::CustomLNF()
@@ -124,11 +124,11 @@ void CustomLNF::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
     Slider::Polarity polarity = Slider::kUnipolar;
     bool hasOutline           = false;
     float maxPos              = 1.0f;
-    auto *aetherSlider        = dynamic_cast<Slider *>(&slider);
-    if (aetherSlider != nullptr) {
-        polarity   = aetherSlider->getPolarity();
-        hasOutline = aetherSlider->getHasOutline();
-        maxPos     = aetherSlider->getMaxPos();
+    auto *aelapseSlider        = dynamic_cast<Slider *>(&slider);
+    if (aelapseSlider != nullptr) {
+        polarity   = aelapseSlider->getPolarity();
+        hasOutline = aelapseSlider->getHasOutline();
+        maxPos     = aelapseSlider->getMaxPos();
     }
 
     /* INDICATOR ARC */
@@ -555,4 +555,4 @@ void CustomLNF::drawPopupMenuItem(
     }
 }
 
-} // namespace aether
+} // namespace aelapse

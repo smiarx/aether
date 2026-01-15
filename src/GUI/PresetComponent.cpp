@@ -5,7 +5,7 @@
 #include <cstddef>
 #include <memory>
 
-namespace aether
+namespace aelapse
 {
 
 PresetComponent::PresetComponent(PresetManager &presetManager) :
@@ -140,4 +140,4 @@ void PresetComponent::presetManagerChanged(PresetManager & /*presetManager*/)
     updatePresetName();
 }
 
-} // namespace aether
+} // namespace aelapse

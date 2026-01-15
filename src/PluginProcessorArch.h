@@ -5,10 +5,10 @@
 #include "Springs.h"
 #include "TapeDelay.h"
 
-namespace aether::DSP_ARCH_NAMESPACE
+namespace aelapse::DSP_ARCH_NAMESPACE
 {
 
-class PluginProcessor final : public aether::PluginProcessor
+class PluginProcessor final : public aelapse::PluginProcessor
 {
   public:
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
@@ -31,4 +31,4 @@ class PluginProcessor final : public aether::PluginProcessor
     processors::Springs springs_;
 };
 
-} // namespace aether::DSP_ARCH_NAMESPACE
+} // namespace aelapse::DSP_ARCH_NAMESPACE

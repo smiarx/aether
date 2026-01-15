@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<Aether>
+<Aelapse>
   <PARAM id="delay_active" value="1.0"/>
   <PARAM id="delay_beats" value="8.0"/>
   <PARAM id="delay_cutoff_hi" value="20.0"/>
@@ -22,4 +22,4 @@
   <PARAM id="springs_shape" value="3.139999866485596"/>
   <PARAM id="springs_tone" value="0.5799999833106995"/>
   <PARAM id="springs_width" value="100.0"/>
-</Aether>
+</Aelapse>

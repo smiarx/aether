@@ -3,7 +3,7 @@
 
 Typefaces::Typefaces() :
     title{juce::Typeface::createSystemTypefaceFor(
-        Fonts::NunitoSans320_ttf, Fonts::NunitoSans320_ttfSize)},
+        Fonts::NunitoSans320300_ttf, Fonts::NunitoSans320300_ttfSize)},
     dfault{juce::Typeface::createSystemTypefaceFor(Fonts::Lexend300_ttf,
                                                    Fonts::Lexend300_ttfSize)},
     defaultMono{juce::Typeface::createSystemTypefaceFor(

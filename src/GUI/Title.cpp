@@ -5,7 +5,7 @@
 #include "juce_core/juce_core.h"
 #include "juce_graphics/juce_graphics.h"
 
-namespace aether
+namespace aelapse
 {
 
 Title::Title()
@@ -20,7 +20,7 @@ Title::Title()
     juce::AttributedString attrString;
 
     attrString.append(juce::String::fromUTF8(u8"Æ"), titleFont, mainColour);
-    attrString.append(juce::String("THER"), titleFont, backColour);
+    attrString.append(juce::String("LAPSE"), titleFont, backColour);
 
     // fix width
     maxWidth_ =
@@ -33,4 +33,4 @@ Title::Title()
 
 void Title::draw(juce::Graphics &g) { textLayout_.draw(g, bounds_); }
 
-} // namespace aether
+} // namespace aelapse

@@ -2,7 +2,7 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 
-namespace aether
+namespace aelapse
 {
 
 class PresetManager : juce::ValueTree::Listener
@@ -80,4 +80,4 @@ class PresetManager : juce::ValueTree::Listener
                                   const juce::Identifier &property) override;
 };
 
-} // namespace aether
+} // namespace aelapse

@@ -4,6 +4,7 @@ target_sources(${PROJECT_NAME}
         PluginProcessorArch.cpp
     )
 
+message(STATUS "CMAKE_SYSTEM_PROCESSOR: ${CMAKE_SYSTEM_PROCESSOR}")
 if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
     target_sources(${PROJECT_NAME}
         PRIVATE

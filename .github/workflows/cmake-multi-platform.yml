@@ -42,7 +42,7 @@ jobs:
             cpp_compiler: g++
             pluginval: ./pluginval
           - name: macOS
-            os: macos-latest
+            os: macos-14
             c_compiler: clang
             cpp_compiler: clang++
             pluginval: pluginval.app/Contents/MacOS/pluginval
@@ -72,7 +72,7 @@ jobs:
       if: runner.os == 'MacOS'
       uses: maxim-lobanov/setup-xcode@v1
       with:
-        xcode-version: '15.2'
+        xcode-version: '16.2'
 
     - name: Configure CMake
       run: cmake -B ${{ steps.strings.outputs.build-output-dir }} ${{ matrix.cmake_gen }} -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -S ${{ github.workspace }}

@@ -105,7 +105,7 @@ void CustomLNF::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
     auto fwidth  = static_cast<float>(width);
     auto fheight = static_cast<float>(height);
 
-    auto radius    = juce::jmin(fwidth, fheight) / 2.f;
+    auto radius    = juce::jmin(fwidth, fheight) / 2.f - .5f;
     auto centre    = juce::Point<float>(fx + fwidth / 2.f, fy + fheight / 2.f);
     auto rectangle = juce::Rectangle<int>(x, y, width, height).toFloat();
 
@@ -155,7 +155,7 @@ void CustomLNF::drawRotarySlider(juce::Graphics &g, int x, int y, int width,
     auto strokeType = juce::PathStrokeType(
         arcWidth, juce::PathStrokeType::curved, juce::PathStrokeType::square);
 
-    auto arcRadius = radius - arcWidth / 2.f;
+    auto arcRadius = radius - arcWidth / 2.f - .5f;
     juce::Path arcActive;
     arcActive.addCentredArc(centre.getX(), centre.getY(), arcRadius, arcRadius,
                             0.f, rotaryStartAngle, stopAngle, true);

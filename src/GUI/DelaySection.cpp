@@ -66,18 +66,14 @@ DelaySection::DelaySection(PluginProcessor &processor) :
     sliders_[kTime].getLabel().setText(
         "", juce::NotificationType::dontSendNotification);
 
-    const auto symbolFont = juce::Font(Typefaces::getInstance()->symbols)
-                                .withPointHeight(CustomLNF::kTextPointHeight);
     sliders_[kCutHi].getComponent().setPolarity(Slider::kUnipolarReversed);
     sliders_[kCutHi].getLabel().setText(
         juce::String::fromUTF8(u8"╭"),
         juce::NotificationType::dontSendNotification);
-    sliders_[kCutHi].getLabel().setFont(symbolFont);
 
     sliders_[kCutLow].getLabel().setText(
         juce::String::fromUTF8(u8"╮"),
         juce::NotificationType::dontSendNotification);
-    sliders_[kCutLow].getLabel().setFont(symbolFont);
 
     sliders_[kDryWet].getComponent().setTextValueSuffix("%");
     sliders_[kTime].getComponent().setTextValueSuffix("s");

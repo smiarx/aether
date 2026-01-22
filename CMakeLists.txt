@@ -70,7 +70,7 @@ target_compile_definitions(${PROJECT_NAME}
         TAPEDELAY_SWITCH_INDICATOR
     )
 
-target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_17)
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 
 #ignore omp simd pragma
 if(MSVC)

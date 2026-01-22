@@ -4,7 +4,7 @@ target_sources(${PROJECT_NAME}
         PluginProcessorArch.cpp
     )
 
-if(CMAKE_SYSTEM_PROCESSOR MATCHES "(x86)|(X86)|(amd64)|(AMD64)")
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "(x86)|(X86)|(amd64)|(AMD64)" OR APPLE)
     target_sources(${PROJECT_NAME}
         PRIVATE
             PluginProcessorAVX2.cpp
@@ -12,8 +12,14 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "(x86)|(X86)|(amd64)|(AMD64)")
 
     if(MSVC)
         set_source_files_properties(PluginProcessorAVX2.cpp TARGET_DIRECTORY ${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "/arch:AVX2")
+    elseif(APPLE)
+        # error on macos no aligned-allocation
+        set_source_files_properties(PluginProcessorAVX2.cpp
+            TARGET_DIRECTORY ${PROJECT_NAME}
+            PROPERTIES COMPILE_FLAGS "-mavx2 -mfma -faligned-allocation")
     else()
         set_source_files_properties(PluginProcessorAVX2.cpp TARGET_DIRECTORY ${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-mavx2 -mfma")
+
     endif()
 endif()
 

@@ -205,6 +205,8 @@ DelaySection::DelaySection(PluginProcessor &processor) :
         timeType_.setEnabled(active);
         mode_.setEnabled(active);
     };
+    // set enabled state
+    active_.onClick();
 }
 
 void DelaySection::resized()

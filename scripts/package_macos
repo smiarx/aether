@@ -25,13 +25,14 @@ cp "${basedir}/../LICENSE" "${resources}/License.txt"
 makepkg() {
     type="$1"
     ext="$2"
+    folderdest="$3"
 
     mkdir -p "${working_dir}/scripts_${type}"
     cat >"${working_dir}/scripts_${type}/postinstall" <<SCRIPTEND
 #!/bin/sh
 
 FILE="${project_name}.${ext}"
-DEST="\${HOME}/Library/Audio/Plug-Ins/${type}"
+DEST="\${HOME}/Library/Audio/Plug-Ins/${folderdest}"
 
 mkdir -p "\${DEST}"
 
@@ -59,12 +60,12 @@ SCRIPTEND
 
 # make VST pkg
 if [[ -d "${artefacts}/VST3/${project_name}.vst3" ]]; then
-    makepkg "VST3" "vst3"
+    makepkg "VST3" "vst3" "VST3"
 fi
 
 # make AU pkg
 if [[ -d "${artefacts}/AU/${project_name}.component" ]]; then
-    makepkg "AU" "component"
+    makepkg "AU" "component" "Components"
 fi
 
 cat >"${packaging}/distribution.xml" <<XMLEND

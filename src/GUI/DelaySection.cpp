@@ -106,9 +106,8 @@ DelaySection::DelaySection(PluginProcessor &processor) :
         "How much the tape speed is modulated. This creates a pitch wobble "
         "effect.");
     mode_.getComboBox().setTooltip(
-        "[Normal]: Produces standard echoes. [Back & Forth]: Alternates "
-        "between forward and reversed echoes. [Reverse]: Produces reversed "
-        "echoes.");
+        "[Normal]: standard echoes.\n[Back & Forth]: alternates forward and "
+        "reversed.\n[Reverse]: reversed echoes.");
 
     mode_.getComboBox().setTitle("Mode");
     timeType_.getComboBox().setTooltip(

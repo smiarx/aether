@@ -217,12 +217,6 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
 namespace aelapse
 {
 
-#if DSP_AVX
-#define LOADFUNC loadPluginAVX2
-#else
-#define LOADFUNC loadPluginDefault
-#endif
-
 juce::AudioProcessor *LOADFUNC()
 {
     return new DSP_ARCH_NAMESPACE::PluginProcessor();

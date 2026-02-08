@@ -1,6 +1,6 @@
 #include "Title.h"
 
-namespace aether
+namespace aelapse
 {
 
 class ToolTip : public juce::Component
@@ -15,4 +15,4 @@ class ToolTip : public juce::Component
     juce::Component *component_{nullptr};
 };
 
-} // namespace aether
+} // namespace aelapse

@@ -4,7 +4,7 @@
 #include "ArrowButton.h"
 #include <juce_gui_basics/juce_gui_basics.h>
 
-namespace aether
+namespace aelapse
 {
 
 class PresetComponent : public juce::Component,
@@ -40,4 +40,4 @@ class PresetComponent : public juce::Component,
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PresetComponent)
 };
 
-} // namespace aether
+} // namespace aelapse

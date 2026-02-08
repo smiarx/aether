@@ -9,7 +9,7 @@
 #include "juce_graphics/juce_graphics.h"
 #include "juce_gui_basics/juce_gui_basics.h"
 
-namespace aether
+namespace aelapse
 {
 
 DelaySection::DelaySection(PluginProcessor &processor) :
@@ -320,4 +320,4 @@ void DelaySection::paint(juce::Graphics &g)
                bounds.getWidth(), CustomLNF::kSepWidth);
 }
 
-} // namespace aether
+} // namespace aelapse

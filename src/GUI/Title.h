@@ -2,13 +2,13 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
-namespace aether
+namespace aelapse
 {
 
 class Title
 {
   public:
-    static constexpr auto kTitleString = u8"ÆTHER";
+    static constexpr auto kTitleString = u8"ÆLAPSE";
 
     Title();
     void setBounds(juce::Rectangle<float> bounds) { bounds_ = bounds; }
@@ -20,4 +20,4 @@ class Title
     juce::Rectangle<float> bounds_;
     float maxWidth_{};
 };
-} // namespace aether
+} // namespace aelapse

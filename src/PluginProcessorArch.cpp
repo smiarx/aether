@@ -1,6 +1,6 @@
 #include "PluginProcessorArch.h"
 
-namespace aether::DSP_ARCH_NAMESPACE
+namespace aelapse::DSP_ARCH_NAMESPACE
 {
 
 //==============================================================================
@@ -212,9 +212,9 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
     // update rms buffer position
     rmsPos_.store(static_cast<int>(*springs_.getRMSStackPos()));
 }
-} // namespace aether::DSP_ARCH_NAMESPACE
+} // namespace aelapse::DSP_ARCH_NAMESPACE
 
-namespace aether
+namespace aelapse
 {
 
 #if DSP_AVX
@@ -228,4 +228,4 @@ juce::AudioProcessor *LOADFUNC()
     return new DSP_ARCH_NAMESPACE::PluginProcessor();
 }
 
-} // namespace aether
+} // namespace aelapse

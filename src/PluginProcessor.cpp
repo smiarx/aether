@@ -9,7 +9,7 @@
 #include <cstddef>
 #include <memory>
 
-namespace aether
+namespace aelapse
 {
 
 //==============================================================================
@@ -125,7 +125,7 @@ double PluginProcessor::getTailLengthSeconds() const { return 0.0; }
 
 int PluginProcessor::getNumPrograms()
 {
-    return aether::PresetManager::kNFactoryPreset + 1;
+    return aelapse::PresetManager::kNFactoryPreset + 1;
 }
 
 int PluginProcessor::getCurrentProgram()
@@ -140,7 +140,7 @@ void PluginProcessor::setCurrentProgram(int index)
 
 const juce::String PluginProcessor::getProgramName(int index)
 {
-    return aether::PresetManager::getPresetName(static_cast<size_t>(index));
+    return aelapse::PresetManager::getPresetName(static_cast<size_t>(index));
 }
 
 void PluginProcessor::changeProgramName(int index, const juce::String &newName)
@@ -195,7 +195,7 @@ void PluginProcessor::addProcessorAsListener(
     parameterValueChanged(param->getParameterIndex(), param->getValue());
 }
 
-} // namespace aether
+} // namespace aelapse
 
 //==============================================================================
 juce::AudioProcessor *JUCE_CALLTYPE createPluginFilter()
@@ -204,9 +204,9 @@ juce::AudioProcessor *JUCE_CALLTYPE createPluginFilter()
     auto infos = dsp::cpu::getInfos();
 
     if (infos.avx2 && infos.fma3_sse42) {
-        return aether::loadPluginAVX2();
+        return aelapse::loadPluginAVX2();
     }
 #endif
 
-    return aether::loadPluginDefault();
+    return aelapse::loadPluginDefault();
 }

@@ -6,7 +6,7 @@
 #include "juce_gui_basics/juce_gui_basics.h"
 #include <limits>
 
-namespace aether
+namespace aelapse
 {
 
 PluginEditor::PluginEditor(PluginProcessor &p) :
@@ -122,4 +122,4 @@ void PluginEditor::mouseMove(const juce::MouseEvent &event)
     tooltip_.setFromComponent(underMouse);
 }
 
-} // namespace aether
+} // namespace aelapse

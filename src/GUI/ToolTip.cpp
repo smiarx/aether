@@ -5,7 +5,7 @@
 #include "juce_graphics/juce_graphics.h"
 #include "juce_gui_basics/juce_gui_basics.h"
 
-namespace aether
+namespace aelapse
 {
 
 void ToolTip::setFromComponent(juce::Component *component)
@@ -69,4 +69,4 @@ void ToolTip::paint(juce::Graphics &g)
     textLayout_.draw(g, getLocalBounds().toFloat());
 }
 
-} // namespace aether
+} // namespace aelapse

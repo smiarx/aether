@@ -2,7 +2,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
-namespace aether
+namespace aelapse
 {
 
 class CustomLNF : public juce::LookAndFeel_V4
@@ -80,4 +80,4 @@ class CustomLNF : public juce::LookAndFeel_V4
         40, 40, false};
 };
 
-} // namespace aether
+} // namespace aelapse

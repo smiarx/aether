@@ -7,7 +7,7 @@
 
 #include "Springs.h"
 
-namespace aether
+namespace aelapse
 {
 
 class SpringsGL : public juce::Component,
@@ -131,4 +131,4 @@ class SpringsGL : public juce::Component,
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SpringsGL)
 };
 
-} // namespace aether
+} // namespace aelapse

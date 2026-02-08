@@ -2,7 +2,7 @@
 #include "juce_graphics/juce_graphics.h"
 #include <algorithm>
 
-namespace aether
+namespace aelapse
 {
 
 void Led::timerCallback()
@@ -55,4 +55,4 @@ void Led::paint(juce::Graphics &g)
     g.fillEllipse(boundsLight);
 }
 
-} // namespace aether
+} // namespace aelapse

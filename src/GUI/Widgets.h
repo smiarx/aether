@@ -6,7 +6,7 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
-namespace aether
+namespace aelapse
 {
 
 using APVTS = juce::AudioProcessorValueTreeState;
@@ -147,4 +147,4 @@ class SliderWithLabel : public Widget<Slider>
     APVTS::SliderAttachment attachment_;
 };
 
-} // namespace aether
+} // namespace aelapse

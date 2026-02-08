@@ -5,7 +5,7 @@
 #include <array>
 #include <cstddef>
 
-namespace aether
+namespace aelapse
 {
 
 const std::array<PresetManager::factoryPreset_t, PresetManager::kNFactoryPreset>
@@ -134,4 +134,4 @@ juce::String PresetManager::getPresetName(size_t id)
     return "";
 }
 
-} // namespace aether
+} // namespace aelapse

@@ -120,8 +120,11 @@ DelaySection::DelaySection(PluginProcessor &processor) :
     addAndMakeVisible(mode_);
     mode_.getComboBox().addItemList(
         apvts.getParameter("delay_mode")->getAllValueStrings(), 1);
+    auto *delayModeParam = apvts.getParameter("delay_mode");
     mode_.getComboBox().setSelectedId(
-        static_cast<int>(apvts.getParameter("delay_mode")->getValue()) + 1,
+        1 + static_cast<int>(
+                delayModeParam->getNormalisableRange().convertFrom0to1(
+                    delayModeParam->getValue())),
         juce::NotificationType::dontSendNotification);
 
     addAndMakeVisible(timeType_);
@@ -129,12 +132,15 @@ DelaySection::DelaySection(PluginProcessor &processor) :
     timeTypeComboBox.addItemList(
         apvts.getParameter("delay_time_type")->getAllValueStrings(), 1);
 
-    timeTypeComboBox.onChange = [this, &apvts]() {
+    auto *timeTypeParam       = apvts.getParameter("delay_time_type");
+    timeTypeComboBox.onChange = [this, &apvts, timeTypeParam]() {
         timeType_.defaultCallback();
         auto &component  = sliders_[kTime].getComponent();
         auto &attachment = sliders_[kTime].getAttachment();
-        auto &comboBox   = timeType_.getComboBox();
-        auto selected    = comboBox.getSelectedId();
+        int selected =
+            1 + static_cast<int>(
+                    timeTypeParam->getNormalisableRange().convertFrom0to1(
+                        timeTypeParam->getValue()));
 
         juce::String id;
         juce::String suffix;
@@ -194,8 +200,8 @@ DelaySection::DelaySection(PluginProcessor &processor) :
                                   juce::NotificationType::dontSendNotification);
         }
     };
-    // init slider time
-    sliders_[kTime].getSlider().onValueChange();
+    // set time type;
+    timeType_.getComboBox().onChange();
 
     active_.onClick = [this]() {
         bool active = active_.getToggleState();

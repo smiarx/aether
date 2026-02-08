@@ -143,8 +143,10 @@ class PluginProcessor : public juce::AudioProcessor,
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginProcessor)
 };
 
-juce::AudioProcessor *loadPluginDefault();
-#if DSP_X86_DISPATCH
+#if DSP_AVX || DSP_X86_DISPATCH
 juce::AudioProcessor *loadPluginAVX2();
+#endif
+#if !DSP_AVX
+juce::AudioProcessor *loadPluginDefault();
 #endif
 } // namespace aelapse

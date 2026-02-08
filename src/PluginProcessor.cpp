@@ -1,5 +1,6 @@
 #include "PluginProcessor.h"
 #include "GUI/PluginEditor.h"
+#include "PluginProcessorArch.h"
 #include "Presets/PresetManager.h"
 #include "juce_audio_basics/juce_audio_basics.h"
 #include "juce_audio_processors/juce_audio_processors.h"
@@ -200,7 +201,7 @@ void PluginProcessor::addProcessorAsListener(
 //==============================================================================
 juce::AudioProcessor *JUCE_CALLTYPE createPluginFilter()
 {
-#if DSP_X86_DISPATCH
+#if DSP_X86_DISPATCH && !DSP_AVX2
     auto infos = dsp::cpu::getInfos();
 
     if (infos.avx2 && infos.fma3_sse42) {
@@ -208,5 +209,5 @@ juce::AudioProcessor *JUCE_CALLTYPE createPluginFilter()
     }
 #endif
 
-    return aelapse::loadPluginDefault();
+    return aelapse::LOADFUNC();
 }

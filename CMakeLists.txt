@@ -10,7 +10,14 @@ set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
 
 find_package(JUCE CONFIG QUIET)
 if(NOT ${JUCE_FOUND})
-add_subdirectory(submodules/JUCE)
+    Include(FetchContent)
+
+    FetchContent_Declare(
+      JUCE
+      GIT_REPOSITORY https://github.com/juce-framework/JUCE
+      GIT_TAG        7.0.12
+    )
+    FetchContent_MakeAvailable(JUCE)
 endif()
 
 set(JUCE_FORMATS VST3 AU)

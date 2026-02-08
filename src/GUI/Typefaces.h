@@ -8,7 +8,6 @@ class Typefaces : juce::DeletedAtShutdown
     Typefaces();
     ~Typefaces() override { clearSingletonInstance(); }
     const juce::Typeface::Ptr title;
-    const juce::Typeface::Ptr symbols;
     const juce::Typeface::Ptr dfault;
     const juce::Typeface::Ptr defaultMono;
 

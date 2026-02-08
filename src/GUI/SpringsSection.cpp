@@ -108,6 +108,8 @@ SpringsSection::SpringsSection(PluginProcessor &processor) :
             slider.setEnabled(active);
         }
     };
+    // set enabled state
+    active_.onClick();
 }
 
 void SpringsSection::resized()

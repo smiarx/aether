@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.15)
 
 set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.10" CACHE STRING "" FORCE)
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 project(Aelapse VERSION 1.0.0)
 set(COMPANY_NAME "S-audio")

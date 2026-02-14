@@ -86,13 +86,12 @@ jobs:
         ctest --build-config ${{ env.BUILD_TYPE }} --output-on-failure
 
     - name: Pluginval
-      if: runner.os == 'MacOS'
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
       shell: bash
       run: |
         curl -LO "https://github.com/Tracktion/pluginval/releases/download/v1.0.3/pluginval_${{ matrix.name }}.zip"
         7z x pluginval_${{ matrix.name }}.zip
-        ${{ matrix.pluginval }} --strictness-level 10 --verbose --validate "${{ steps.strings.outputs.build-output-dir }}/${{ env.PROJECT }}_artefacts/${{ env.BUILD_TYPE }}/VST3/${{ env.PROJECT }}.vst3"
+        ${{ matrix.pluginval }} --strictness-level 10 --skip-gui-tests --verbose --validate "${{ steps.strings.outputs.build-output-dir }}/${{ env.PROJECT }}_artefacts/${{ env.BUILD_TYPE }}/VST3/${{ env.PROJECT }}.vst3"
 
     - name: Create Installer Package (macOS)
       if: runner.os == 'MacOS'

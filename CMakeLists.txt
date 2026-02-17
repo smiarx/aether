@@ -68,6 +68,7 @@ target_compile_definitions(${PROJECT_NAME}
         PROJECT_NAME="${PROJECT_NAME}"
         COMPANY_NAME="${COMPANY_NAME}"
         SPRINGS_RMS
+        SPRINGS_SHAKE
         TAPEDELAY_SWITCH_INDICATOR
     )
 
@@ -75,18 +76,17 @@ target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 
 #ignore omp simd pragma
 if(MSVC)
-target_compile_options(${PROJECT_NAME} PRIVATE
-       /openmp
-   )
+    target_compile_options(${PROJECT_NAME} PRIVATE
+        /openmp
+    )
 else()
-target_compile_options(${PROJECT_NAME} PRIVATE
-       -fopenmp-simd
-   )
+    target_compile_options(${PROJECT_NAME} PRIVATE
+        -fopenmp-simd
+    )
 endif()
 
 set_property(TARGET readerwriterqueue PROPERTY SYSTEM TRUE)
-set_property(TARGET dsp_tapedelay_processor PROPERTY SYSTEM TRUE)
-set_property(TARGET dsp_springs_processor PROPERTY SYSTEM TRUE)
+set_property(TARGET dsp_include PROPERTY SYSTEM TRUE)
 
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
@@ -103,4 +103,3 @@ target_link_libraries(${PROJECT_NAME}
         juce::juce_recommended_config_flags
         juce::juce_recommended_warning_flags
     )
-

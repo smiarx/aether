@@ -51,6 +51,7 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
                         ParamId::kDelaySeconds)]);
                 event.value = *param;
             }
+            [[fallthrough]];
         case ParamId::kDelayBeats:
             if (useBeats_) {
                 auto id = static_cast<int>(event.value);
@@ -98,6 +99,7 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
             } else if (event.id == ParamId::kDelayBeats) {
                 break;
             }
+            [[fallthrough]];
         case ParamId::kDelaySeconds:
             if (!useBeats_) {
                 tapedelay_.setDelay(event.value, count);

@@ -2,7 +2,7 @@
 #include "../PluginProcessor.h"
 #include "CustomLNF.h"
 #include "SpringsSection.h"
-#include "TapeDelay.h"
+#include "TapeDelayDefines.h"
 #include "Typefaces.h"
 #include "juce_core/juce_core.h"
 #include "juce_events/juce_events.h"
@@ -171,9 +171,9 @@ DelaySection::DelaySection(PluginProcessor &processor) :
 
     // limit seconds size to one third when in reverse mode
     auto *secondsParam = processor.getAPVTS().getParameter("delay_seconds");
-    auto oneThird      = secondsParam->convertTo0to1(
-        secondsParam->convertFrom0to1(1.f) /
-        processors::TapeDelay::kReverseDelayMaxRatio);
+    auto oneThird =
+        secondsParam->convertTo0to1(secondsParam->convertFrom0to1(1.f) /
+                                    float(TAPEDELAY_REVERSE_MAX_RATIO));
     mode_.getComboBox().onChange = [this, oneThird] {
         mode_.defaultCallback();
         auto &comboBox = mode_.getComboBox();

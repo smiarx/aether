@@ -1,6 +1,5 @@
 #include "PluginProcessor.h"
 #include "GUI/PluginEditor.h"
-#include "PluginProcessorArch.h"
 #include "Presets/PresetManager.h"
 #include "juce_audio_basics/juce_audio_basics.h"
 #include "juce_audio_processors/juce_audio_processors.h"
@@ -9,6 +8,8 @@
 #include <cassert>
 #include <cstddef>
 #include <memory>
+
+#include "TapeDelayDefines.h"
 
 namespace aelapse
 {
@@ -48,8 +49,8 @@ PluginProcessor::createLayout()
             juce::StringArray{"seconds", "beats", "dotted"}, 0),
         std::make_unique<juce::AudioParameterFloat>(
             "delay_seconds", "Delay Seconds",
-            juce::NormalisableRange<float>{
-                0.01f, processors::TapeDelay::kMaxDelay, 0.001f, 0.5f},
+            juce::NormalisableRange<float>{0.01f, TAPEDELAY_MAX_DELAY, 0.001f,
+                                           0.5f},
             0.2f),
         std::make_unique<juce::AudioParameterChoice>(
             "delay_beats", "Delay Beats",
@@ -197,17 +198,3 @@ void PluginProcessor::addProcessorAsListener(
 }
 
 } // namespace aelapse
-
-//==============================================================================
-juce::AudioProcessor *JUCE_CALLTYPE createPluginFilter()
-{
-#if DSP_X86_DISPATCH && !DSP_AVX2
-    auto infos = dsp::cpu::getInfos();
-
-    if (infos.avx2 && infos.fma3_sse42) {
-        return aelapse::loadPluginAVX2();
-    }
-#endif
-
-    return aelapse::LOADFUNC();
-}

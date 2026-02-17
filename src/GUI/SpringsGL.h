@@ -5,7 +5,7 @@
 #include "../PluginProcessor.h"
 #include "juce_audio_processors/juce_audio_processors.h"
 
-#include "Springs.h"
+#include "SpringsDefines.h"
 
 namespace aelapse
 {
@@ -21,8 +21,8 @@ class SpringsGL : public juce::Component,
     SpringsGL(PluginProcessor &processor);
     ~SpringsGL() override;
 
-    static constexpr auto kN             = processors::Springs::kN;
-    static constexpr auto kRmsStackSize  = processors::Springs::kRmsStackSize;
+    static constexpr auto kN             = SPRINGS_N_SPRINGS;
+    static constexpr auto kRmsStackSize  = SPRINGS_RMS_STACK_SIZE;
     static constexpr float kDamp2Density = 4500.f;
 
     void timerCallback() override;

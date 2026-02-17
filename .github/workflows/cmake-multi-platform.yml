@@ -75,7 +75,7 @@ jobs:
         xcode-version: '16.2'
 
     - name: Configure CMake
-      run: cmake -B ${{ steps.strings.outputs.build-output-dir }} ${{ matrix.cmake_gen }} -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -S ${{ github.workspace }}
+      run: cmake -B ${{ steps.strings.outputs.build-output-dir }} ${{ matrix.cmake_gen }} -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DDSP_X86_DISPATCH=1 -S ${{ github.workspace }}
 
     - name: Build
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ env.BUILD_TYPE }}

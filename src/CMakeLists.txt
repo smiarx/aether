@@ -1,15 +1,15 @@
 target_sources(${PROJECT_NAME}
     PRIVATE
+        LoadPlugin.cpp
         PluginProcessor.cpp
         PluginProcessorArch.cpp
-    )
+)
 
-if(CMAKE_SYSTEM_PROCESSOR MATCHES "(x86)|(X86)|(amd64)|(AMD64)" OR APPLE)
+if(DSP_X86_DISPATCH)
     target_sources(${PROJECT_NAME}
         PRIVATE
             PluginProcessorAVX2.cpp
     )
-
     if(MSVC)
         set_source_files_properties(PluginProcessorAVX2.cpp TARGET_DIRECTORY ${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "/arch:AVX2")
     elseif(APPLE)
@@ -19,7 +19,6 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "(x86)|(X86)|(amd64)|(AMD64)" OR APPLE)
             PROPERTIES COMPILE_FLAGS "-mavx2 -mfma -faligned-allocation")
     else()
         set_source_files_properties(PluginProcessorAVX2.cpp TARGET_DIRECTORY ${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-mavx2 -mfma")
-
     endif()
 endif()
 

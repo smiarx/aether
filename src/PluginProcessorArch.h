@@ -4,11 +4,12 @@
 
 #include "Springs.h"
 #include "TapeDelay.h"
+#include "dsp/cpu/defines.h"
 
-#if DSP_AVX
+#if DSP_COMPILE_AVX2
 #define LOADFUNC loadPluginAVX2
 #else
-#define LOADFUNC loadPluginDefault
+#define LOADFUNC loadPlugin
 #endif
 
 namespace aelapse::DSP_ARCH_NAMESPACE

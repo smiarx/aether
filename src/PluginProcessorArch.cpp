@@ -126,6 +126,7 @@ void PluginProcessor::processBlock(juce::AudioBuffer<float> &buffer,
             break;
         case ParamId::kSpringsActive:
             activeSprings_ = event.value > 0;
+            springs_.clearRMSSTack();
             break;
         case ParamId::kSpringsDryWet:
             springs_.setDryWet(event.value / 100.f, count);

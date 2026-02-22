@@ -35,6 +35,16 @@ $ cmake --build build --config Release --parallel 4
 
 VST will be located in `build/Aelapse_artifacts/Release`.
 
+On x86, you can enable the `DSP_X86_DISPATCH` option. This will compile the
+audio section of the plugin for different architectures and select the
+available one at runtime.
+
+```bash
+# build
+$ cmake -Bbuild -DDSP_X86_DISPATCH=1 -DCMAKE_BUILD_TYPE=Release .
+$ cmake --build build --config Release --parallel 4
+```
+
 You can also build with `-march=native` to build specifically for you machine.
 
 ```bash
